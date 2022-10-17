@@ -1,0 +1,582 @@
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
+
+package com.adobe.marketing.mobile.places;
+
+import com.adobe.marketing.mobile.LocalStorageService.DataStore;
+
+import java.util.*;
+
+class PlacesState {
+
+	private static final String PLACES_DATA_STORE = "placesdatastore";
+
+	LinkedHashMap<String, PlacesPOI> cachedPOIs;
+	PlacesPOI currentPOI;
+	PlacesPOI lastEnteredPOI;
+	PlacesPOI lastExitedPOI;
+	String authStatus;
+	LocalStorageService storageService;
+	JsonUtilityService jsonUtilityService;
+	long membershipValidUntil;
+	long membershipTtl;
+
+	/**
+	 * Constructor.
+	 * <p>
+	 * Creates a new instance of the {@link PlacesState}.
+	 * Attempts to load the previous session data from the places dataStore.
+	 *
+	 * @param platformServices The {@link PlatformServices} instance
+	 */
+	PlacesState(final PlatformServices platformServices) {
+		cachedPOIs = new LinkedHashMap<String, PlacesPOI>();
+
+		if (platformServices == null || platformServices.getLocalStorageService() == null
+				|| platformServices.getJsonUtilityService() == null) {
+			return;
+		}
+
+		this.storageService = platformServices.getLocalStorageService();
+		this.jsonUtilityService = platformServices.getJsonUtilityService();
+
+		// load the persisted POI's to cache variable
+		loadPersistedPOIs();
+	}
+
+
+	/**
+	 * Processes the {@link PlacesQueryResponse} obtained from the Places Query Service call.
+	 * <p>
+	 * This method,
+	 * <ol>
+	 *	   <li> Compares with the existing cached POI's and creates new Entry events if the POI has lately entered into a geoFence
+	 *	   <li> Overrides the cached POIs with the new ones obtained from the query response
+	 *	   <li> Persist the POIs obtained from the query response
+	 * </ol>
+	 *
+	 * @param response the places query response
+	 * @param event the {@link Event} that requested to getNearbyPointsOfInterest
+	 */
+	void processNetworkResponse(final PlacesQueryResponse response, final Event event) {
+		// always reset the current POI
+		currentPOI = null;
+
+		if (response.containsUserPOIs != null && !response.containsUserPOIs.isEmpty()) {
+			// update the currentPOI and LastEnteredPOI to the first value in the query response
+			currentPOI = new PlacesPOI(response.containsUserPOIs.get(0));
+			lastEnteredPOI = new PlacesPOI(response.containsUserPOIs.get(0));  // should I update the last entered POI here?
+		}
+
+		// refresh the cache with POI's obtained from the response
+		cachePOIs(response);
+
+		// update the validity of membershipPOI after every successful nearByPOI response
+		updateMembershipValidUntilTimestamp();
+
+		// then persist the cached POI's
+		persistPOIs();
+	}
+
+	/**
+	 * Processes the {@link EventType#PLACES} {@link EventSource#REQUEST_CONTENT} region entry/exit {@code Event} and updates the Places State.
+	 * <ol>
+	 *	   <li> Reads the regionId from the event's {@code EventData}.
+	 *	   <li> Load the corresponding POI details for the given regionID from cache.
+	 *	   <li> Creates Entry/Exit {@link PlacesRegion} event comparing the previous and current state of the POI.
+	 *	   <li> Updates the shares state variable currentPOI, lastEnteredPOI and lastExitedPOI.
+	 * </ol>
+	 *
+	 * This method returns null when
+	 * <ol>
+	 *	   <li> No valid regionId found in Event.
+	 *	   <li> Invalid regionEventType found in Event.
+	 *	   <li> When there does not exist any cached data for the obtained regionID from the Event.
+	 * </ol>
+	 *
+	 * @param event the {@link EventType#PLACES} {@link EventSource#REQUEST_CONTENT} {@link Event}
+	 * @return A {@link PlacesRegion} instance representing an Entry/Exit event identified while processing the requested data
+	 */
+	PlacesRegion processRegionEvent(final Event event) {
+		// no need to do null pointer check for event or its eventData
+		// check are made prior to handing over to this method
+		EventData eventData = event.getData();
+
+		// extract the required data from eventData
+		String regionId = eventData.optString(PlacesConstants.EventDataKeys.Places.REGION_ID, null);
+		String regionType = eventData.optString(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE,
+												PlacesRegion.PLACE_EVENT_NONE);
+
+		// bail out if the event has invalid regionId
+		if (StringUtils.isNullOrEmpty(regionId)) {
+			Log.warning(PlacesConstants.LOG_TAG, "Invalid regionId, Ignoring to process geofence event", regionId);
+			return null;
+		}
+
+		// identify the POI among the cachedPOIs.
+		PlacesPOI matchedPOI = cachedPOIs.get(regionId);
+
+		// bail out if no matchedPOI is found
+		if (matchedPOI == null) {
+			Log.warning(PlacesConstants.LOG_TAG,
+						"Unable to find POI details for regionId : %s, Ignoring to process geofence event", regionId);
+			return null;
+		}
+
+		// Edit the POI to containUser, create and dispatch an entry event
+		if (regionType.equals(PlacesRegion.PLACE_EVENT_ENTRY)) {
+
+			matchedPOI.setUserIsWithin(true);
+
+			// update shared state variables
+			lastEnteredPOI = matchedPOI;
+			currentPOI = matchedPOI.comparePriority(currentPOI) ? matchedPOI : currentPOI;
+
+			// update the validity of membershipPOI after every region event
+			updateMembershipValidUntilTimestamp();
+			persistPOIs();
+			return new PlacesRegion(matchedPOI, PlacesRegion.PLACE_EVENT_ENTRY, event.getTimestamp());
+		}
+
+
+		// Edit the POI to not containUser, create and dispatch an exit event
+		else if (regionType.equals(PlacesRegion.PLACE_EVENT_EXIT)) {
+
+			if (matchedPOI.equals(currentPOI)) {
+				// remove the currentPoi. If that's the poi which is exited
+				currentPOI = null;
+			}
+
+			matchedPOI.setUserIsWithin(false);
+			currentPOI = calculateCurrentPOI();
+
+			// update the shared state variable
+			lastExitedPOI = new PlacesPOI(matchedPOI);
+
+			// update the validity of membershipPOI after every region event
+			updateMembershipValidUntilTimestamp();
+			persistPOIs();
+			return new PlacesRegion(matchedPOI, PlacesRegion.PLACE_EVENT_EXIT, event.getTimestamp());
+		}
+
+		else {
+			Log.warning(PlacesConstants.LOG_TAG, "Unknown region type : %s, Ignoring to process geofence event", regionType);
+			return null;
+		}
+	}
+
+	/**
+	 * Creates the {@code EventData} for the places shared state from the POI's cached in {@link PlacesState}
+	 *
+	 * @return an {@link EventData} representing the places shared state
+	 */
+	EventData getPlacesSharedState() {
+		// create and return the shared state eventData
+		EventData data = new EventData();
+
+		// ensure that our membership data is still valid, and clear it out if it's not
+		if (!isMembershipDataValid()) {
+			clearMembershipData();
+		}
+
+		if (cachedPOIs != null && !cachedPOIs.isEmpty()) {
+			data.putTypedList(PlacesConstants.SharedStateKeys.NEARBYPOIS, new ArrayList<PlacesPOI>(cachedPOIs.values()),
+							  new PlacesPOIVariantSerializer());
+		}
+
+		if (authStatus != null) {
+			data.putString(PlacesConstants.SharedStateKeys.AUTH_STATUS, authStatus);
+		}
+
+		try {
+			if (currentPOI != null) {
+				data.putTypedObject(PlacesConstants.SharedStateKeys.CURRENT_POI, currentPOI, new PlacesPOIVariantSerializer());
+			}
+
+			if (lastEnteredPOI != null) {
+				data.putTypedObject(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI, lastEnteredPOI, new PlacesPOIVariantSerializer());
+			}
+
+			if (lastExitedPOI != null) {
+				data.putTypedObject(PlacesConstants.SharedStateKeys.LAST_EXITED_POI, lastExitedPOI, new PlacesPOIVariantSerializer());
+			}
+		} catch (VariantException exp) {
+			Log.warning(PlacesConstants.LOG_TAG,
+						"Exception occurred while creating shared state data. There might be loss in places shared state data.");
+		}
+
+		data.putLong(PlacesConstants.SharedStateKeys.VALID_UNTIL, membershipValidUntil);
+		return data;
+	}
+
+	/**
+	 * Gets the Points of Interest within which the device is currently geographically located
+	 *
+	 * @return A list containing POIs that the user is in. Return empty array if there is no POI that contains user
+	 */
+	List<PlacesPOI> getUserWithInPOIs() {
+		ArrayList<PlacesPOI> userWithInPOIs = new ArrayList<PlacesPOI>();
+
+		for (PlacesPOI eachPOI : cachedPOIs.values()) {
+			if (eachPOI.containsUser()) {
+				userWithInPOIs.add(eachPOI);
+			}
+		}
+
+		return  userWithInPOIs;
+	}
+
+	/**
+	 * Saves the Places Extension's last known location in persistence.
+	 * <p>
+	 * Passing an invalid latitude or longitude will remove the location from the persistence.
+	 *
+	 * @param latitude {@code double} last known latitude
+	 * @param longitude {@code double} last known longitude
+	 */
+	void saveLastKnownLocation(final double latitude, final double longitude) {
+		DataStore placesDataStore = getDataStore();
+
+		if (placesDataStore == null) {
+			Log.warning(PlacesConstants.LOG_TAG,
+						"localStorage services from mobile core is not available, unable to persist authorization status");
+			return;
+		}
+
+		if (!PlacesUtil.isValidLat(latitude) || !PlacesUtil.isValidLon(longitude)) {
+			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE);
+			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE);
+			return;
+		}
+
+		placesDataStore.setDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE, latitude);
+		placesDataStore.setDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE, longitude);
+	}
+
+	/**
+	 * Loads the Places Extension's last known location from persistence.
+	 * <p>
+	 * Returns null, if the Places DataStore is not available
+	 * or if the the latitude or longitude value is invalid.
+	 *
+	 * @return An {@link PlacesGpsLocation} instance containing the last known latitude and longitude
+	 */
+	PlacesGpsLocation loadLastKnownLocation() {
+		DataStore placesDataStore = getDataStore();
+
+		if (placesDataStore == null) {
+			Log.warning(PlacesConstants.LOG_TAG,
+						"localStorage services from mobile core is not available, unable to persist authorization status");
+			return null;
+		}
+
+		double latitude = placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
+						  PlacesConstants.INVALID_LAT_LON);
+		double longitude = placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
+						   PlacesConstants.INVALID_LAT_LON);
+
+		if (!PlacesUtil.isValidLat(latitude) || !PlacesUtil.isValidLon(longitude)) {
+			return null;
+		}
+
+		return new PlacesGpsLocation(latitude, longitude);
+	}
+
+	/**
+	 * Saves the authorization value to persistence.
+	 * <p>
+	 * Make sure a valid status string is provided. Please use {@link PlacesAuthorizationStatus#isValidStatus(String)} to
+	 * validate the status string before passing to this method.
+	 * If null value is provided the authorization is set to default value {@link PlacesAuthorizationStatus#DEFAULT_VALUE}
+	 *
+	 * @param status the string value of {@link PlacesAuthorizationStatus} that needs to be persisted
+	 */
+	public void setAuthorizationStatus(final String status) {
+		this.authStatus = status;
+
+		if (this.authStatus == null) {
+			this.authStatus = PlacesAuthorizationStatus.DEFAULT_VALUE;
+		}
+
+		DataStore placesDataStore = getDataStore();
+
+		if (placesDataStore == null) {
+			Log.warning(PlacesConstants.LOG_TAG,
+						"localStorage services from mobile core is not available, unable to persist authorization status");
+			return;
+		}
+
+		placesDataStore.setString(PlacesConstants.DataStoreKeys.AUTH_STATUS, authStatus);
+		Log.trace(PlacesConstants.LOG_TAG, "Authorization status persisted, %s", authStatus);
+	}
+
+
+	void setMembershiptTtl(final long membershipTtl) {
+		this.membershipTtl = membershipTtl;
+	}
+
+	/**
+	 * Clears all persisted and in-memory data for PlacesState.
+	 */
+	void clearData() {
+		// clear the in memory variables
+		cachedPOIs.clear();
+		lastExitedPOI = null;
+		lastEnteredPOI = null;
+		currentPOI = null;
+		membershipValidUntil = 0;
+		// then persist the empty data
+		persistPOIs();
+
+		saveLastKnownLocation(PlacesConstants.INVALID_LAT_LON, PlacesConstants.INVALID_LAT_LON);
+		setAuthorizationStatus(PlacesAuthorizationStatus.DEFAULT_VALUE);
+	}
+
+	/**
+	 * This method caches the nearby/containsUser from the {@link PlacesQueryResponse}.
+	 *
+	 * @param response the query response
+	 */
+	private void cachePOIs(final PlacesQueryResponse response) {
+		// clear the existing cache
+		cachedPOIs.clear();
+
+		// cache containsUsers POI's
+		// while caching convert the list into map<id,poiObject> for easy data handling
+		if (response.containsUserPOIs != null && !response.containsUserPOIs.isEmpty()) {
+			for (PlacesPOI eachPOI : response.containsUserPOIs) {
+				cachedPOIs.put(eachPOI.getIdentifier(), eachPOI);
+			}
+		}
+
+		// cache NearbyPOIs
+		// while caching convert the list into map<id,poiObject> for easy data handling
+		if (response.nearByPOIs != null && !response.nearByPOIs.isEmpty()) {
+			for (PlacesPOI eachPOI : response.nearByPOIs) {
+				cachedPOIs.put(eachPOI.getIdentifier(), eachPOI);
+			}
+		}
+	}
+
+
+	private void loadPersistedPOIs() {
+		// load the persisted POI's to cache variables
+		DataStore placesDataStore = getDataStore();
+
+		if (placesDataStore == null) {
+			Log.warning(PlacesConstants.LOG_TAG,
+						"LocalStorage/JSONUtility service was not available, unable to load POI's from persistence");
+			return;
+		}
+
+		// attempt to load cachedPOIs
+		cachedPOIs = new LinkedHashMap<String, PlacesPOI>();
+		String nearbyString = placesDataStore.getString(PlacesConstants.DataStoreKeys.NEARBYPOIS, "");
+
+		if (!StringUtils.isNullOrEmpty(nearbyString)) {
+			JsonUtilityService.JSONObject nearbyMap = jsonUtilityService.createJSONObject(nearbyString);
+
+			if (nearbyMap == null) {
+				Log.warning(PlacesConstants.LOG_TAG, "Unable to load cached POI from JSON String : %s", nearbyString);
+				return;
+			}
+
+			Iterator<String> keys = nearbyMap.keys();
+
+			try {
+				while (keys.hasNext()) {
+					String key = keys.next();
+					cachedPOIs.put(key, new PlacesPOI(nearbyMap.getJSONObject(key), jsonUtilityService));
+				}
+			} catch (JsonException exp) {
+				Log.warning(PlacesConstants.LOG_TAG, "Unable to load cached POI from persistence : Exception - %s", exp);
+			}
+		}
+
+		// attempt to load current POI
+		String currentPOIString = placesDataStore.getString(PlacesConstants.DataStoreKeys.CURRENT_POI, "");
+
+		if (!StringUtils.isNullOrEmpty(currentPOIString)) {
+			try {
+				currentPOI = new PlacesPOI(currentPOIString, jsonUtilityService);
+				Log.debug(PlacesConstants.LOG_TAG, "CurrentPOI is loaded from persistence", currentPOI);
+			} catch (JsonException exp) {
+				Log.warning(PlacesConstants.LOG_TAG, "Unable to load currentPOI from persistence : Exception - ", exp);
+			}
+		}
+
+		// attempt to load last entered POI
+		String lastEnteredString = placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, "");
+
+		if (!StringUtils.isNullOrEmpty(lastEnteredString)) {
+			try {
+				lastEnteredPOI = new PlacesPOI(lastEnteredString, jsonUtilityService);
+				Log.debug(PlacesConstants.LOG_TAG, "Last Entered POI is loaded from persistence", lastEnteredPOI);
+			} catch (JsonException exp) {
+				Log.warning(PlacesConstants.LOG_TAG, "Unable to load last entered POI from persistence : Exception - ", exp);
+			}
+		}
+
+		// attempt to load last exited POI
+		String lastExitedString = placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, "");
+
+		if (!StringUtils.isNullOrEmpty(lastExitedString)) {
+			try {
+				lastExitedPOI = new PlacesPOI(lastExitedString, jsonUtilityService);
+			} catch (JsonException exp) {
+				Log.warning(PlacesConstants.LOG_TAG, "Unable to load last exited POI from persistence : Exception - ", exp);
+			}
+		}
+
+		// attempt to load authorization status at launch
+		authStatus = placesDataStore.getString(PlacesConstants.DataStoreKeys.AUTH_STATUS,
+											   PlacesAuthorizationStatus.DEFAULT_VALUE);
+
+		// load membership valid until timestamp
+		membershipValidUntil = placesDataStore.getLong(PlacesConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL, 0);
+
+	}
+
+	private void persistPOIs() {
+		// save the cache variable to persistence
+		DataStore placesDataStore = getDataStore();
+
+		if (placesDataStore == null) {
+			Log.error(PlacesConstants.LOG_TAG,
+					  "LocalStorage service was not available, unable to persist POI's in persistence");
+			return;
+		}
+
+		// persist nearbyPOIs
+		if (cachedPOIs != null && !cachedPOIs.isEmpty()) {
+			Variant variant = Variant.fromTypedMap(cachedPOIs, new PlacesPOIVariantSerializer());
+			String jsonString = variant.toString();
+			placesDataStore.setString(PlacesConstants.DataStoreKeys.NEARBYPOIS, jsonString);
+			Log.trace(PlacesConstants.LOG_TAG, "nearbyPOIs persisted, %s", jsonString);
+		} else {
+			placesDataStore.remove(PlacesConstants.DataStoreKeys.NEARBYPOIS);
+		}
+
+		// persist currentPOI
+		if (currentPOI != null) {
+			try {
+				Variant variant = Variant.fromTypedObject(currentPOI, new PlacesPOIVariantSerializer());
+				String jsonString = variant.toString();
+				placesDataStore.setString(PlacesConstants.DataStoreKeys.CURRENT_POI, jsonString);
+				Log.trace(PlacesConstants.LOG_TAG, "currentPOI persisted, %s", jsonString);
+			} catch (VariantException exp) {
+				Log.debug(PlacesConstants.LOG_TAG, "Exception occurred while persisting currentPOI");
+			}
+		} else {
+			placesDataStore.remove(PlacesConstants.DataStoreKeys.CURRENT_POI);
+		}
+
+		// persist lastEnteredPOI
+		if (lastEnteredPOI != null) {
+			try {
+				Variant variant = Variant.fromTypedObject(lastEnteredPOI, new PlacesPOIVariantSerializer());
+				String jsonString = variant.toString();
+				placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, jsonString);
+				Log.trace(PlacesConstants.LOG_TAG, "lastEnteredPOI persisted, %s", jsonString);
+			} catch (VariantException exp) {
+				Log.debug(PlacesConstants.LOG_TAG, "Exception occurred while persisting lastEnteredPOI");
+			}
+		} else {
+			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI);
+		}
+
+		// persist lastExitedPOI
+		if (lastExitedPOI != null) {
+			try {
+				Variant variant = Variant.fromTypedObject(lastExitedPOI, new PlacesPOIVariantSerializer());
+				String jsonString = variant.toString();
+				placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, jsonString);
+				Log.trace(PlacesConstants.LOG_TAG, "lastExitedPOI persisted, %s", jsonString);
+			} catch (VariantException exp) {
+				Log.debug(PlacesConstants.LOG_TAG, "Exception occurred while persisting lastExitedPOI");
+			}
+		} else {
+			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_EXITED_POI);
+		}
+
+		placesDataStore.setLong(PlacesConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL, membershipValidUntil);
+	}
+
+	/**
+	 * Returns the Places {@code DataStore} from this {@link #storageService}.
+	 *
+	 * @return {@code DataStore} for the {@code Audience} module or null if {@link LocalStorageService} or {@link JsonUtilityService} is unavailable
+	 */
+	private DataStore getDataStore() {
+		if (storageService == null || jsonUtilityService == null) {
+			return null;
+		}
+
+		return storageService.getDataStore(PLACES_DATA_STORE);
+	}
+
+	private PlacesPOI calculateCurrentPOI() {
+		if (cachedPOIs == null) {
+			return null;
+		}
+
+		PlacesPOI nextCurrentPOI = null;
+
+		for (PlacesPOI poi : cachedPOIs.values()) {
+			if (poi.containsUser()) {
+				nextCurrentPOI = poi.comparePriority(nextCurrentPOI) ? poi : nextCurrentPOI;
+			}
+		}
+
+		return nextCurrentPOI;
+	}
+
+	/**
+	 * Clears membership data from the PlacesState instance.
+	 * Membership data includes:
+	 * <ol>
+	 *     <li>Current POI</li>
+	 *     <li>Last entered POI</li>
+	 *     <li>Last exited POI</li>
+	 * </ol>
+	 */
+	void clearMembershipData() {
+		// clear out membership in memory
+		currentPOI = null;
+		lastEnteredPOI = null;
+		lastExitedPOI = null;
+		membershipValidUntil = 0;
+
+		DataStore placesDataStore = getDataStore();
+
+		if (placesDataStore == null) {
+			Log.warning(PlacesConstants.LOG_TAG,
+						"LocalStorage/JSONUtility service was not available, unable to clear membership data.");
+			return;
+		}
+
+		// remove all the membership data from persistence
+		placesDataStore.remove(PlacesConstants.DataStoreKeys.CURRENT_POI);
+		placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI);
+		placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_EXITED_POI);
+		placesDataStore.remove(PlacesConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL);
+	}
+
+
+	private boolean isMembershipDataValid() {
+		return TimeUtil.getUnixTimeInSeconds() < membershipValidUntil;
+	}
+
+	private void updateMembershipValidUntilTimestamp() {
+		membershipValidUntil = TimeUtil.getUnixTimeInSeconds() + membershipTtl;
+	}
+
+}
