@@ -1,0 +1,2 @@
+include ':android-places-library'
+rootProject.name = "aepsdk-places-android"
