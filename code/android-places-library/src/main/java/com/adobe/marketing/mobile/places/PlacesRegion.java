@@ -11,7 +11,10 @@
 
 package com.adobe.marketing.mobile.places;
 
-final class PlacesRegion extends PlacesPOI {
+import java.util.HashMap;
+import java.util.Map;
+
+public final class PlacesRegion extends PlacesPOI {
 
 	private String              placeEventType;
 	private long                timestamp;
@@ -25,11 +28,11 @@ final class PlacesRegion extends PlacesPOI {
 		return timestamp;
 	}
 
-	public EventData getRegionEventData() throws VariantException {
-		EventData data = new EventData();
-		data.putTypedObject(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION, poi, new PlacesPOIVariantSerializer());
-		data.putString(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, getPlaceEventType());
-		data.putLong(PlacesConstants.EventDataKeys.Places.REGION_TIMESTAMP, getTimestamp());
+	public Map<String,Object> getRegionEventData() {
+		Map<String,Object> data = new HashMap<>();
+		data.put(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION, poi);
+		data.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, getPlaceEventType());
+		data.put(PlacesConstants.EventDataKeys.Places.REGION_TIMESTAMP, getTimestamp());
 		return data;
 	}
 

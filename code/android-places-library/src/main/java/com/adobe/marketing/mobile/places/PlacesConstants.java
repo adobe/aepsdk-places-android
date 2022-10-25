@@ -11,9 +11,12 @@
 
 package com.adobe.marketing.mobile.places;
 
-final class PlacesConstants {
+public final class PlacesConstants {
 
-	static final String LOG_TAG = PlacesExtension.class.getSimpleName();
+	public static final String LOG_TAG = "Places";
+	static final String FRIENDLY_NAME = "Places";
+	static final String MODULE_NAME = "com.adobe.module.places";
+
 	static final int DEFAULT_NETWORK_TIMEOUT = 2;
 	static final int DEFAULT_NEARBYPOI_COUNT = 20;
 	static final long DEFAULT_MEMBERSHIP_TTL = 60 * 60;  // 1 hour in seconds
@@ -21,20 +24,20 @@ final class PlacesConstants {
 	private PlacesConstants() {
 	}
 
-	static final class EventName {
+	public static final class EventName {
 		// places request content event names
-		static final String REQUEST_GETUSERWITHINPLACES = "requestgetuserwithinplaces";
-		static final String REQUEST_GETLASTKNOWNLOCATION = "requestgetlastknownlocation";
-		static final String REQUEST_GETNEARBYPLACES = "requestgetnearbyplaces";
-		static final String REQUEST_PROCESSREGIONEVENT = "requestprocessregionevent";
-		static final String REQUEST_RESET = "requestreset";
-		static final String REQUEST_SETAUTHORIZATIONSTATUS = "requestsetauthorizationstatus";
+		public static final String REQUEST_GETUSERWITHINPLACES = "requestgetuserwithinplaces";
+		public static final String REQUEST_GETLASTKNOWNLOCATION = "requestgetlastknownlocation";
+		public static final String REQUEST_GETNEARBYPLACES = "requestgetnearbyplaces";
+		public static final String REQUEST_PROCESSREGIONEVENT = "requestprocessregionevent";
+		public static final String REQUEST_RESET = "requestreset";
+		public static final String REQUEST_SETAUTHORIZATIONSTATUS = "requestsetauthorizationstatus";
 
 		// places response content event names
-		static final String RESPONSE_GETNEARBYPLACES = "responsegetnearbyplaces";
-		static final String RESPONSE_PROCESSREGIONEVENT = "responseprocessregionevent";
-		static final String RESPONSE_GETUSERWITHINPLACES = "responsegetuserwithinplaces";
-		static final String RESPONSE_GETLASTKNOWNLOCATION = "responsegetlastknownlocation";
+		public static final String RESPONSE_GETNEARBYPLACES = "responsegetnearbyplaces";
+		public static final String RESPONSE_PROCESSREGIONEVENT = "responseprocessregionevent";
+		public static final String RESPONSE_GETUSERWITHINPLACES = "responsegetuserwithinplaces";
+		public static final String RESPONSE_GETLASTKNOWNLOCATION = "responsegetlastknownlocation";
 
 		private EventName() {
 		}
@@ -96,49 +99,49 @@ final class PlacesConstants {
 		}
 	}
 
-	static final class EventDataKeys {
+	public static final class EventDataKeys {
 		static final String STATE_OWNER = "stateowner";
 
 
 		private EventDataKeys() {
 		}
 
-		static final class Places {
-			static final String MODULE_NAME = "com.adobe.module.places";
+		public static final class Places {
+			public 	static final String MODULE_NAME = "com.adobe.module.places";
 
 			// Places Request Content event keys
-			static final String PLACES_COUNT = "count";
-			static final String LATITUDE = "latitude";
-			static final String LONGITUDE = "longitude";
+			public static final String PLACES_COUNT = "count";
+			public static final String LATITUDE = "latitude";
+			public static final String LONGITUDE = "longitude";
 
 			// Places Response Content event keys
-			static final String NEAR_BY_PLACES_LIST = "nearbypois";
-			static final String RESULT_STATUS = "status";
-			static final String USER_WITHIN_POIS = "userwithinpois";
-			static final String TRIGGERING_REGION = "triggeringregion";
+			public static final String NEAR_BY_PLACES_LIST = "nearbypois";
+			public static final String RESULT_STATUS = "status";
+			public static final String USER_WITHIN_POIS = "userwithinpois";
+			public static final String TRIGGERING_REGION = "triggeringregion";
 
 			// request types
-			static final String REQUEST_TYPE = "requesttype";
-			static final String REQUEST_TYPE_GET_NEARBY_PLACES = "requestgetnearbyplaces";
-			static final String REQUEST_TYPE_PROCESS_REGION_EVENT = "requestprocessregionevent";
-			static final String REQUEST_TYPE_GET_USER_WITHIN_PLACES = "requestgetuserwithinplaces";
-			static final String REQUEST_TYPE_GET_LAST_KNOWN_LOCATION = "requestgetlastknownlocation";
-			static final String REQUEST_TYPE_RESET = "requestreset";
-			static final String REQUEST_TYPE_SET_AUTHORIZATION_STATUS = "requestsetauthorizationstatus";
+			public static final String REQUEST_TYPE = "requesttype";
+			public static final String REQUEST_TYPE_GET_NEARBY_PLACES = "requestgetnearbyplaces";
+			public static final String REQUEST_TYPE_PROCESS_REGION_EVENT = "requestprocessregionevent";
+			public static final String REQUEST_TYPE_GET_USER_WITHIN_PLACES = "requestgetuserwithinplaces";
+			public static final String REQUEST_TYPE_GET_LAST_KNOWN_LOCATION = "requestgetlastknownlocation";
+			public static final String REQUEST_TYPE_RESET = "requestreset";
+			public static final String REQUEST_TYPE_SET_AUTHORIZATION_STATUS = "requestsetauthorizationstatus";
 
 			// Region Keys
 			static final String REGION_NAME = "regionname";
-			static final String REGION_ID = "regionid";
-			static final String REGION_EVENT_TYPE = "regioneventtype";
+			public static final String REGION_ID = "regionid";
+			public static final String REGION_EVENT_TYPE = "regioneventtype";
 			static final String REGION_METADATA = "regionmetadata";
 			static final String REGION_TIMESTAMP = "timestamp";
 
 			// last known location keys
-			static final String LAST_KNOWN_LATITUDE = "lastknownlatitude";
-			static final String LAST_KNOWN_LONGITUDE = "lastknownlongitude";
+			public static final String LAST_KNOWN_LATITUDE = "lastknownlatitude";
+			public static final String LAST_KNOWN_LONGITUDE = "lastknownlongitude";
 
 			// places authorization status
-			static final String AUTH_STATUS = "authstatus";
+			public static final String AUTH_STATUS = "authstatus";
 
 			private Places() {
 			}
@@ -160,18 +163,30 @@ final class PlacesConstants {
 
 	}
 
-	static final class DocsLinks {
-		static final String PRIVACY_STATUS =
+	public static final class DocsLinks {
+		public static final String PRIVACY_STATUS =
 			"https://aep-sdks.gitbook.io/docs/resources/privacy-and-gdpr#set-and-get-privacy-status";
-		static final String PROCESS_REGION_EVENT =
+		public static final String PROCESS_REGION_EVENT =
 			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#processgeofence-android";
-		static final String GET_NEARBY_POI_EVENT =
+		public static final String GET_NEARBY_POI_EVENT =
 			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#getnearbypointsofinterest-android";
-		static final String GET_CURRENT_POI_EVENT =
+		public static final String GET_CURRENT_POI_EVENT =
 			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#getcurrentpointsofinterest-android";
-		static final String AUTHORIZATION_STATUS =
+		public static final String AUTHORIZATION_STATUS =
 			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#setauthorizationstatus-android";
-		static final String EVENT_REF =
+		public static final String EVENT_REF =
 			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-event-ref.html";
+		public static final String REGISTER_MOBILECORE_DOC =
+				"https://aep-sdks.gitbook.io/docs/using-mobile-extensions/mobile-core/configuration/configuration-api-reference#configurewithappid";
+		public static final String REGISTER_PLACES_DOC =
+				"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-extension.html#register-places-mobile-core";
+		public static final String GET_NEARBY_POI_DOC =
+				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#getnearbypointsofinterest-android";
+		public static final String PROCESS_GEOFENCE_EVENT_DOC =
+				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#processgeofencingevent-android";
+		public static final String PROCESS_GEOFENCE_DOC =
+				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#processgeofence-android";
+		public static final String GET_CURRENT_POI_DOC =
+				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#getcurrentpointsofinterest-android";
 	}
 }

@@ -1,50 +1,45 @@
-/* **************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2019 Adobe Inc.
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Inc. and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Inc. and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Inc..
- **************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
+
 
 package com.adobe.marketing.mobile;
 
+import static com.adobe.marketing.mobile.places.PlacesConstants.DocsLinks.GET_NEARBY_POI_DOC;
+import static com.adobe.marketing.mobile.places.PlacesConstants.DocsLinks.PROCESS_GEOFENCE_EVENT_DOC;
+
 import android.location.Location;
 
-import com.adobe.marketing.mobile.places.BuildConfig;
+import com.adobe.marketing.mobile.places.PlacesAuthorizationStatus;
+import com.adobe.marketing.mobile.places.PlacesExtension;
+import com.adobe.marketing.mobile.places.PlacesConstants;
+import com.adobe.marketing.mobile.places.PlacesPOI;
+import com.adobe.marketing.mobile.places.PlacesRegion;
+import com.adobe.marketing.mobile.places.PlacesRequestError;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.DataReaderException;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class Places {
+	private final static String EXTENSION_VERSION = "2.0.0";
+	private static final String CLASS_NAME = "UserProfile";
+
 	private final static String TAG = Places.class.getSimpleName();
-
-	//Links to documentation
-	private final static String REGISTER_MOBILECORE_DOC =
-		"https://aep-sdks.gitbook.io/docs/using-mobile-extensions/mobile-core/configuration/configuration-api-reference#configurewithappid";
-	private final static String REGISTER_PLACES_DOC =
-		"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-extension.html#register-places-mobile-core";
-	private final static String GET_NEARBY_POI_DOC =
-		"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#getnearbypointsofinterest-android";
-	private final static String PROCESS_GEOFENCE_EVENT_DOC =
-		"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#processgeofencingevent-android";
-	private final static String PROCESS_GEOFENCE_DOC =
-		"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#processgeofence-android";
-	private final static String GET_CURRENT_POI_DOC =
-		"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#getcurrentpointsofinterest-android";
-
-	private static PlacesCore placesCore;
 
 	private Places() { }
 
@@ -56,28 +51,15 @@ public class Places {
 	 * Registers the Places extension with the {@code MobileCore}
 	 * <p>
 	 * This will allow the extension to send and receive events to and from the SDK.
-	 *
-	 * @throws InvalidInitException If the registration was not successful
 	 */
-	public static void registerExtension() throws InvalidInitException {
-		Core core = MobileCore.getCore();
-
-		if (core == null) {
-			Log.error(TAG,
-					  "Unable to register Places since MobileCore is not initialized properly. For more details refer to " +
-					  REGISTER_MOBILECORE_DOC);
-			throw  new InvalidInitException();
-		}
-
-		try {
-			// MobileCore may not be loaded or present (maybe because Core extension was not
-			// available?). In that case, the Places extension will not initialize itself
-			placesCore = new PlacesCore(core.eventHub, new PlacesModuleDetails());
-		} catch (Exception e) {
-			Log.error(TAG, "Unable to register Places since MobileCore is not initialized properly. Exception: " +
-					  e.getLocalizedMessage());
-			throw new InvalidInitException();
-		}
+	public static void registerExtension(){
+		MobileCore.registerExtension(PlacesExtension.class, extensionError -> {
+			if (extensionError == null) {
+				return;
+			}
+			com.adobe.marketing.mobile.services.Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "There was an error when registering the UserProfile extension: %s",
+					extensionError.getErrorName());
+		});
 	}
 
 	/**
@@ -86,7 +68,7 @@ public class Places {
 	 * @return A {@link String} representing the extension version
 	 */
 	public static String extensionVersion() {
-		return BuildConfig.EXTENSION_VERSION;
+		return EXTENSION_VERSION;
 	}
 
 	/**
@@ -104,16 +86,12 @@ public class Places {
 			final int limit,
 			final AdobeCallback<List<PlacesPOI>> successCallback) {
 
-		if (!placesIsRegistered()) {
-			return;
-		}
 
-
-		placesCore.getNearbyPointsOfInterest(createPlaceGpsLocation(location), limit, successCallback,
+		getNearbyPointsOfInterestInternal(location, limit, successCallback,
 		new AdobeCallback<PlacesRequestError>() {
 			@Override
 			public void call(PlacesRequestError placesRequestError) {
-				Log.warning(TAG, "Error occurred in fetching the nearbyPointsOfInterest :" + placesRequestError.toString() +
+				Log.warning(TAG, CLASS_NAME,"Error occurred in fetching the nearbyPointsOfInterest :" + placesRequestError.toString() +
 							". For more details refer to " + GET_NEARBY_POI_DOC);
 
 				if (successCallback != null) {
@@ -140,12 +118,7 @@ public class Places {
 			final AdobeCallback<List<PlacesPOI>> successCallback,
 			final AdobeCallback<PlacesRequestError> errorCallback) {
 
-		if (!placesIsRegistered()) {
-			return;
-		}
-
-
-		placesCore.getNearbyPointsOfInterest(createPlaceGpsLocation(location), limit, successCallback, errorCallback);
+		getNearbyPointsOfInterestInternal(location, limit, successCallback, errorCallback);
 	}
 
 	/**
@@ -157,12 +130,9 @@ public class Places {
 	 * @param geofencingEvent the {@link GeofencingEvent} object that occurred while entering/exiting a GeoFence
 	 */
 	public static void processGeofenceEvent(final GeofencingEvent geofencingEvent) {
-		if (!placesIsRegistered()) {
-			return;
-		}
 
 		if (geofencingEvent.hasError()) {
-			Log.warning(TAG, "Ignoring call to processGeofenceEvent (provided geofencingEvent has an error: " +
+			Log.warning(TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent (provided geofencingEvent has an error: " +
 						geofencingEvent.getErrorCode() + " ). For more details refer to " + PROCESS_GEOFENCE_EVENT_DOC);
 			return;
 		}
@@ -170,21 +140,21 @@ public class Places {
 		String regionEventType = getRegionTransitionType(geofencingEvent.getGeofenceTransition());
 
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
-			Log.debug(TAG,
+			Log.debug(TAG, CLASS_NAME,
 					  "Ignoring call to processGeofenceEvent (transition type of geofencingEvent is unknown). For more details refer to " +
 					  PROCESS_GEOFENCE_EVENT_DOC);
 			return;
 		}
 
-		List<EventData> regions = createRegionsEventData(geofencingEvent.getTriggeringGeofences(), regionEventType);
+		List<Map<String,Object>> regions = createRegionsEventData(geofencingEvent.getTriggeringGeofences(), regionEventType);
 
 		if (regions == null) {
-			Log.debug(TAG, "No valid Places region found for the provided GeofenceEvent. For more details refer to " +
+			Log.debug(TAG, CLASS_NAME,"No valid Places region found for the provided GeofenceEvent. For more details refer to " +
 					  PROCESS_GEOFENCE_EVENT_DOC);
 			return;
 		}
 
-		placesCore.processRegionEvent(regions);
+		sendGeofenceEvents(regions);
 	}
 
 	/**
@@ -203,30 +173,30 @@ public class Places {
 	 * @param transitionType an {@code int} representing the transition type for the passed geofence
 	 */
 	public static void processGeofence(final Geofence geofence, final int transitionType) {
-		if (!placesIsRegistered()) {
-			return;
+
+		if (geofence == null) {
+			Log.warning(TAG,CLASS_NAME, "Ignoring call to processGeofence - Null Geofence");
 		}
 
 		String regionEventType = getRegionTransitionType(transitionType);
-
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
-			Log.debug(TAG, "Ignoring call to processGeofence (transitionType is unknown). For more details refer to " +
-					  PROCESS_GEOFENCE_DOC);
+			Log.warning(TAG,CLASS_NAME, "Ignoring call to processGeofence (transitionType is unknown). For more details refer to " +
+					  PlacesConstants.DocsLinks.PROCESS_GEOFENCE_DOC);
 			return;
 		}
 
 		ArrayList<Geofence> geofences = new ArrayList<>();
 		geofences.add(geofence);
 
-		List<EventData> regions = createRegionsEventData(geofences, regionEventType);
+		List<Map<String,Object>> regions = createRegionsEventData(geofences, regionEventType);
 
 		if (regions == null) {
-			Log.debug(TAG, "No valid Places region found for the provided Geofence. For more details refer to " +
-					  PROCESS_GEOFENCE_DOC);
+			Log.debug(TAG,CLASS_NAME, "No valid Places region found for the provided Geofence. For more details refer to " +
+					  PlacesConstants.DocsLinks.PROCESS_GEOFENCE_DOC);
 			return;
 		}
 
-		placesCore.processRegionEvent(regions);
+		sendGeofenceEvents(regions);
 	}
 
 	/**
@@ -239,14 +209,58 @@ public class Places {
 	 */
 	public static void getCurrentPointsOfInterest(final AdobeCallback<List<PlacesPOI>> callback) {
 		if (callback == null) {
-			Log.debug(TAG, "Ignoring call to getCurrentPointsOfInterest (callback is null). For more details refer to " +
-					  GET_CURRENT_POI_DOC);
+			Log.debug(TAG,CLASS_NAME, "Ignoring call to getCurrentPointsOfInterest (callback provided with getCurrentPointsOfInterest API is null). For more details refer to " +
+					  PlacesConstants.DocsLinks.GET_CURRENT_POI_DOC);
 			return;
 		}
 
-		if (placesIsRegistered()) {
-			placesCore.getUserWithinPointsOfInterest(callback);
-		}
+		// Create Event Data
+		Map<String, Object> eventDataMap = new HashMap<>();
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
+
+		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_GETUSERWITHINPLACES, EventType.PLACES,
+				EventSource.REQUEST_CONTENT)
+				.setEventData(eventDataMap)
+				.build();
+
+		MobileCore.dispatchEventWithResponseCallback(event, 5000L, new AdobeCallbackWithError<Event>() {
+			final AdobeCallbackWithError userCallbackWithError = callback instanceof AdobeCallbackWithError ?
+					(AdobeCallbackWithError) callback : null;
+			@Override
+			public void fail(AdobeError adobeError) {
+				userCallbackWithError.fail(adobeError);
+			}
+
+			@Override
+			public void call(Event event) {
+				Map<String, Object> eventDataMap = event.getEventData();
+
+				if (eventDataMap == null) {
+					callback.call(new ArrayList<PlacesPOI>());
+					return;
+				}
+
+				try {
+					callback.call(DataReader.getTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS));
+
+				} catch (DataReaderException exp) {
+					callback.call(new ArrayList<PlacesPOI>());
+				}
+
+			}
+
+			private void executeCallbackWithError(AdobeError adobeError) {
+				if (userCallbackWithError != null) {
+					userCallbackWithError.fail(adobeError);
+				} else {
+					callback.call(null);
+				}
+			}
+		});
+
+		MobileCore.dispatchEvent(event);
+
 	}
 
 	/**
@@ -259,22 +273,58 @@ public class Places {
 	 * @param callback called with a {@link Location} object representing the last known lat/lon provided to the extension
 	 */
 	public static void getLastKnownLocation(final AdobeCallback<Location> callback) {
-		if (!placesIsRegistered()) {
+
+		if (callback == null) {
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Called getLastKnownLocation with no callback. Ignoring.");
 			return;
 		}
 
-		placesCore.getLastKnownLocation(new AdobeCallback<PlacesGpsLocation>() {
+		// Create Event Data
+		Map<String, Object> eventDataMap = new HashMap<>();
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
+
+		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_GETLASTKNOWNLOCATION, EventType.PLACES,
+				EventSource.REQUEST_CONTENT)
+				.setEventData(eventDataMap)
+				.build();
+
+		MobileCore.dispatchEventWithResponseCallback(event, 5000L, new AdobeCallbackWithError<Event>() {
+			final AdobeCallbackWithError userCallbackWithError = callback instanceof AdobeCallbackWithError ?
+					(AdobeCallbackWithError) callback : null;
 			@Override
-			public void call(PlacesGpsLocation placesGpsLocation) {
-				if (placesGpsLocation == null) {
+			public void fail(AdobeError adobeError) {
+				executeCallbackWithError(adobeError);
+			}
+
+			@Override
+			public void call(Event event) {
+				Map<String, Object> eventDataMap = event.getEventData();
+
+				if (eventDataMap == null || eventDataMap.isEmpty()) {
 					callback.call(null);
 					return;
 				}
 
-				Location lastKnownLocation = new Location("com.adobe.places.lastknownlocation");
-				lastKnownLocation.setLatitude(placesGpsLocation.getLatitude());
-				lastKnownLocation.setLongitude(placesGpsLocation.getLongitude());
-				callback.call(lastKnownLocation);
+				try {
+					double latitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE);
+					double longitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE);
+					Location lastKnownLocation = new Location("com.adobe.places.lastknownlocation");
+					lastKnownLocation.setLatitude(latitude);
+					lastKnownLocation.setLongitude(longitude);
+					callback.call(lastKnownLocation);
+				} catch (final DataReaderException exp) {
+					Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to read latitude and longitude from the response event");
+					userCallbackWithError.fail(AdobeError.UNEXPECTED_ERROR);
+				}
+			}
+
+			private void executeCallbackWithError(AdobeError adobeError) {
+				if (userCallbackWithError != null) {
+					userCallbackWithError.fail(adobeError);
+				} else {
+					callback.call(null);
+				}
 			}
 		});
 	}
@@ -283,9 +333,19 @@ public class Places {
 	 * Clears out the client-side data for Places in shared state, local storage, and in-memory.
 	 */
 	public static void clear() {
-		if (placesIsRegistered()) {
-			placesCore.reset();
-		}
+		// Create Event Data
+		Map<String, Object> eventDataMap = new HashMap<>();
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET);
+
+		// make an event
+		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_RESET, EventType.PLACES,
+				EventSource.REQUEST_CONTENT)
+				.setEventData(eventDataMap)
+				.build();
+
+		// dispatch the event
+		MobileCore.dispatchEvent(event);
 	}
 
 	/**
@@ -297,28 +357,25 @@ public class Places {
 	 * @param status the PlacesAuthorizationStatus to be set for this device
 	 */
 	public static void setAuthorizationStatus(final PlacesAuthorizationStatus status) {
-		if (placesIsRegistered()) {
-			placesCore.setPlacesAuthorizationStatus(status);
-		}
-	}
+		if (status == null) {
 
-	// =======================================================================
-	// private methods
-	// =======================================================================
-	/**
-	 * Convert android native {@link Location} instance to {@link PlacesGpsLocation}.
-	 * <p>
-	 * Latitude, longitude, accuracy, altitude and speed are obtained from the {@code Location} object.
-	 *
-	 * @param location an Android native {@link Location} object
-	 * @return a valid {@link PlacesGpsLocation} instance
-	 */
-	private static PlacesGpsLocation createPlaceGpsLocation(final Location location) {
-		PlacesGpsLocation gpsLocation = new PlacesGpsLocation(location.getLatitude(), location.getLongitude());
-		gpsLocation.setAccuracy(location.getAccuracy());
-		gpsLocation.setAltitude(location.getAltitude());
-		gpsLocation.setSpeed(location.getSpeed());
-		return gpsLocation;
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
+					"PlacesAuthorization status cannot be set to null. Provide a valid value. For more details refer to " +
+							PlacesConstants.DocsLinks.AUTHORIZATION_STATUS);
+			return;
+		}
+
+		Map<String, Object> eventDataMap = new HashMap<>();
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.AUTH_STATUS, status.stringValue());
+
+		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_SETAUTHORIZATIONSTATUS,
+				EventType.PLACES,
+				EventSource.REQUEST_CONTENT)
+				.setEventData(eventDataMap)
+				.build();
+		MobileCore.dispatchEvent(event);
 	}
 
 	/**
@@ -326,10 +383,10 @@ public class Places {
 	 *
 	 * @param geofences {@code List} of {@link Geofence} instances
 	 * @param regionEventType eventType for all the geofences in the list
-	 * @return a {@link List} of {@link EventData} containing geofence event details
+	 * @return a {@link List} of {@link Map<String,String>} containing geofence event details
 	 */
-	private static List<EventData> createRegionsEventData(final List<Geofence> geofences, final String regionEventType) {
-		List<EventData> placesRegions = new ArrayList<>();
+	private static List<Map<String,Object>> createRegionsEventData(final List<Geofence> geofences, final String regionEventType) {
+		List<Map<String,Object>> placesRegions = new ArrayList<>();
 
 		if (geofences == null) {
 			return placesRegions;
@@ -340,13 +397,25 @@ public class Places {
 				continue;
 			}
 
-			EventData eventData = new EventData();
-			eventData.putString(PlacesConstants.EventDataKeys.Places.REGION_ID, geofence.getRequestId());
-			eventData.putString(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, regionEventType);
-			placesRegions.add(eventData);
+			Map<String,Object> eventDataMap = new HashMap<>();
+			eventDataMap.put(PlacesConstants.EventDataKeys.Places.REGION_ID, geofence.getRequestId());
+			eventDataMap.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, regionEventType);
+			placesRegions.add(eventDataMap);
 		}
 
 		return placesRegions;
+	}
+
+	private static void sendGeofenceEvents(final List<Map<String,Object>> placesRegions) {
+		for (Map<String,Object> placesRegion : placesRegions) {
+			placesRegion.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
+					PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
+			final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT, EventType.PLACES,
+					EventSource.REQUEST_CONTENT)
+					.setEventData(placesRegion)
+					.build();
+			MobileCore.dispatchEvent(event);
+		}
 	}
 
 	/**
@@ -368,15 +437,88 @@ public class Places {
 		}
 	}
 
-	private static boolean placesIsRegistered() {
-		if (placesCore == null) {
-			Log.error(TAG,
-					  "Places not initialized. Is Adobe Places extension registered with MobileCore? For more details refer to " +
-					  REGISTER_PLACES_DOC);
-			return false;
-		}
 
-		return true;
+	/**
+	 * Requests a list of nearby points of interest for the provided search parameters.
+	 *
+	 * @param location		   {@link Location} current location of the device
+	 * @param placesCount          {@code int} maximum number of nearby places to find
+	 * @param successCallback      {@link AdobeCallback} success callback delivering an ordered list of nearby places
+	 * @param errorCallback		   {@link AdobeCallback} error callback describing the errorStatus
+	 */
+	private static void getNearbyPointsOfInterestInternal(final Location location,
+								   final int placesCount,
+								   final AdobeCallback<List<PlacesPOI>> successCallback,
+								   final AdobeCallback<PlacesRequestError> errorCallback) {
+
+		// Create Event Data
+		Map<String,Object> eventDataMap = new HashMap<>();
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.LATITUDE, location.getLatitude());
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, location.getLongitude());
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, placesCount);
+		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
+
+		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_GETNEARBYPLACES, EventType.PLACES,
+				EventSource.REQUEST_CONTENT)
+				.setEventData(eventDataMap)
+				.build();
+
+
+		MobileCore.dispatchEventWithResponseCallback(event, 5000L, new AdobeCallbackWithError<Event>() {
+			@Override
+			public void fail(AdobeError adobeError) {
+				// todo
+			}
+
+			@Override
+			public void call(Event event) {
+				Map<String,Object> eventData = event.getEventData();
+
+				if (eventData == null) {
+					callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
+					return;
+				}
+
+				try {
+					// retrieve the status and the list of POI's from eventData
+					List<PlacesPOI> pois = DataReader.getTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST);
+
+
+					int resultStatusInteger = DataReader.getInt(eventDataMap,PlacesConstants.EventDataKeys.Places.RESULT_STATUS);
+					PlacesRequestError status = PlacesRequestError.fromInt(resultStatusInteger);
+
+					// call the successCallback if the status is OK
+					if (status == PlacesRequestError.OK) {
+						callSuccessCallback(pois);
+						return;
+					}
+
+					// else call the errorCallback with the obtained status
+					callErrorCallback(status);
+
+
+				} catch (DataReaderException exp) {
+					callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
+				}
+			}
+
+			private void callErrorCallback(final PlacesRequestError resultStatus) {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Status code: " + resultStatus +
+						". For more details refer to " + PlacesConstants.DocsLinks.GET_NEARBY_POI_EVENT);
+
+				if (errorCallback != null) {
+					errorCallback.call(resultStatus);
+				}
+			}
+
+			private void callSuccessCallback(final List<PlacesPOI> pois) {
+				if (successCallback != null) {
+					successCallback.call(pois);
+				}
+			}
+		});
 	}
+
 }
 

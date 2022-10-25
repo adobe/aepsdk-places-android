@@ -84,7 +84,7 @@ public enum PlacesRequestError {
 	 * @param value {@code int} to be converted to a {@code PlacesRequestError} object
 	 * @return {@code PlacesRequestError} object equivalent to the provided int
 	 */
-	static PlacesRequestError fromInt(final int value) {
+	public static PlacesRequestError fromInt(final int value) {
 		for (PlacesRequestError b : PlacesRequestError.values()) {
 			if (b.value == (value)) {
 				return b;
