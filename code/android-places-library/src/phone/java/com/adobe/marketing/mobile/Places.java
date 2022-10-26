@@ -37,7 +37,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Places {
 	private final static String EXTENSION_VERSION = "2.0.0";
-	private static final String CLASS_NAME = "UserProfile";
+	private static final String CLASS_NAME = "Places";
 
 	private final static String TAG = Places.class.getSimpleName();
 
@@ -50,14 +50,14 @@ public class Places {
 	/**
 	 * Registers the Places extension with the {@code MobileCore}
 	 * <p>
-	 * This will allow the extension to send and receive events to and from the SDK.
+	 * This will allow the extension to send and receive events to and from the MobileCore.
 	 */
 	public static void registerExtension(){
 		MobileCore.registerExtension(PlacesExtension.class, extensionError -> {
 			if (extensionError == null) {
 				return;
 			}
-			com.adobe.marketing.mobile.services.Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "There was an error when registering the UserProfile extension: %s",
+			Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "There was an error when registering the Places extension: %s",
 					extensionError.getErrorName());
 		});
 	}
@@ -108,8 +108,6 @@ public class Places {
 	 * Either successCallback or errorCallback is called depending upon the status of the get near by points of interest call.
 	 * Look for {@link PlacesRequestError} in errorCallback to get more information about the reason for the failure.
 	 *
-	 * Processes a place/geofence event in the sdk. Used for passive data collection (Analytics, Target, Audience Manager)
-	 * and triggering actions using rules (In-app messaging, Postbacks, PII Request, Target profile updates, Audience Manager sync calls)
 	 *
 	 * @param location a {@link Location} object represent the current location of the device
 	 * @param limit a non-negative number representing the number of nearby POI to return from the request
@@ -126,6 +124,9 @@ public class Places {
 
 	/**
 	 * Pass a {@link GeofencingEvent} to be processed by the SDK.
+	 * <p>
+	 * Processes a place/geofence event in the sdk. Used for passive data collection (Analytics, Target, Audience Manager)
+	 * and triggering actions using rules (In-app messaging, Postbacks, PII Request, Target profile updates, Audience Manager sync calls)
 	 * <p>
 	 * Calling this method will result in an Event being dispatched in the SDK, allowing for rules to be processed
 	 * as a result of the triggering event.
@@ -213,7 +214,7 @@ public class Places {
 	 */
 	public static void getCurrentPointsOfInterest(final AdobeCallback<List<PlacesPOI>> callback) {
 		if (callback == null) {
-			Log.debug(TAG,CLASS_NAME, "Ignoring call to getCurrentPointsOfInterest (callback provided with getCurrentPointsOfInterest API is null). For more details refer to " +
+			Log.debug(TAG,CLASS_NAME, "Ignoring API call getCurrentPointsOfInterest. (callback provided with getCurrentPointsOfInterest API is null). For more details refer to " +
 					  PlacesConstants.DocsLinks.GET_CURRENT_POI_DOC);
 			return;
 		}
@@ -233,7 +234,7 @@ public class Places {
 					(AdobeCallbackWithError) callback : null;
 			@Override
 			public void fail(final AdobeError adobeError) {
-				userCallbackWithError.fail(adobeError);
+				executeCallbackWithError(adobeError);
 			}
 
 			@Override
@@ -252,7 +253,7 @@ public class Places {
 				if (userCallbackWithError != null) {
 					userCallbackWithError.fail(adobeError);
 				} else {
-					callback.call(null);
+					callback.call(new ArrayList<PlacesPOI>());
 				}
 			}
 		});
@@ -262,11 +263,11 @@ public class Places {
 	}
 
 	/**
-	 * Returns the last latitude and longitude provided to the ACPPlaces Extension.
+	 * Returns the last known Location of the device provided to the Places Extension.
 	 *
 	 * <p>
 	 * Returns null, if the SDK doesn't know the last known location.
-	 * Returns null, if the last known location has invalid latitude/longitude.
+	 * Returns null, if the last known location has invalid latitude/longitude or any other error occurred while retrieving location.
 	 *
 	 * @param callback called with a {@link Location} object representing the last known lat/lon provided to the extension
 	 */
