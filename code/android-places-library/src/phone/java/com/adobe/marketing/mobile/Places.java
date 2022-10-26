@@ -108,6 +108,9 @@ public class Places {
 	 * Either successCallback or errorCallback is called depending upon the status of the get near by points of interest call.
 	 * Look for {@link PlacesRequestError} in errorCallback to get more information about the reason for the failure.
 	 *
+	 * Processes a place/geofence event in the sdk. Used for passive data collection (Analytics, Target, Audience Manager)
+	 * and triggering actions using rules (In-app messaging, Postbacks, PII Request, Target profile updates, Audience Manager sync calls)
+	 *
 	 * @param location a {@link Location} object represent the current location of the device
 	 * @param limit a non-negative number representing the number of nearby POI to return from the request
 	 * @param successCallback called on success, with list of {@link PlacesPOI} objects that represent the nearest POI to the device
@@ -137,7 +140,7 @@ public class Places {
 			return;
 		}
 
-		String regionEventType = getRegionTransitionType(geofencingEvent.getGeofenceTransition());
+		final String regionEventType = getRegionTransitionType(geofencingEvent.getGeofenceTransition());
 
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
 			Log.debug(TAG, CLASS_NAME,
@@ -146,7 +149,7 @@ public class Places {
 			return;
 		}
 
-		List<Map<String,Object>> regions = createRegionsEventData(geofencingEvent.getTriggeringGeofences(), regionEventType);
+		final List<Map<String,Object>> regions = createRegionsEventData(geofencingEvent.getTriggeringGeofences(), regionEventType);
 
 		if (regions == null) {
 			Log.debug(TAG, CLASS_NAME,"No valid Places region found for the provided GeofenceEvent. For more details refer to " +
@@ -159,6 +162,7 @@ public class Places {
 
 	/**
 	 * Pass a {@link Geofence} and transition type to be processed by the SDK
+	 *
 	 * <p>
 	 * Calling this method will result in an Event being dispatched in the SDK, allowing for rules to be processed
 	 * as a result of the triggering event.
@@ -178,17 +182,17 @@ public class Places {
 			Log.warning(TAG,CLASS_NAME, "Ignoring call to processGeofence - Null Geofence");
 		}
 
-		String regionEventType = getRegionTransitionType(transitionType);
+		final String regionEventType = getRegionTransitionType(transitionType);
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
 			Log.warning(TAG,CLASS_NAME, "Ignoring call to processGeofence (transitionType is unknown). For more details refer to " +
 					  PlacesConstants.DocsLinks.PROCESS_GEOFENCE_DOC);
 			return;
 		}
 
-		ArrayList<Geofence> geofences = new ArrayList<>();
+		final ArrayList<Geofence> geofences = new ArrayList<>();
 		geofences.add(geofence);
 
-		List<Map<String,Object>> regions = createRegionsEventData(geofences, regionEventType);
+		final List<Map<String,Object>> regions = createRegionsEventData(geofences, regionEventType);
 
 		if (regions == null) {
 			Log.debug(TAG,CLASS_NAME, "No valid Places region found for the provided Geofence. For more details refer to " +
@@ -215,7 +219,7 @@ public class Places {
 		}
 
 		// Create Event Data
-		Map<String, Object> eventDataMap = new HashMap<>();
+		final Map<String, Object> eventDataMap = new HashMap<>();
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
 				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
 
@@ -228,26 +232,20 @@ public class Places {
 			final AdobeCallbackWithError userCallbackWithError = callback instanceof AdobeCallbackWithError ?
 					(AdobeCallbackWithError) callback : null;
 			@Override
-			public void fail(AdobeError adobeError) {
+			public void fail(final AdobeError adobeError) {
 				userCallbackWithError.fail(adobeError);
 			}
 
 			@Override
-			public void call(Event event) {
-				Map<String, Object> eventDataMap = event.getEventData();
+			public void call(final Event event) {
+				final Map<String, Object> eventDataMap = event.getEventData();
 
 				if (eventDataMap == null) {
 					callback.call(new ArrayList<PlacesPOI>());
 					return;
 				}
 
-				try {
-					callback.call(DataReader.getTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS));
-
-				} catch (DataReaderException exp) {
-					callback.call(new ArrayList<PlacesPOI>());
-				}
-
+				callback.call(DataReader.optTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, new ArrayList<PlacesPOI>()));
 			}
 
 			private void executeCallbackWithError(AdobeError adobeError) {
@@ -280,7 +278,7 @@ public class Places {
 		}
 
 		// Create Event Data
-		Map<String, Object> eventDataMap = new HashMap<>();
+		final Map<String, Object> eventDataMap = new HashMap<>();
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
 				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
 
@@ -293,13 +291,13 @@ public class Places {
 			final AdobeCallbackWithError userCallbackWithError = callback instanceof AdobeCallbackWithError ?
 					(AdobeCallbackWithError) callback : null;
 			@Override
-			public void fail(AdobeError adobeError) {
+			public void fail(final AdobeError adobeError) {
 				executeCallbackWithError(adobeError);
 			}
 
 			@Override
-			public void call(Event event) {
-				Map<String, Object> eventDataMap = event.getEventData();
+			public void call(final Event event) {
+				final Map<String, Object> eventDataMap = event.getEventData();
 
 				if (eventDataMap == null || eventDataMap.isEmpty()) {
 					callback.call(null);
@@ -309,17 +307,17 @@ public class Places {
 				try {
 					double latitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE);
 					double longitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE);
-					Location lastKnownLocation = new Location("com.adobe.places.lastknownlocation");
+					final Location lastKnownLocation = new Location("com.adobe.places.lastknownlocation");
 					lastKnownLocation.setLatitude(latitude);
 					lastKnownLocation.setLongitude(longitude);
 					callback.call(lastKnownLocation);
 				} catch (final DataReaderException exp) {
-					Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to read latitude and longitude from the response event");
+					Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to read latitude and longitude from Places response event");
 					userCallbackWithError.fail(AdobeError.UNEXPECTED_ERROR);
 				}
 			}
 
-			private void executeCallbackWithError(AdobeError adobeError) {
+			private void executeCallbackWithError(final AdobeError adobeError) {
 				if (userCallbackWithError != null) {
 					userCallbackWithError.fail(adobeError);
 				} else {
@@ -334,7 +332,7 @@ public class Places {
 	 */
 	public static void clear() {
 		// Create Event Data
-		Map<String, Object> eventDataMap = new HashMap<>();
+		final Map<String, Object> eventDataMap = new HashMap<>();
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
 				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET);
 
@@ -365,7 +363,7 @@ public class Places {
 			return;
 		}
 
-		Map<String, Object> eventDataMap = new HashMap<>();
+		final Map<String, Object> eventDataMap = new HashMap<>();
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
 				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.AUTH_STATUS, status.stringValue());
@@ -386,18 +384,18 @@ public class Places {
 	 * @return a {@link List} of {@link Map<String,String>} containing geofence event details
 	 */
 	private static List<Map<String,Object>> createRegionsEventData(final List<Geofence> geofences, final String regionEventType) {
-		List<Map<String,Object>> placesRegions = new ArrayList<>();
+		final List<Map<String,Object>> placesRegions = new ArrayList<>();
 
 		if (geofences == null) {
 			return placesRegions;
 		}
 
-		for (Geofence geofence : geofences) {
+		for (final Geofence geofence : geofences) {
 			if (geofence == null) {
 				continue;
 			}
 
-			Map<String,Object> eventDataMap = new HashMap<>();
+			final Map<String,Object> eventDataMap = new HashMap<>();
 			eventDataMap.put(PlacesConstants.EventDataKeys.Places.REGION_ID, geofence.getRequestId());
 			eventDataMap.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, regionEventType);
 			placesRegions.add(eventDataMap);
@@ -406,8 +404,14 @@ public class Places {
 		return placesRegions;
 	}
 
+	/**
+	 * Dispatches {@link EventType#PLACES} {@link EventSource#REQUEST_CONTENT} event to
+	 * process a geofence entry/exit.
+	 *
+	 * @param placesRegions a {@link List} of {@link Map} containing geofence id and geofence eventType
+	 */
 	private static void sendGeofenceEvents(final List<Map<String,Object>> placesRegions) {
-		for (Map<String,Object> placesRegion : placesRegions) {
+		for (final Map<String,Object> placesRegion : placesRegions) {
 			placesRegion.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
 					PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
 			final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT, EventType.PLACES,
@@ -439,7 +443,8 @@ public class Places {
 
 
 	/**
-	 * Requests a list of nearby points of interest for the provided search parameters.
+	 * Dispatches {@link EventType#PLACES} {@link EventSource#REQUEST_CONTENT} event to request
+	 * list of nearby points of interest for the provided search parameters.
 	 *
 	 * @param location		   {@link Location} current location of the device
 	 * @param placesCount          {@code int} maximum number of nearby places to find
@@ -452,7 +457,7 @@ public class Places {
 								   final AdobeCallback<PlacesRequestError> errorCallback) {
 
 		// Create Event Data
-		Map<String,Object> eventDataMap = new HashMap<>();
+		final Map<String,Object> eventDataMap = new HashMap<>();
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.LATITUDE, location.getLatitude());
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, location.getLongitude());
 		eventDataMap.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, placesCount);
@@ -467,13 +472,14 @@ public class Places {
 
 		MobileCore.dispatchEventWithResponseCallback(event, 5000L, new AdobeCallbackWithError<Event>() {
 			@Override
-			public void fail(AdobeError adobeError) {
-				// todo
+			public void fail(final AdobeError adobeError) {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Adobe Error: " + adobeError.getErrorName());
+				callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
 			}
 
 			@Override
-			public void call(Event event) {
-				Map<String,Object> eventData = event.getEventData();
+			public void call(final Event event) {
+				final Map<String,Object> eventData = event.getEventData();
 
 				if (eventData == null) {
 					callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
@@ -482,7 +488,7 @@ public class Places {
 
 				try {
 					// retrieve the status and the list of POI's from eventData
-					List<PlacesPOI> pois = DataReader.getTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST);
+					final List<PlacesPOI> pois = DataReader.getTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST);
 
 
 					int resultStatusInteger = DataReader.getInt(eventDataMap,PlacesConstants.EventDataKeys.Places.RESULT_STATUS);
@@ -498,7 +504,7 @@ public class Places {
 					callErrorCallback(status);
 
 
-				} catch (DataReaderException exp) {
+				} catch (final DataReaderException exp) {
 					callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
 				}
 			}
