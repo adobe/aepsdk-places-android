@@ -8,15 +8,9 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-
-
 package com.adobe.marketing.mobile;
 
-import static com.adobe.marketing.mobile.places.PlacesConstants.DocsLinks.GET_NEARBY_POI_DOC;
-import static com.adobe.marketing.mobile.places.PlacesConstants.DocsLinks.PROCESS_GEOFENCE_EVENT_DOC;
-
 import android.location.Location;
-
 import com.adobe.marketing.mobile.places.PlacesAuthorizationStatus;
 import com.adobe.marketing.mobile.places.PlacesExtension;
 import com.adobe.marketing.mobile.places.PlacesConstants;
@@ -36,10 +30,12 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class Places {
+
+	public static final Class<? extends Extension> EXTENSION = PlacesExtension.class;
+
 	private final static String EXTENSION_VERSION = "2.0.0";
 	private static final String CLASS_NAME = "Places";
-
-	private final static String TAG = Places.class.getSimpleName();
+	private static final long EVENT_RESPONSE_TIMEOUT = 5000L;
 
 	private Places() { }
 
@@ -52,6 +48,7 @@ public class Places {
 	 * <p>
 	 * This will allow the extension to send and receive events to and from the MobileCore.
 	 */
+	@Deprecated
 	public static void registerExtension(){
 		MobileCore.registerExtension(PlacesExtension.class, extensionError -> {
 			if (extensionError == null) {
@@ -69,36 +66,6 @@ public class Places {
 	 */
 	public static String extensionVersion() {
 		return EXTENSION_VERSION;
-	}
-
-	/**
-	 * Requests a list of nearby Points of Interest (POI) and returns them in a success callback.
-	 *
-	 * <p>
-	 * In case of any error in retrieving the nearby points of interest. The successCallback is called with empty poi list.
-	 * If your application needs to read the error code use getNearbyPointsOfInterest API with errorCallback.
-	 *
-	 * @param location a {@link Location} object represent the current location of the device
-	 * @param limit a non-negative number representing the number of nearby POI to return from the request
-	 * @param successCallback called with list of {@link PlacesPOI} objects that represent the nearest POI to the device
-	 */
-	public static void getNearbyPointsOfInterest(final Location location,
-			final int limit,
-			final AdobeCallback<List<PlacesPOI>> successCallback) {
-
-
-		getNearbyPointsOfInterestInternal(location, limit, successCallback,
-		new AdobeCallback<PlacesRequestError>() {
-			@Override
-			public void call(PlacesRequestError placesRequestError) {
-				Log.warning(TAG, CLASS_NAME,"Error occurred in fetching the nearbyPointsOfInterest :" + placesRequestError.toString() +
-							". For more details refer to " + GET_NEARBY_POI_DOC);
-
-				if (successCallback != null) {
-					successCallback.call(new ArrayList<PlacesPOI>());
-				}
-			}
-		});
 	}
 
 	/**
@@ -136,25 +103,21 @@ public class Places {
 	public static void processGeofenceEvent(final GeofencingEvent geofencingEvent) {
 
 		if (geofencingEvent.hasError()) {
-			Log.warning(TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent (provided geofencingEvent has an error: " +
-						geofencingEvent.getErrorCode() + " ). For more details refer to " + PROCESS_GEOFENCE_EVENT_DOC);
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent. Provided GeofencingEvent has an error. ErrorCode: %d ", geofencingEvent.getErrorCode());
 			return;
 		}
 
 		final String regionEventType = getRegionTransitionType(geofencingEvent.getGeofenceTransition());
 
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
-			Log.debug(TAG, CLASS_NAME,
-					  "Ignoring call to processGeofenceEvent (transition type of geofencingEvent is unknown). For more details refer to " +
-					  PROCESS_GEOFENCE_EVENT_DOC);
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring call to processGeofenceEvent. Transition type of GeofencingEvent is not recognized.");
 			return;
 		}
 
 		final List<Map<String,Object>> regions = createRegionsEventData(geofencingEvent.getTriggeringGeofences(), regionEventType);
 
 		if (regions == null) {
-			Log.debug(TAG, CLASS_NAME,"No valid Places region found for the provided GeofenceEvent. For more details refer to " +
-					  PROCESS_GEOFENCE_EVENT_DOC);
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent. No valid Places region found for the provided GeofencingEvent.");
 			return;
 		}
 
@@ -180,13 +143,12 @@ public class Places {
 	public static void processGeofence(final Geofence geofence, final int transitionType) {
 
 		if (geofence == null) {
-			Log.warning(TAG,CLASS_NAME, "Ignoring call to processGeofence - Null Geofence");
+			Log.warning(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. Geofence object is null.");
 		}
 
 		final String regionEventType = getRegionTransitionType(transitionType);
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
-			Log.warning(TAG,CLASS_NAME, "Ignoring call to processGeofence (transitionType is unknown). For more details refer to " +
-					  PlacesConstants.DocsLinks.PROCESS_GEOFENCE_DOC);
+			Log.warning(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. TransitionType of the Geofence is not recognized.");
 			return;
 		}
 
@@ -196,8 +158,7 @@ public class Places {
 		final List<Map<String,Object>> regions = createRegionsEventData(geofences, regionEventType);
 
 		if (regions == null) {
-			Log.debug(TAG,CLASS_NAME, "No valid Places region found for the provided Geofence. For more details refer to " +
-					  PlacesConstants.DocsLinks.PROCESS_GEOFENCE_DOC);
+			Log.debug(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. No valid Places region found for the provided Geofence");
 			return;
 		}
 
@@ -214,8 +175,7 @@ public class Places {
 	 */
 	public static void getCurrentPointsOfInterest(final AdobeCallback<List<PlacesPOI>> callback) {
 		if (callback == null) {
-			Log.debug(TAG,CLASS_NAME, "Ignoring API call getCurrentPointsOfInterest. (callback provided with getCurrentPointsOfInterest API is null). For more details refer to " +
-					  PlacesConstants.DocsLinks.GET_CURRENT_POI_DOC);
+			Log.debug(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to getCurrentPointsOfInterest. Callback provided with getCurrentPointsOfInterest API is null.");
 			return;
 		}
 
@@ -229,7 +189,7 @@ public class Places {
 				.setEventData(eventDataMap)
 				.build();
 
-		MobileCore.dispatchEventWithResponseCallback(event, 5000L, new AdobeCallbackWithError<Event>() {
+		MobileCore.dispatchEventWithResponseCallback(event, EVENT_RESPONSE_TIMEOUT, new AdobeCallbackWithError<Event>() {
 			final AdobeCallbackWithError userCallbackWithError = callback instanceof AdobeCallbackWithError ?
 					(AdobeCallbackWithError) callback : null;
 			@Override
@@ -249,7 +209,7 @@ public class Places {
 				callback.call(DataReader.optTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, new ArrayList<PlacesPOI>()));
 			}
 
-			private void executeCallbackWithError(AdobeError adobeError) {
+			private void executeCallbackWithError(final AdobeError adobeError) {
 				if (userCallbackWithError != null) {
 					userCallbackWithError.fail(adobeError);
 				} else {
@@ -257,9 +217,6 @@ public class Places {
 				}
 			}
 		});
-
-		MobileCore.dispatchEvent(event);
-
 	}
 
 	/**
@@ -274,7 +231,7 @@ public class Places {
 	public static void getLastKnownLocation(final AdobeCallback<Location> callback) {
 
 		if (callback == null) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Called getLastKnownLocation with no callback. Ignoring.");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring call to getLastKnownLocation. Callback is null.");
 			return;
 		}
 
@@ -288,7 +245,7 @@ public class Places {
 				.setEventData(eventDataMap)
 				.build();
 
-		MobileCore.dispatchEventWithResponseCallback(event, 5000L, new AdobeCallbackWithError<Event>() {
+		MobileCore.dispatchEventWithResponseCallback(event, EVENT_RESPONSE_TIMEOUT, new AdobeCallbackWithError<Event>() {
 			final AdobeCallbackWithError userCallbackWithError = callback instanceof AdobeCallbackWithError ?
 					(AdobeCallbackWithError) callback : null;
 			@Override
@@ -306,8 +263,8 @@ public class Places {
 				}
 
 				try {
-					double latitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE);
-					double longitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE);
+					final double latitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE);
+					final double longitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE);
 					final Location lastKnownLocation = new Location("com.adobe.places.lastknownlocation");
 					lastKnownLocation.setLatitude(latitude);
 					lastKnownLocation.setLongitude(longitude);
@@ -357,10 +314,8 @@ public class Places {
 	 */
 	public static void setAuthorizationStatus(final PlacesAuthorizationStatus status) {
 		if (status == null) {
-
 			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
-					"PlacesAuthorization status cannot be set to null. Provide a valid value. For more details refer to " +
-							PlacesConstants.DocsLinks.AUTHORIZATION_STATUS);
+					"Ignoring call to setAuthorizationStatus. PlacesAuthorizationStatus cannot be set to null. Provide a valid value.");
 			return;
 		}
 
@@ -450,7 +405,7 @@ public class Places {
 	 * @param location		   {@link Location} current location of the device
 	 * @param placesCount          {@code int} maximum number of nearby places to find
 	 * @param successCallback      {@link AdobeCallback} success callback delivering an ordered list of nearby places
-	 * @param errorCallback		   {@link AdobeCallback} error callback describing the errorStatus
+	 * @param errorCallback		   {@code AdobeCallback} error callback describing the errorStatus
 	 */
 	private static void getNearbyPointsOfInterestInternal(final Location location,
 								   final int placesCount,
@@ -471,10 +426,10 @@ public class Places {
 				.build();
 
 
-		MobileCore.dispatchEventWithResponseCallback(event, 5000L, new AdobeCallbackWithError<Event>() {
+		MobileCore.dispatchEventWithResponseCallback(event, EVENT_RESPONSE_TIMEOUT, new AdobeCallbackWithError<Event>() {
 			@Override
 			public void fail(final AdobeError adobeError) {
-				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Adobe Error: " + adobeError.getErrorName());
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Adobe Error: %s.", adobeError.getErrorName());
 				callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
 			}
 
@@ -492,8 +447,8 @@ public class Places {
 					final List<PlacesPOI> pois = DataReader.getTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST);
 
 
-					int resultStatusInteger = DataReader.getInt(eventDataMap,PlacesConstants.EventDataKeys.Places.RESULT_STATUS);
-					PlacesRequestError status = PlacesRequestError.fromInt(resultStatusInteger);
+					final int resultStatusInteger = DataReader.getInt(eventDataMap,PlacesConstants.EventDataKeys.Places.RESULT_STATUS);
+					final PlacesRequestError status = PlacesRequestError.fromInt(resultStatusInteger);
 
 					// call the successCallback if the status is OK
 					if (status == PlacesRequestError.OK) {
@@ -510,12 +465,11 @@ public class Places {
 				}
 			}
 
-			private void callErrorCallback(final PlacesRequestError resultStatus) {
-				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Status code: " + resultStatus +
-						". For more details refer to " + PlacesConstants.DocsLinks.GET_NEARBY_POI_EVENT);
+			private void callErrorCallback(final PlacesRequestError requestError) {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Error code: %s.", requestError);
 
 				if (errorCallback != null) {
-					errorCallback.call(resultStatus);
+					errorCallback.call(requestError);
 				}
 			}
 

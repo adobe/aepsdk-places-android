@@ -162,31 +162,4 @@ public final class PlacesConstants {
 		}
 
 	}
-
-	public static final class DocsLinks {
-		public static final String PRIVACY_STATUS =
-			"https://aep-sdks.gitbook.io/docs/resources/privacy-and-gdpr#set-and-get-privacy-status";
-		public static final String PROCESS_REGION_EVENT =
-			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#processgeofence-android";
-		public static final String GET_NEARBY_POI_EVENT =
-			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#getnearbypointsofinterest-android";
-		public static final String GET_CURRENT_POI_EVENT =
-			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#getcurrentpointsofinterest-android";
-		public static final String AUTHORIZATION_STATUS =
-			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-api-reference.html#setauthorizationstatus-android";
-		public static final String EVENT_REF =
-			"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-event-ref.html";
-		public static final String REGISTER_MOBILECORE_DOC =
-				"https://aep-sdks.gitbook.io/docs/using-mobile-extensions/mobile-core/configuration/configuration-api-reference#configurewithappid";
-		public static final String REGISTER_PLACES_DOC =
-				"https://docs.adobe.com/content/help/en/places/using/places-ext-aep-sdks/places-extension/places-extension.html#register-places-mobile-core";
-		public static final String GET_NEARBY_POI_DOC =
-				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#getnearbypointsofinterest-android";
-		public static final String PROCESS_GEOFENCE_EVENT_DOC =
-				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#processgeofencingevent-android";
-		public static final String PROCESS_GEOFENCE_DOC =
-				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#processgeofence-android";
-		public static final String GET_CURRENT_POI_DOC =
-				"https://docs.adobe.com/help/en/places/using/configure-places-with-sdk/places-extension/places-api-reference.html#getcurrentpointsofinterest-android";
-	}
 }
