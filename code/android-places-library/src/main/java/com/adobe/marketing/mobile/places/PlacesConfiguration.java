@@ -11,29 +11,35 @@
 
 package com.adobe.marketing.mobile.places;
 
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 class PlacesConfiguration {
 
+	private static final String CLASS_NAME = "PlacesConfiguration";
+
 	private List<PlacesLibrary> libraries;
 	private String endpoint;
 	private long membershipTtl;
 	private boolean isValid;
 
-	PlacesConfiguration(final EventData configData, final PlatformServices services) {
+	PlacesConfiguration(final Map<String, Object> configData, final PlatformServices services) {
 		this();
 
 		if (services == null || services.getJsonUtilityService() == null) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, "Places Configuration : JSONService not available");
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : JSONService not available");
 			return;
 		}
 
 		if (configData == null) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, "Places Configuration : Configuration eventData is null");
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : Configuration eventData is null");
 			return;
 		}
 
@@ -41,26 +47,25 @@ class PlacesConfiguration {
 		libraries = new ArrayList<PlacesLibrary>();
 
 		// read the libraries from the configuration
-		final List<Variant> libraryList = configData.optVariantList(
-											  PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES,
-											  null);
+		final List<Map> libraryList = DataReader.optTypedList(Map.class, configData,PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, null);
 
 		// bail out if there is no places libraries
 		if (libraryList == null) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, "Places Configuration : No places libraries found in configuration");
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - No places libraries found in configuration");
 			return;
 		}
 
-		for (Variant eachVariant : libraryList) {
-			final Map<String, String> libraryMap = eachVariant.optStringMap(null);
-
-			if (libraryMap != null && !libraryMap.isEmpty()) {
-				String id = libraryMap.get(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID);
-
-				if (!StringUtils.isNullOrEmpty(id)) {
-					// create new library and add them to the library list
-					libraries.add(new PlacesLibrary(id));
+		for (Map eachLibrary : libraryList) {
+			if (eachLibrary != null && !eachLibrary.isEmpty()) {
+				try{
+					String id = (String) eachLibrary.get(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID);
+					if (!StringUtils.isNullOrEmpty(id)) {
+						// create new library and add them to the library list
+						libraries.add(new PlacesLibrary(id));
+					}
+				} catch (ClassCastException exp) {
+					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places libraries found in configuration are not of type String.");
 				}
 			}
 		}
@@ -68,19 +73,19 @@ class PlacesConfiguration {
 		// bail out if there is no valid places libraries after parsing the json
 		if (libraries.isEmpty()) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, "Places Configuration : No valid libraries found in configuration");
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : No valid libraries found in configuration");
 			return;
 		}
 
-		endpoint = configData.optString(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, "");
+		endpoint = DataReader.optString(configData,PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, "");
 
 		if (StringUtils.isNullOrEmpty(endpoint)) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, "Places Configuration : No valid endpoint found in configuration");
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : No valid endpoint found in configuration");
 			return;
 		}
 
-		membershipTtl = configData.optLong(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
+		membershipTtl = DataReader.optLong(configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
 										   PlacesConstants.DEFAULT_MEMBERSHIP_TTL);
 		isValid = true;
 	}

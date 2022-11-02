@@ -20,7 +20,7 @@ import java.util.Map;
 public enum PlacesAuthorizationStatus {
 
 	/**
-	 * DENIED - The app can never use your location, even when you’re using the app.  ​
+	 * DENIED - The app can never use your location, even when you’re using the app.
 	 */
 	DENIED("denied"),
 

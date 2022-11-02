@@ -11,10 +11,19 @@
 
 package com.adobe.marketing.mobile.places;
 
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.Log;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<PlacesExtension> {
 
+	private static final String CLASS_NAME = "PlacesDispatcher";
 	/**
 	 * Constructs a new instance of {@code PlacesDispatcherPlacesResponseContent}.
 	 *
@@ -27,18 +36,16 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 
 	void dispatchNearbyPlaces(final List<PlacesPOI> poiList, final PlacesRequestError resultStatus,
 							  final String pairId) {
-		EventData responseEventData = new EventData();
-		responseEventData.putTypedList(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, poiList,
-									   new PlacesPOIVariantSerializer());
-		responseEventData.putInteger(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
-		Log.debug(PlacesConstants.LOG_TAG, "Dispatching nearby places event with %s POIs", poiList.size());
+		Map<String,Object> responseEventData = new HashMap<>();
+		responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, poiList);
+		responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching nearby places event with %s POIs", poiList.size());
 		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
-		.setData(responseEventData)
-		.setPairID(pairId)
+		.setEventData(responseEventData)
 		.build();
-		dispatch(responseEvent);
+		MobileCore.dispatchEvent(responseEvent);
 	}
 
 	void dispatchRegionEvent(final PlacesRegion region) {
@@ -46,53 +53,40 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 			return;
 		}
 
-		EventData regionData;
-
-		try {
-			regionData = region.getRegionEventData();
-		} catch (VariantException exp) {
-			Log.warning(PlacesConstants.LOG_TAG,
-						"Exception occurred while preparing eventData for region event. For more details refer to " +
-						PlacesConstants.DocsLinks.PROCESS_REGION_EVENT);
-			return;
-		}
-
+		Map<String,Object> regionData = region.getRegionEventData();
 		Event regionEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_PROCESSREGIONEVENT, EventType.PLACES,
 											  EventSource
 											  .RESPONSE_CONTENT)
-		.setData(regionData)
+		.setEventData(regionData)
 		.build();
-		Log.debug(PlacesConstants.LOG_TAG, "Dispatching Places Region Event for %s with eventType %s", region.getName(),
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching Places Region Event for %s with eventType %s", region.getName(),
 				  region.getPlaceEventType());
-		dispatch(regionEvent);
+		MobileCore.dispatchEvent(regionEvent);
 	}
 
 	void dispatchUserWithinPOIs(final List<PlacesPOI> poiList, final String pairId) {
-		EventData responseEventData = new EventData();
-		responseEventData.putTypedList(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, poiList,
-									   new PlacesPOIVariantSerializer());
-		Log.debug(PlacesConstants.LOG_TAG, "Dispatching user within POIs event with %s POIs", poiList.size());
+		Map<String,Object> responseEventData = new HashMap<>();
+		responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, poiList);
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching user within POIs event with %s POIs", poiList.size());
 		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
-		.setData(responseEventData)
-		.setPairID(pairId)
+		.setEventData(responseEventData)
 		.build();
-		dispatch(responseEvent);
+		MobileCore.dispatchEvent(responseEvent);
 	}
 
 	void dispatchLastKnownLocation(final double latitude, final double longitude, final String pairId) {
-		EventData responseEventData = new EventData();
-		responseEventData.putDouble(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, latitude);
-		responseEventData.putDouble(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, longitude);
-		Log.debug(PlacesConstants.LOG_TAG, "Dispatching last known location event with latitude: %s and longitude: %s",
+		Map<String,Object> responseEventData = new HashMap<>();
+		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, latitude);
+		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, longitude);
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching last known location event with latitude: %s and longitude: %s",
 				  latitude, longitude);
 		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
-		.setData(responseEventData)
-		.setPairID(pairId)
+		.setEventData(responseEventData)
 		.build();
-		dispatch(responseEvent);
+		MobileCore.dispatchEvent(responseEvent);
 	}
 }
