@@ -39,7 +39,7 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 		Map<String,Object> responseEventData = new HashMap<>();
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, poiList);
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching nearby places event with %s POIs", poiList.size());
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places event with %s POIs", poiList.size());
 		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
@@ -59,7 +59,7 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 											  .RESPONSE_CONTENT)
 		.setEventData(regionData)
 		.build();
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching Places Region Event for %s with eventType %s", region.getName(),
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchRegionEvent - Dispatching Places Region Event for %s with eventType %s", region.getName(),
 				  region.getPlaceEventType());
 		MobileCore.dispatchEvent(regionEvent);
 	}
@@ -67,7 +67,7 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 	void dispatchUserWithinPOIs(final List<PlacesPOI> poiList, final String pairId) {
 		Map<String,Object> responseEventData = new HashMap<>();
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, poiList);
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching user within POIs event with %s POIs", poiList.size());
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event with %s POIs", poiList.size());
 		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
@@ -80,7 +80,7 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 		Map<String,Object> responseEventData = new HashMap<>();
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, latitude);
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, longitude);
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Dispatching last known location event with latitude: %s and longitude: %s",
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchLastKnownLocation - Dispatching last known location event with latitude: %s and longitude: %s",
 				  latitude, longitude);
 		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
 												EventSource

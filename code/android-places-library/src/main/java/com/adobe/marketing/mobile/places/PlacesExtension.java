@@ -135,7 +135,7 @@ public class PlacesExtension extends Extension {
 		Map<String,Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Places request content event's eventData is empty, Ignoring event");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "processPlacesRequestEvent - Places request content event's eventData is empty, Ignoring event");
 			return true;
 		}
 
@@ -230,7 +230,7 @@ public class PlacesExtension extends Extension {
 		retrieveConfigurationEventState(event);
 
 		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"Ignoring to save the last known location, Privacy opted out");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"saveLastKnownLocation - Ignoring to save the last known location, Privacy opted out");
 			return;
 		}
 
@@ -264,7 +264,7 @@ public class PlacesExtension extends Extension {
 
 		if (!PlacesAuthorizationStatus.isValidStatus(authStatusString)) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,
-					  "Invalid Authorization status value is set to Places Extension. Please check PlacesAuthorizationStatus class.");
+					  "handleSetAuthorizationStatusEvent - Invalid Authorization status value is set to Places Extension. Please check PlacesAuthorizationStatus class.");
 			return;
 		}
 
@@ -299,7 +299,7 @@ public class PlacesExtension extends Extension {
 		PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
 
 		if (!placesConfig.isValid()) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring the get nearby places event, Invalid Configuration");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Invalid Configuration");
 			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.CONFIGURATION_ERROR, event.getResponsePairID());
 			return;
@@ -307,7 +307,7 @@ public class PlacesExtension extends Extension {
 
 		// Bail out if privacy is opted out.
 		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring the get nearby places event, Privacy opted out.");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Privacy opted out.");
 			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.PRIVACY_OPTED_OUT,
 					event.getResponsePairID());
@@ -318,7 +318,7 @@ public class PlacesExtension extends Extension {
 
 		if (queryService == null) {
 			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
-						"Ignoring the get nearby places event, platform services unavailable, couldn't initialize the query service.");
+						"handleGetNearByPlaceEvent - Ignoring the get nearby places event, platform services unavailable, couldn't initialize the query service.");
 			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.QUERY_SERVICE_UNAVAILABLE,
 					event.getResponsePairID());
@@ -360,7 +360,7 @@ public class PlacesExtension extends Extension {
 		retrieveConfigurationEventState(event);
 
 		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring the geofence event, Privacy opted out.");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGeofenceEvent - Ignoring the geofence event, Privacy opted out.");
 			return;
 		}
 
