@@ -82,7 +82,7 @@ public class PlacesExtension extends Extension {
 		state = new PlacesState(getPlatformServices());
 
 		// share places state if we got one
-		Map<String,Object> placesSharedState = state.getPlacesSharedState();
+		final Map<String,Object> placesSharedState = state.getPlacesSharedState();
 
 		if (placesSharedState != null && !placesSharedState.isEmpty()) {
 			createOrUpdateSharedState(0, placesSharedState);
@@ -132,7 +132,7 @@ public class PlacesExtension extends Extension {
 	 */
 	boolean processPlacesRequestEvent(final Event event) {
 		// quick return if the eventData is empty/null
-		Map<String,Object> eventData = event.getEventData();
+		final Map<String,Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "processPlacesRequestEvent - Places request content event's eventData is empty, Ignoring event");
@@ -141,14 +141,14 @@ public class PlacesExtension extends Extension {
 
 
 		// Retrieve the latest configuration shared state data
-		Map<String,Object> configData = retrieveConfigurationEventState(event);
+		final Map<String,Object> configData = retrieveConfigurationEventState(event);
 
 		if (configData == EventHub.SHARED_STATE_PENDING) {
 			return false;
 		}
 
 
-		String requestType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
+		final String requestType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
 
 		if (!StringUtils.isNullOrEmpty(requestType)) {
 			if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES.equals(requestType)) {
@@ -187,7 +187,6 @@ public class PlacesExtension extends Extension {
 
 			// Else try processing the pending event in queue on configuration change
 			processEventQueue();
-
 		}
 	}
 
@@ -208,7 +207,7 @@ public class PlacesExtension extends Extension {
 
 	void handleGetLastKnownLocation(final Event event) {
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get last known location event");
-		Location location = state.loadLastKnownLocation();
+		final Location location = state.loadLastKnownLocation();
 
 		if (location == null) {
 			placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(PlacesConstants.INVALID_LAT_LON,
@@ -234,15 +233,15 @@ public class PlacesExtension extends Extension {
 			return;
 		}
 
-		Map<String,Object> eventData = event.getEventData();
+		final Map<String,Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "saveLastKnownLocation - Unable to save location, invalid eventData");
 			return;
 		}
 
-		double latitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
-		double longitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
+		final double latitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
+		final double longitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
 
 		if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "saveLastKnownLocation - Unable to save location, invalid latitude/longitude");
@@ -259,8 +258,8 @@ public class PlacesExtension extends Extension {
 	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
 	 */
 	void handleSetAuthorizationStatusEvent(final Event event) {
-		Map<String,Object> data = event.getEventData();
-		String authStatusString = DataReader.optString(data, PlacesConstants.EventDataKeys.Places.AUTH_STATUS, null);
+		final Map<String,Object> data = event.getEventData();
+		final String authStatusString = DataReader.optString(data, PlacesConstants.EventDataKeys.Places.AUTH_STATUS, null);
 
 		if (!PlacesAuthorizationStatus.isValidStatus(authStatusString)) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,
@@ -296,7 +295,7 @@ public class PlacesExtension extends Extension {
 	private void handleGetNearByPlaceEvent(final Event event, final Map<String,Object> configData) {
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get near by place event.");
 		// Retrieve the latest configuration shared state data
-		PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
+		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
 
 		if (!placesConfig.isValid()) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Invalid Configuration");
@@ -325,7 +324,7 @@ public class PlacesExtension extends Extension {
 			return ;
 		}
 
-		PlacesQueryResponse response = queryService.getNearbyPlaces(event.getData(), placesConfig);
+		final PlacesQueryResponse response = queryService.getNearbyPlaces(event.getData(), placesConfig);
 
 		if (!response.isSuccess) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, response.errorMessage);
@@ -354,7 +353,7 @@ public class PlacesExtension extends Extension {
 
 
 	private void handleGeofenceEvent(final Event event, final Map<String,Object> configData) {
-		PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
+		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
 
 		// Bail out if privacy is opted out.
 		retrieveConfigurationEventState(event);
@@ -368,7 +367,7 @@ public class PlacesExtension extends Extension {
 		state.setMembershiptTtl(placesConfig.getMembershipTtl());
 
 		// process the region event
-		PlacesRegion regionEvent = state.processRegionEvent(event);
+		final PlacesRegion regionEvent = state.processRegionEvent(event);
 
 		// update the places shared state
 		createOrUpdateSharedState(event.getEventNumber(), state.getPlacesSharedState());
@@ -390,7 +389,7 @@ public class PlacesExtension extends Extension {
 	 * @return {@code Map<String,Object>} containing configuration shared state
 	 */
 	private Map<String,Object> retrieveConfigurationEventState(final Event event) {
-		Map<String,Object> configData = this.getSharedEventState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event);
+		final Map<String,Object> configData = this.getSharedEventState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event);
 
 		if (configData == EventHub.SHARED_STATE_PENDING) {
 			if (this.lastKnownConfigurationState == null) {
@@ -421,7 +420,7 @@ public class PlacesExtension extends Extension {
 		if (this.lastKnownConfigurationState != null
 				&& this.lastKnownConfigurationState.containsKey(
 					PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY)) {
-			String privacyString = this.lastKnownConfigurationState.optString(
+			final String privacyString = this.lastKnownConfigurationState.optString(
 									   PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, "unknown");
 			return MobilePrivacyStatus.fromString(privacyString);
 		} else {

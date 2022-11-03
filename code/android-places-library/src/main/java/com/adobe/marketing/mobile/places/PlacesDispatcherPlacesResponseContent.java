@@ -36,11 +36,11 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 
 	void dispatchNearbyPlaces(final List<PlacesPOI> poiList, final PlacesRequestError resultStatus,
 							  final String pairId) {
-		Map<String,Object> responseEventData = new HashMap<>();
+		final Map<String,Object> responseEventData = new HashMap<>();
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, poiList);
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places event with %s POIs", poiList.size());
-		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
+		final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
 		.setEventData(responseEventData)
@@ -53,8 +53,8 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 			return;
 		}
 
-		Map<String,Object> regionData = region.getRegionEventData();
-		Event regionEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_PROCESSREGIONEVENT, EventType.PLACES,
+		final Map<String,Object> regionData = region.getRegionEventData();
+		final Event regionEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_PROCESSREGIONEVENT, EventType.PLACES,
 											  EventSource
 											  .RESPONSE_CONTENT)
 		.setEventData(regionData)
@@ -65,10 +65,10 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 	}
 
 	void dispatchUserWithinPOIs(final List<PlacesPOI> poiList, final String pairId) {
-		Map<String,Object> responseEventData = new HashMap<>();
+		final Map<String,Object> responseEventData = new HashMap<>();
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, poiList);
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event with %s POIs", poiList.size());
-		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
+		final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
 		.setEventData(responseEventData)
@@ -77,12 +77,12 @@ class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<Places
 	}
 
 	void dispatchLastKnownLocation(final double latitude, final double longitude, final String pairId) {
-		Map<String,Object> responseEventData = new HashMap<>();
+		final Map<String,Object> responseEventData = new HashMap<>();
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, latitude);
 		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, longitude);
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchLastKnownLocation - Dispatching last known location event with latitude: %s and longitude: %s",
 				  latitude, longitude);
-		Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
+		final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
 												EventSource
 												.RESPONSE_CONTENT)
 		.setEventData(responseEventData)

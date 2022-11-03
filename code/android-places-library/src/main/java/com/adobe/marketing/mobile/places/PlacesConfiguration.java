@@ -47,7 +47,7 @@ class PlacesConfiguration {
 		libraries = new ArrayList<PlacesLibrary>();
 
 		// read the libraries from the configuration
-		final List<Map> libraryList = DataReader.optTypedList(Map.class, configData,PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, null);
+		final List<Map> libraryList = DataReader.optTypedList(Map.class, configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, null);
 
 		// bail out if there is no places libraries
 		if (libraryList == null) {
@@ -56,15 +56,15 @@ class PlacesConfiguration {
 			return;
 		}
 
-		for (Map eachLibrary : libraryList) {
+		for (final Map eachLibrary : libraryList) {
 			if (eachLibrary != null && !eachLibrary.isEmpty()) {
 				try{
-					String id = (String) eachLibrary.get(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID);
+					final String id = (String) eachLibrary.get(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID);
 					if (!StringUtils.isNullOrEmpty(id)) {
 						// create new library and add them to the library list
 						libraries.add(new PlacesLibrary(id));
 					}
-				} catch (ClassCastException exp) {
+				} catch (final ClassCastException exp) {
 					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places libraries found in configuration are not of type String.");
 				}
 			}
@@ -91,9 +91,9 @@ class PlacesConfiguration {
 	}
 
 	String getLibrariesQueryString() {
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 
-		for (PlacesLibrary library : libraries) {
+		for (final PlacesLibrary library : libraries) {
 			builder.append("&library=");
 			builder.append(library.getLibraryId());
 		}
