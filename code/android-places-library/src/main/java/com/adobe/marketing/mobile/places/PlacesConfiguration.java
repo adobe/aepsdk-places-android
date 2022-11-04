@@ -58,14 +58,12 @@ class PlacesConfiguration {
 
 		for (final Map eachLibrary : libraryList) {
 			if (eachLibrary != null && !eachLibrary.isEmpty()) {
-				try{
-					final String id = (String) eachLibrary.get(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID);
-					if (!StringUtils.isNullOrEmpty(id)) {
-						// create new library and add them to the library list
-						libraries.add(new PlacesLibrary(id));
-					}
-				} catch (final ClassCastException exp) {
-					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places libraries found in configuration are not of type String.");
+				final String libraryId = DataReader.optString(eachLibrary, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "");
+				if (!StringUtils.isNullOrEmpty(libraryId)) {
+					// create new library and add them to the library list
+					libraries.add(new PlacesLibrary(libraryId));
+				} else {
+					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Invalid places library Id.");
 				}
 			}
 		}
