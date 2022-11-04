@@ -79,7 +79,6 @@ public class PlacesExtension extends Extension {
 		this.placesDispatcherPlacesResponseContent = this.createDispatcher(
 					PlacesDispatcherPlacesResponseContent.class);
 		this.eventsQueue = new ConcurrentLinkedQueue<Event>();
-		state = new PlacesState(getPlatformServices());
 
 		// share places state if we got one
 		final Map<String,Object> placesSharedState = state.getPlacesSharedState();
@@ -87,6 +86,9 @@ public class PlacesExtension extends Extension {
 		if (placesSharedState != null && !placesSharedState.isEmpty()) {
 			createOrUpdateSharedState(0, placesSharedState);
 		}
+
+		state = new PlacesState();
+		queryService = new PlacesQueryService();
 	}
 
 	/**
@@ -295,7 +297,7 @@ public class PlacesExtension extends Extension {
 	private void handleGetNearByPlaceEvent(final Event event, final Map<String,Object> configData) {
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get near by place event.");
 		// Retrieve the latest configuration shared state data
-		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
+		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData);
 
 		if (!placesConfig.isValid()) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Invalid Configuration");
@@ -313,16 +315,6 @@ public class PlacesExtension extends Extension {
 			return;
 		}
 
-		queryService = getPlacesQueryService();
-
-		if (queryService == null) {
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
-						"handleGetNearByPlaceEvent - Ignoring the get nearby places event, platform services unavailable, couldn't initialize the query service.");
-			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
-					PlacesRequestError.QUERY_SERVICE_UNAVAILABLE,
-					event.getResponsePairID());
-			return ;
-		}
 
 		final PlacesQueryResponse response = queryService.getNearbyPlaces(event.getData(), placesConfig);
 
@@ -353,7 +345,7 @@ public class PlacesExtension extends Extension {
 
 
 	private void handleGeofenceEvent(final Event event, final Map<String,Object> configData) {
-		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
+		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData);
 
 		// Bail out if privacy is opted out.
 		retrieveConfigurationEventState(event);
@@ -428,30 +420,4 @@ public class PlacesExtension extends Extension {
 		}
 	}
 
-
-	/**
-	 * Attempts to instantiate the instance of {@code PlacesQueryService}.
-	 * <p>
-	 * No operation is performed if the {@link #queryService} variable is already instantiated.
-	 * This method returns null when, unable to instantiate {@code PlacesQueryService} instance because of missing platform service.
-	 *
-	 * @return {@link PlacesQueryService} an instance of PlacesQueryService
-	 */
-	PlacesQueryService getPlacesQueryService() {
-		if (queryService == null) {
-			PlatformServices platformServices = getPlatformServices();
-
-			if (platformServices == null) {
-				return null;
-			}
-
-			try {
-				queryService = new PlacesQueryService(platformServices.getJsonUtilityService(), platformServices.getNetworkService());
-			} catch (MissingPlatformServicesException e) {
-				return null;
-			}
-		}
-
-		return queryService;
-	}
 }

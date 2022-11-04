@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile.places;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Map;
 
 public class PlacesPOI {
@@ -83,24 +86,22 @@ public class PlacesPOI {
 	}
 
 
-	protected PlacesPOI(final String jsonString, final JsonUtilityService jsonService) throws JsonException {
-		JsonUtilityService.JSONObject poiJson = jsonService.createJSONObject(jsonString);
+	protected PlacesPOI(final String jsonString) throws JSONException {
+		JSONObject poiJson = new JSONObject(jsonString);
 
 		if (poiJson == null) {
-			throw new JsonException("Cannot convert json string into json object");
+			throw new JSONException("Cannot convert json string into json object");
 		}
 
-		jsonObjectToPlacesPOI(poiJson, jsonService);
+		jsonObjectToPlacesPOI(poiJson);
 	}
 
 
-	protected PlacesPOI(final JsonUtilityService.JSONObject poiJson,
-						final JsonUtilityService jsonService) throws JsonException {
-		jsonObjectToPlacesPOI(poiJson, jsonService);
+	protected PlacesPOI(final JSONObject poiJson) throws JSONException {
+		jsonObjectToPlacesPOI(poiJson);
 	}
 
-	private void jsonObjectToPlacesPOI(final JsonUtilityService.JSONObject poiJson,
-									   final JsonUtilityService jsonService) throws JsonException {
+	private void jsonObjectToPlacesPOI(final JSONObject poiJson) throws JSONException {
 		this.identifier = poiJson.getString(PlacesConstants.POIKeys.IDENTIFIER);
 		this.name = poiJson.getString(PlacesConstants.POIKeys.NAME);
 		this.latitude = poiJson.getDouble(PlacesConstants.POIKeys.LATITUDE);
@@ -109,10 +110,10 @@ public class PlacesPOI {
 		this.userIsWithin = poiJson.getBoolean(PlacesConstants.POIKeys.USER_IS_WITHIN);
 		this.weight = poiJson.getInt(PlacesConstants.POIKeys.WEIGHT);
 		this.library = poiJson.optString(PlacesConstants.POIKeys.LIBRARY, "");
-		JsonUtilityService.JSONObject  metadataJSON = poiJson.optJSONObject(PlacesConstants.POIKeys.METADATA);
+		JSONObject metadataJSON = poiJson.optJSONObject(PlacesConstants.POIKeys.METADATA);
 
 		if (metadataJSON != null) {
-			this.metadata = jsonService.mapFromJsonObject(metadataJSON);
+			this.metadata = JSONUtils.convertJsonObjectToStringMap(metadataJSON);
 		}
 	}
 
@@ -284,5 +285,4 @@ public class PlacesPOI {
 		result = prime * result + (metadata != null ? metadata.hashCode() : 0);
 		return result;
 	}
-
 }

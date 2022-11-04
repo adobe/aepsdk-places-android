@@ -28,14 +28,8 @@ class PlacesConfiguration {
 	private long membershipTtl;
 	private boolean isValid;
 
-	PlacesConfiguration(final Map<String, Object> configData, final PlatformServices services) {
+	PlacesConfiguration(final Map<String, Object> configData) {
 		this();
-
-		if (services == null || services.getJsonUtilityService() == null) {
-			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : JSONService not available");
-			return;
-		}
 
 		if (configData == null) {
 			isValid = false;
@@ -65,7 +59,7 @@ class PlacesConfiguration {
 						libraries.add(new PlacesLibrary(id));
 					}
 				} catch (final ClassCastException exp) {
-					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places libraries found in configuration are not of type String.");
+					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places library id found in configuration is not of type String.");
 				}
 			}
 		}
