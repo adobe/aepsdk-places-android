@@ -365,7 +365,7 @@ class PlacesState {
 	private void loadPersistedPOIs() {
 		if (placesDataStore == null) {
 			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
-						" unable to load POI's from persistence, placesDataStore not available.");
+						"Unable to load POI's from persistence, placesDataStore not available.");
 			return;
 		}
 
@@ -436,7 +436,7 @@ class PlacesState {
 
 		if (placesDataStore == null) {
 			Log.error(PlacesConstants.LOG_TAG, CLASS_NAME,
-					  "PlacesDatastore is not available, unable to persist POI's in persistence");
+					  "Unable to persist POI's in persistence, placesDataStore not available.");
 			return;
 		}
 
@@ -452,29 +452,30 @@ class PlacesState {
 
 		// persist currentPOI
 		if (currentPOI != null) {
-				// TODO : Write a serializer to convert object to jsonString
-				String jsonString = currentPOI.toString();
-				placesDataStore.setString(PlacesConstants.DataStoreKeys.CURRENT_POI, jsonString);
-				Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "currentPOI persisted, %s", jsonString);
+			// TODO : Write a serializer to convert object to jsonString
+			String jsonString = currentPOI.toString();
+			placesDataStore.setString(PlacesConstants.DataStoreKeys.CURRENT_POI, jsonString);
+			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "currentPOI persisted, %s", jsonString);
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.CURRENT_POI);
 		}
 
 		// persist lastEnteredPOI
 		if (lastEnteredPOI != null) {
-				// TODO : Write a serializer to convert object to jsonString
-				String jsonString = lastEnteredPOI.toString();
-				placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, jsonString);
-				Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "lastEnteredPOI persisted, %s", jsonString);
+			// TODO : Write a serializer to convert object to jsonString
+			String jsonString = lastEnteredPOI.toString();
+			placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, jsonString);
+			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "lastEnteredPOI persisted, %s", jsonString);
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI);
 		}
 
 		// persist lastExitedPOI
 		if (lastExitedPOI != null) {
-				String jsonString = lastExitedPOI.toString();
-				placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, jsonString);
-				Log.trace(PlacesConstants.LOG_TAG, "lastExitedPOI persisted, %s", jsonString);
+			// TODO : Write a serializer to convert object to jsonString
+			String jsonString = lastExitedPOI.toString();
+			placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, jsonString);
+			Log.trace(PlacesConstants.LOG_TAG, "lastExitedPOI persisted, %s", jsonString);
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_EXITED_POI);
 		}
@@ -517,7 +518,7 @@ class PlacesState {
 
 		if (placesDataStore == null) {
 			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
-						"Unable to clear membership data. placesDataStore not available.");
+						"Unable to clear membership data, placesDataStore not available.");
 			return;
 		}
 
