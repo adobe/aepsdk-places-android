@@ -11,7 +11,19 @@
 
 package com.adobe.marketing.mobile.places;
 
+import android.location.Location;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.Extension;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
+
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -38,10 +50,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *     <li>List all the service that's used by places module</li>
  * </ol>
  */
-class PlacesExtension extends InternalModule {
+public class PlacesExtension extends Extension {
+
+	private static final String CLASS_NAME = "PlacesExtension";
 
 	ConcurrentLinkedQueue<Event> eventsQueue;
-	EventData lastKnownConfigurationState;
+	Map<String,Object> lastKnownConfigurationState;
 	PlacesDispatcherPlacesResponseContent placesDispatcherPlacesResponseContent;
 	PlacesQueryService queryService;
 	PlacesState state;
@@ -68,7 +82,7 @@ class PlacesExtension extends InternalModule {
 		state = new PlacesState(getPlatformServices());
 
 		// share places state if we got one
-		EventData placesSharedState = state.getPlacesSharedState();
+		final Map<String,Object> placesSharedState = state.getPlacesSharedState();
 
 		if (placesSharedState != null && !placesSharedState.isEmpty()) {
 			createOrUpdateSharedState(0, placesSharedState);
@@ -118,23 +132,23 @@ class PlacesExtension extends InternalModule {
 	 */
 	boolean processPlacesRequestEvent(final Event event) {
 		// quick return if the eventData is empty/null
-		EventData eventData = event.getData();
+		final Map<String,Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, "Places request content event's eventData is empty, Ignoring event");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "processPlacesRequestEvent - Places request content event's eventData is empty, Ignoring event");
 			return true;
 		}
 
 
 		// Retrieve the latest configuration shared state data
-		EventData configData = retrieveConfigurationEventState(event);
+		final Map<String,Object> configData = retrieveConfigurationEventState(event);
 
 		if (configData == EventHub.SHARED_STATE_PENDING) {
 			return false;
 		}
 
 
-		String requestType = eventData.optString(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
+		final String requestType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
 
 		if (!StringUtils.isNullOrEmpty(requestType)) {
 			if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES.equals(requestType)) {
@@ -173,7 +187,6 @@ class PlacesExtension extends InternalModule {
 
 			// Else try processing the pending event in queue on configuration change
 			processEventQueue();
-
 		}
 	}
 
@@ -184,8 +197,7 @@ class PlacesExtension extends InternalModule {
 	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
 	 */
 	void handleGetUserWithinPOIsEvent(final Event event) {
-		Log.debug(PlacesConstants.LOG_TAG, "Handling get user-within points of interest event. For more details refer to " +
-				  PlacesConstants.DocsLinks.GET_CURRENT_POI_EVENT);
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get user-within points of interest event.");
 
 		// dispatch userWithinPOIS for the awaiting one time listener
 		placesDispatcherPlacesResponseContent.dispatchUserWithinPOIs(state.getUserWithInPOIs(), event.getResponsePairID());
@@ -194,20 +206,20 @@ class PlacesExtension extends InternalModule {
 	}
 
 	void handleGetLastKnownLocation(final Event event) {
-		Log.debug(PlacesConstants.LOG_TAG, "Handling get last known location event");
-		PlacesGpsLocation gpsLocation = state.loadLastKnownLocation();
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get last known location event");
+		final Location location = state.loadLastKnownLocation();
 
-		if (gpsLocation == null) {
+		if (location == null) {
 			placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(PlacesConstants.INVALID_LAT_LON,
 					PlacesConstants.INVALID_LAT_LON, event.getResponsePairID());
 			return;
 		}
 
 		// dispatch lastKnownLocation for all other listeners
-		placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(gpsLocation.getLatitude(), gpsLocation.getLongitude(),
+		placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(location.getLatitude(), location.getLongitude(),
 				event.getResponsePairID());
 		// dispatch lastKnownLocation for all other listeners
-		placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(gpsLocation.getLatitude(), gpsLocation.getLongitude(),
+		placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(location.getLatitude(), location.getLongitude(),
 				null);
 	}
 
@@ -217,24 +229,22 @@ class PlacesExtension extends InternalModule {
 		retrieveConfigurationEventState(event);
 
 		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
-			Log.debug(PlacesConstants.LOG_TAG,
-					  "Ignoring to save the last known location, Privacy opted out. For more details refer to " +
-					  PlacesConstants.DocsLinks.PRIVACY_STATUS);
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"saveLastKnownLocation - Ignoring to save the last known location, Privacy opted out");
 			return;
 		}
 
-		EventData eventData = event.getData();
+		final Map<String,Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, "Unable to save location, invalid eventData");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "saveLastKnownLocation - Unable to save location, invalid eventData");
 			return;
 		}
 
-		double latitude = eventData.optDouble(PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
-		double longitude = eventData.optDouble(PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
+		final double latitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
+		final double longitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
 
 		if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
-			Log.debug(PlacesConstants.LOG_TAG, "Unable to save location, invalid latitude/longitude");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "saveLastKnownLocation - Unable to save location, invalid latitude/longitude");
 			return;
 		}
 
@@ -248,13 +258,12 @@ class PlacesExtension extends InternalModule {
 	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
 	 */
 	void handleSetAuthorizationStatusEvent(final Event event) {
-		EventData data = event.getData();
-		String authStatusString = data.optString(PlacesConstants.EventDataKeys.Places.AUTH_STATUS, null);
+		final Map<String,Object> data = event.getEventData();
+		final String authStatusString = DataReader.optString(data, PlacesConstants.EventDataKeys.Places.AUTH_STATUS, null);
 
 		if (!PlacesAuthorizationStatus.isValidStatus(authStatusString)) {
-			Log.debug(PlacesConstants.LOG_TAG,
-					  "Invalid Authorization status value is set to Places Extension. Please check PlacesAuthorizationStatus class. For more details refer to "
-					  + PlacesConstants.DocsLinks.AUTHORIZATION_STATUS);
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,
+					  "handleSetAuthorizationStatusEvent - Invalid Authorization status value is set to Places Extension. Please check PlacesAuthorizationStatus class.");
 			return;
 		}
 
@@ -283,14 +292,13 @@ class PlacesExtension extends InternalModule {
 	 *
 	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
 	 */
-	private void handleGetNearByPlaceEvent(final Event event, final EventData configData) {
-		Log.debug(PlacesConstants.LOG_TAG, "Handling get near by place event. For more details refer to " +
-				  PlacesConstants.DocsLinks.GET_NEARBY_POI_EVENT);
+	private void handleGetNearByPlaceEvent(final Event event, final Map<String,Object> configData) {
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get near by place event.");
 		// Retrieve the latest configuration shared state data
-		PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
+		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
 
 		if (!placesConfig.isValid()) {
-			Log.debug(PlacesConstants.LOG_TAG, "Ignoring the get nearby places event, Invalid Configuration");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Invalid Configuration");
 			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.CONFIGURATION_ERROR, event.getResponsePairID());
 			return;
@@ -298,8 +306,7 @@ class PlacesExtension extends InternalModule {
 
 		// Bail out if privacy is opted out.
 		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
-			Log.debug(PlacesConstants.LOG_TAG, "Ignoring the get nearby places event, Privacy opted out. For more details refer to "
-					  + PlacesConstants.DocsLinks.PRIVACY_STATUS);
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Privacy opted out.");
 			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.PRIVACY_OPTED_OUT,
 					event.getResponsePairID());
@@ -309,18 +316,18 @@ class PlacesExtension extends InternalModule {
 		queryService = getPlacesQueryService();
 
 		if (queryService == null) {
-			Log.warning(PlacesConstants.LOG_TAG,
-						"Ignoring the get nearby places event, platform services unavailable, couldn't initialize the query service.");
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
+						"handleGetNearByPlaceEvent - Ignoring the get nearby places event, platform services unavailable, couldn't initialize the query service.");
 			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.QUERY_SERVICE_UNAVAILABLE,
 					event.getResponsePairID());
 			return ;
 		}
 
-		PlacesQueryResponse response = queryService.getNearbyPlaces(event.getData(), placesConfig);
+		final PlacesQueryResponse response = queryService.getNearbyPlaces(event.getData(), placesConfig);
 
 		if (!response.isSuccess) {
-			Log.debug(PlacesConstants.LOG_TAG, response.errorMessage);
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, response.errorMessage);
 			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(), response.resultStatus,
 					event.getResponsePairID());
 			return;
@@ -345,15 +352,14 @@ class PlacesExtension extends InternalModule {
 
 
 
-	private void handleGeofenceEvent(final Event event, final EventData configData) {
-		PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
+	private void handleGeofenceEvent(final Event event, final Map<String,Object> configData) {
+		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData, getPlatformServices());
 
 		// Bail out if privacy is opted out.
 		retrieveConfigurationEventState(event);
 
 		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
-			Log.debug(PlacesConstants.LOG_TAG, "Ignoring the geofence event, Privacy opted out. For more details refer to " +
-					  PlacesConstants.DocsLinks.PRIVACY_STATUS);
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGeofenceEvent - Ignoring the geofence event, Privacy opted out.");
 			return;
 		}
 
@@ -361,7 +367,7 @@ class PlacesExtension extends InternalModule {
 		state.setMembershiptTtl(placesConfig.getMembershipTtl());
 
 		// process the region event
-		PlacesRegion regionEvent = state.processRegionEvent(event);
+		final PlacesRegion regionEvent = state.processRegionEvent(event);
 
 		// update the places shared state
 		createOrUpdateSharedState(event.getEventNumber(), state.getPlacesSharedState());
@@ -380,10 +386,10 @@ class PlacesExtension extends InternalModule {
 	 * If the configuration shared state is valid, retrieves the valid shared state and updates the last known configuration shared cache variable.
 	 *
 	 * @param event the {@link EventType#CONFIGURATION} - {@link EventSource#RESPONSE_CONTENT} event associated with the configuration change
-	 * @return {@code EventData} containing configuration shared state
+	 * @return {@code Map<String,Object>} containing configuration shared state
 	 */
-	private EventData retrieveConfigurationEventState(final Event event) {
-		EventData configData = this.getSharedEventState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event);
+	private Map<String,Object> retrieveConfigurationEventState(final Event event) {
+		final Map<String,Object> configData = this.getSharedEventState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event);
 
 		if (configData == EventHub.SHARED_STATE_PENDING) {
 			if (this.lastKnownConfigurationState == null) {
@@ -414,7 +420,7 @@ class PlacesExtension extends InternalModule {
 		if (this.lastKnownConfigurationState != null
 				&& this.lastKnownConfigurationState.containsKey(
 					PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY)) {
-			String privacyString = this.lastKnownConfigurationState.optString(
+			final String privacyString = this.lastKnownConfigurationState.optString(
 									   PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, "unknown");
 			return MobilePrivacyStatus.fromString(privacyString);
 		} else {

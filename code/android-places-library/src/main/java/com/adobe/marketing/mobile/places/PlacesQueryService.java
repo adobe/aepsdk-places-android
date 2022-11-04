@@ -13,6 +13,10 @@ package com.adobe.marketing.mobile.places;
 
 import com.adobe.marketing.mobile.JsonUtilityService.JSONArray;
 import com.adobe.marketing.mobile.JsonUtilityService.JSONObject;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
+import com.adobe.marketing.mobile.util.URLBuilder;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -20,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 class PlacesQueryService {
+	private static final String CLASS_NAME = "PlacesQueryService";
 
 	private static final int POI_DETAIL_MIN_ARRAY_LENGTH = 7;
 	private static final int DEFAULT_POI_RADIUS = 100;
@@ -57,12 +62,12 @@ class PlacesQueryService {
 	 *
 	 * TODO: Doc Me
 	 *
-	 * @param eventData the {@link EventData} related to the get nearby places event
+	 * @param eventData the {@link Map} containing the parameters to get nearby places.
 	 * @param placesConfig an instance of valid {@link PlacesConfiguration}
 	 * @return A {@link PlacesQueryResponse} instance containing the places data
 	 */
 	// Pass non null event data.
-	PlacesQueryResponse getNearbyPlaces(final EventData eventData, final PlacesConfiguration placesConfig) {
+	PlacesQueryResponse getNearbyPlaces(final Map<String,Object> eventData, final PlacesConfiguration placesConfig) {
 		PlacesQueryResponse placesResponse = new PlacesQueryResponse();
 
 		String queryURL = getQueryURL(eventData, placesConfig);
@@ -133,19 +138,19 @@ class PlacesQueryService {
 	/**
 	 * TODO: Doc Me
 	 *
-	 * @param eventData the {@link EventData} related to the get nearby places event
+	 * @param eventData the {@link Map<String,Object>} related to the get nearby places event
 	 * @param placesConfig an instance of valid {@link PlacesConfiguration}
 	 * @return a url {@link String} to make the places query
 	 */
-	private String getQueryURL(final EventData eventData, final PlacesConfiguration placesConfig) {
+	private String getQueryURL(final Map<String,Object> eventData, final PlacesConfiguration placesConfig) {
 		// Grab data from eventData
-		double latitude = eventData.optDouble(PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
-		double longitude = eventData.optDouble(PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
-		int count = eventData.optInteger(PlacesConstants.EventDataKeys.Places.PLACES_COUNT,
+		double latitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
+		double longitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
+		int count = DataReader.optInt(eventData, PlacesConstants.EventDataKeys.Places.PLACES_COUNT,
 										 PlacesConstants.DEFAULT_NEARBYPOI_COUNT);
 
 		if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
-			Log.debug(PlacesConstants.LOG_TAG, "Unable to get nearby places, invalid latitude/longitude");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to get nearby places, invalid latitude/longitude");
 			return null;
 		}
 
@@ -225,7 +230,7 @@ class PlacesQueryService {
 
 		// bail out by returning null if array length for a poi is not equal to 8
 		if (poiDetails.length() != POI_DETAIL_MIN_ARRAY_LENGTH) {
-			Log.debug(PlacesConstants.LOG_TAG, "poiJson does not have the expected format");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "poiJson does not have the expected format");
 			return null;
 		}
 
@@ -233,7 +238,7 @@ class PlacesQueryService {
 		String identifier = poiDetails.optString(POI_INDEX_IDENTIFIER, null);
 
 		if (identifier == null) {
-			Log.debug(PlacesConstants.LOG_TAG, "Ignoring a POI, invalid identifier");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring a POI, invalid identifier");
 			return null;
 		}
 
@@ -250,14 +255,14 @@ class PlacesQueryService {
 										   String.valueOf(PlacesConstants.INVALID_LAT_LON)));
 		} catch (Exception exp) {
 			// catch the numberFormat and nullPointer Exception
-			Log.debug(PlacesConstants.LOG_TAG,
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,
 					  "Ignoring POI with identifier %s, exception occurred while reading latitude/ longitude", identifier);
 			return null;
 		}
 
 
 		if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
-			Log.debug(PlacesConstants.LOG_TAG, "Ignoring POI with identifier %s, invalid latitude/ longitude", identifier);
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring POI with identifier %s, invalid latitude/ longitude", identifier);
 			return null;
 		}
 

@@ -11,12 +11,21 @@
 
 package com.adobe.marketing.mobile.places;
 
+import android.location.Location;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.LocalStorageService.DataStore;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.*;
 
 class PlacesState {
 
+	private static final String CLASS_NAME = "PlacesState";
 	private static final String PLACES_DATA_STORE = "placesdatastore";
 
 	LinkedHashMap<String, PlacesPOI> cachedPOIs;
@@ -108,11 +117,11 @@ class PlacesState {
 	PlacesRegion processRegionEvent(final Event event) {
 		// no need to do null pointer check for event or its eventData
 		// check are made prior to handing over to this method
-		EventData eventData = event.getData();
+		Map<String,Object> eventData = event.getEventData();
 
 		// extract the required data from eventData
-		String regionId = eventData.optString(PlacesConstants.EventDataKeys.Places.REGION_ID, null);
-		String regionType = eventData.optString(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE,
+		String regionId = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REGION_ID, null);
+		String regionType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE,
 												PlacesRegion.PLACE_EVENT_NONE);
 
 		// bail out if the event has invalid regionId
@@ -176,11 +185,11 @@ class PlacesState {
 	/**
 	 * Creates the {@code EventData} for the places shared state from the POI's cached in {@link PlacesState}
 	 *
-	 * @return an {@link EventData} representing the places shared state
+	 * @return an {@link Map} representing the places shared state
 	 */
-	EventData getPlacesSharedState() {
+	Map<String,Object> getPlacesSharedState() {
 		// create and return the shared state eventData
-		EventData data = new EventData();
+		Map<String,Object> data = new HashMap<>();
 
 		// ensure that our membership data is still valid, and clear it out if it's not
 		if (!isMembershipDataValid()) {
@@ -188,32 +197,26 @@ class PlacesState {
 		}
 
 		if (cachedPOIs != null && !cachedPOIs.isEmpty()) {
-			data.putTypedList(PlacesConstants.SharedStateKeys.NEARBYPOIS, new ArrayList<PlacesPOI>(cachedPOIs.values()),
-							  new PlacesPOIVariantSerializer());
+			data.put(PlacesConstants.SharedStateKeys.NEARBYPOIS, new ArrayList<PlacesPOI>(cachedPOIs.values()));
 		}
 
 		if (authStatus != null) {
-			data.putString(PlacesConstants.SharedStateKeys.AUTH_STATUS, authStatus);
+			data.put(PlacesConstants.SharedStateKeys.AUTH_STATUS, authStatus);
 		}
 
-		try {
-			if (currentPOI != null) {
-				data.putTypedObject(PlacesConstants.SharedStateKeys.CURRENT_POI, currentPOI, new PlacesPOIVariantSerializer());
-			}
-
-			if (lastEnteredPOI != null) {
-				data.putTypedObject(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI, lastEnteredPOI, new PlacesPOIVariantSerializer());
-			}
-
-			if (lastExitedPOI != null) {
-				data.putTypedObject(PlacesConstants.SharedStateKeys.LAST_EXITED_POI, lastExitedPOI, new PlacesPOIVariantSerializer());
-			}
-		} catch (VariantException exp) {
-			Log.warning(PlacesConstants.LOG_TAG,
-						"Exception occurred while creating shared state data. There might be loss in places shared state data.");
+		if (currentPOI != null) {
+			data.put(PlacesConstants.SharedStateKeys.CURRENT_POI, currentPOI);
 		}
 
-		data.putLong(PlacesConstants.SharedStateKeys.VALID_UNTIL, membershipValidUntil);
+		if (lastEnteredPOI != null) {
+			data.put(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI, lastEnteredPOI);
+		}
+
+		if (lastExitedPOI != null) {
+			data.put(PlacesConstants.SharedStateKeys.LAST_EXITED_POI, lastExitedPOI);
+		}
+
+		data.put(PlacesConstants.SharedStateKeys.VALID_UNTIL, membershipValidUntil);
 		return data;
 	}
 
@@ -269,11 +272,11 @@ class PlacesState {
 	 *
 	 * @return An {@link PlacesGpsLocation} instance containing the last known latitude and longitude
 	 */
-	PlacesGpsLocation loadLastKnownLocation() {
+	Location loadLastKnownLocation() {
 		DataStore placesDataStore = getDataStore();
 
 		if (placesDataStore == null) {
-			Log.warning(PlacesConstants.LOG_TAG,
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
 						"localStorage services from mobile core is not available, unable to persist authorization status");
 			return null;
 		}
@@ -309,7 +312,7 @@ class PlacesState {
 		DataStore placesDataStore = getDataStore();
 
 		if (placesDataStore == null) {
-			Log.warning(PlacesConstants.LOG_TAG,
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
 						"localStorage services from mobile core is not available, unable to persist authorization status");
 			return;
 		}
@@ -379,7 +382,7 @@ class PlacesState {
 
 		// attempt to load cachedPOIs
 		cachedPOIs = new LinkedHashMap<String, PlacesPOI>();
-		String nearbyString = placesDataStore.getString(PlacesConstants.DataStoreKeys.NEARBYPOIS, "");
+		final String nearbyString = placesDataStore.getString(PlacesConstants.DataStoreKeys.NEARBYPOIS, "");
 
 		if (!StringUtils.isNullOrEmpty(nearbyString)) {
 			JsonUtilityService.JSONObject nearbyMap = jsonUtilityService.createJSONObject(nearbyString);
@@ -389,7 +392,7 @@ class PlacesState {
 				return;
 			}
 
-			Iterator<String> keys = nearbyMap.keys();
+			final Iterator<String> keys = nearbyMap.keys();
 
 			try {
 				while (keys.hasNext()) {
@@ -402,37 +405,37 @@ class PlacesState {
 		}
 
 		// attempt to load current POI
-		String currentPOIString = placesDataStore.getString(PlacesConstants.DataStoreKeys.CURRENT_POI, "");
+		final String currentPOIString = placesDataStore.getString(PlacesConstants.DataStoreKeys.CURRENT_POI, "");
 
 		if (!StringUtils.isNullOrEmpty(currentPOIString)) {
 			try {
 				currentPOI = new PlacesPOI(currentPOIString, jsonUtilityService);
-				Log.debug(PlacesConstants.LOG_TAG, "CurrentPOI is loaded from persistence", currentPOI);
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "CurrentPOI is loaded from persistence : %s", currentPOI);
 			} catch (JsonException exp) {
-				Log.warning(PlacesConstants.LOG_TAG, "Unable to load currentPOI from persistence : Exception - ", exp);
+				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to load currentPOI from persistence : Exception - %s", exp);
 			}
 		}
 
 		// attempt to load last entered POI
-		String lastEnteredString = placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, "");
+		final String lastEnteredString = placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, "");
 
 		if (!StringUtils.isNullOrEmpty(lastEnteredString)) {
 			try {
 				lastEnteredPOI = new PlacesPOI(lastEnteredString, jsonUtilityService);
-				Log.debug(PlacesConstants.LOG_TAG, "Last Entered POI is loaded from persistence", lastEnteredPOI);
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Last Entered POI is loaded from persistence : %s", lastEnteredPOI);
 			} catch (JsonException exp) {
-				Log.warning(PlacesConstants.LOG_TAG, "Unable to load last entered POI from persistence : Exception - ", exp);
+				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to load last entered POI from persistence : Exception - %s ", exp);
 			}
 		}
 
 		// attempt to load last exited POI
-		String lastExitedString = placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, "");
+		final String lastExitedString = placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, "");
 
 		if (!StringUtils.isNullOrEmpty(lastExitedString)) {
 			try {
 				lastExitedPOI = new PlacesPOI(lastExitedString, jsonUtilityService);
 			} catch (JsonException exp) {
-				Log.warning(PlacesConstants.LOG_TAG, "Unable to load last exited POI from persistence : Exception - ", exp);
+				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to load last exited POI from persistence : Exception - %s", exp);
 			}
 		}
 
@@ -450,7 +453,7 @@ class PlacesState {
 		DataStore placesDataStore = getDataStore();
 
 		if (placesDataStore == null) {
-			Log.error(PlacesConstants.LOG_TAG,
+			Log.error(PlacesConstants.LOG_TAG, CLASS_NAME,
 					  "LocalStorage service was not available, unable to persist POI's in persistence");
 			return;
 		}
@@ -460,7 +463,7 @@ class PlacesState {
 			Variant variant = Variant.fromTypedMap(cachedPOIs, new PlacesPOIVariantSerializer());
 			String jsonString = variant.toString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.NEARBYPOIS, jsonString);
-			Log.trace(PlacesConstants.LOG_TAG, "nearbyPOIs persisted, %s", jsonString);
+			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "nearbyPOIs persisted, %s", jsonString);
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.NEARBYPOIS);
 		}
@@ -471,9 +474,9 @@ class PlacesState {
 				Variant variant = Variant.fromTypedObject(currentPOI, new PlacesPOIVariantSerializer());
 				String jsonString = variant.toString();
 				placesDataStore.setString(PlacesConstants.DataStoreKeys.CURRENT_POI, jsonString);
-				Log.trace(PlacesConstants.LOG_TAG, "currentPOI persisted, %s", jsonString);
+				Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "currentPOI persisted, %s", jsonString);
 			} catch (VariantException exp) {
-				Log.debug(PlacesConstants.LOG_TAG, "Exception occurred while persisting currentPOI");
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Exception occurred while persisting currentPOI");
 			}
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.CURRENT_POI);
@@ -485,9 +488,9 @@ class PlacesState {
 				Variant variant = Variant.fromTypedObject(lastEnteredPOI, new PlacesPOIVariantSerializer());
 				String jsonString = variant.toString();
 				placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, jsonString);
-				Log.trace(PlacesConstants.LOG_TAG, "lastEnteredPOI persisted, %s", jsonString);
+				Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "lastEnteredPOI persisted, %s", jsonString);
 			} catch (VariantException exp) {
-				Log.debug(PlacesConstants.LOG_TAG, "Exception occurred while persisting lastEnteredPOI");
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Exception occurred while persisting lastEnteredPOI");
 			}
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI);
@@ -501,7 +504,7 @@ class PlacesState {
 				placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, jsonString);
 				Log.trace(PlacesConstants.LOG_TAG, "lastExitedPOI persisted, %s", jsonString);
 			} catch (VariantException exp) {
-				Log.debug(PlacesConstants.LOG_TAG, "Exception occurred while persisting lastExitedPOI");
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Exception occurred while persisting lastExitedPOI");
 			}
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.LAST_EXITED_POI);
@@ -558,7 +561,7 @@ class PlacesState {
 		DataStore placesDataStore = getDataStore();
 
 		if (placesDataStore == null) {
-			Log.warning(PlacesConstants.LOG_TAG,
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
 						"LocalStorage/JSONUtility service was not available, unable to clear membership data.");
 			return;
 		}
