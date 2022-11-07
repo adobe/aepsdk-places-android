@@ -82,10 +82,10 @@ class PlacesQueryService {
 		queryURL = queryURL + placesConfig.getLibrariesQueryString();
 
 		Log.debug(PlacesConstants.LOG_TAG, "Getting nearby places:  %s", queryURL);
-		NetworkRequest request = new NetworkRequest(queryURL, HttpMethod.GET, null, null, PlacesConstants.DEFAULT_NETWORK_TIMEOUT, PlacesConstants.DEFAULT_NETWORK_TIMEOUT);
+		final NetworkRequest request = new NetworkRequest(queryURL, HttpMethod.GET, null, null, PlacesConstants.DEFAULT_NETWORK_TIMEOUT, PlacesConstants.DEFAULT_NETWORK_TIMEOUT);
 		networking.connectAsync(request, new NetworkCallback() {
 			@Override
-			public void call(HttpConnecting connection) {
+			public void call(final HttpConnecting connection) {
 				if (connection == null) {
 					placesResponse.fetchFailed("Unable to get nearby places, connection is null", PlacesRequestError.CONNECTIVITY_ERROR);
 					responseCallback.call(placesResponse);
@@ -94,7 +94,7 @@ class PlacesQueryService {
 
 				if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
 					connection.close();
-					String message = String.format("Unable to get nearby places, connection failed with status %s, message %s",
+					final String message = String.format("Unable to get nearby places, connection failed with status %s, message %s",
 							connection.getResponseCode(), connection.getResponseMessage());
 					placesResponse.fetchFailed(message, PlacesRequestError.CONNECTIVITY_ERROR);
 					responseCallback.call(placesResponse);
@@ -103,7 +103,7 @@ class PlacesQueryService {
 				}
 
 				try {
-					String serverResponse = StreamUtils.readAsString(connection.getInputStream());
+					final String serverResponse = StreamUtils.readAsString(connection.getInputStream());
 
 					if (StringUtils.isNullOrEmpty(serverResponse)) {
 						placesResponse.fetchFailed("Unable to get nearby places, server response is empty",
@@ -113,7 +113,7 @@ class PlacesQueryService {
 					}
 
 					Log.debug(PlacesConstants.LOG_TAG, "Got Response : %s", serverResponse);
-					JSONObject responseJson = new JSONObject(serverResponse);
+					final JSONObject responseJson = new JSONObject(serverResponse);
 
 					if (responseJson == null) {
 						placesResponse.fetchFailed("Unable to get nearby places, invalid json from server response",
@@ -122,7 +122,7 @@ class PlacesQueryService {
 						return;
 					}
 
-					JSONObject placesJson = responseJson.getJSONObject(PlacesConstants.QueryResponseJsonKeys.PLACES);
+					final JSONObject placesJson = responseJson.getJSONObject(PlacesConstants.QueryResponseJsonKeys.PLACES);
 					placesResponse.nearByPOIs = getNearbyPOIs(placesJson);
 					placesResponse.containsUserPOIs = getContainsUserPOIs(placesJson);
 					placesResponse.isSuccess = true;
@@ -131,8 +131,8 @@ class PlacesQueryService {
 					return;
 
 
-				} catch (Exception exception) {
-					String message = String.format("Unable to get nearby places, Failed with exception: %s", exception);
+				} catch (final Exception exception) {
+					final String message = String.format("Unable to get nearby places, Failed with exception: %s", exception);
 					placesResponse.fetchFailed(message, PlacesRequestError.SERVER_RESPONSE_ERROR);
 					responseCallback.call(placesResponse);
 					return;

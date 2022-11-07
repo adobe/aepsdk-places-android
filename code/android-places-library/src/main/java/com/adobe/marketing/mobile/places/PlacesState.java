@@ -50,7 +50,7 @@ class PlacesState {
 	 * Attempts to load the previous session data from the places dataStore.
 	 */
 	PlacesState() {
-		cachedPOIs = new LinkedHashMap<String, PlacesPOI>();
+		cachedPOIs = new LinkedHashMap<>();
 		placesDataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(PLACES_DATA_STORE);
 		// load the persisted POI's to cache variable
 		loadPersistedPOIs();
@@ -370,19 +370,19 @@ class PlacesState {
 		}
 
 		// attempt to load cachedPOIs
-		cachedPOIs = new LinkedHashMap<String, PlacesPOI>();
+		cachedPOIs = new LinkedHashMap<>();
 		final String nearbyString = placesDataStore.getString(PlacesConstants.DataStoreKeys.NEARBYPOIS, "");
 
 		if (!StringUtils.isNullOrEmpty(nearbyString)) {
 			try {
-				JSONObject nearbyJSON = new JSONObject(nearbyString);
-				Iterator<String> keys = nearbyJSON.keys();
+				final JSONObject nearbyJSON = new JSONObject(nearbyString);
+				final Iterator<String> keys = nearbyJSON.keys();
 				while (keys.hasNext()) {
 					String key = keys.next();
 					cachedPOIs.put(key, new PlacesPOI(nearbyJSON.getJSONObject(key)));
 				}
 
-			} catch (JSONException exception) {
+			} catch (final JSONException exception) {
 				Log.warning(PlacesConstants.LOG_TAG, "Unable to load cached POI from JSON String : %s", nearbyString);
 				return;
 			}
@@ -395,7 +395,7 @@ class PlacesState {
 			try {
 				currentPOI = new PlacesPOI(currentPOIString);
 				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "CurrentPOI is loaded from persistence : %s", currentPOI);
-			} catch (JSONException exp) {
+			} catch (final JSONException exp) {
 				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to load currentPOI from persistence : Exception - %s", exp);
 			}
 		}
@@ -407,7 +407,7 @@ class PlacesState {
 			try {
 				lastEnteredPOI = new PlacesPOI(lastEnteredString);
 				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Last Entered POI is loaded from persistence : %s", lastEnteredPOI);
-			} catch (JSONException exp) {
+			} catch (final JSONException exp) {
 				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to load last entered POI from persistence : Exception - %s ", exp);
 			}
 		}
@@ -443,7 +443,7 @@ class PlacesState {
 		// persist nearbyPOIs
 		if (cachedPOIs != null && !cachedPOIs.isEmpty()) {
 			// TODO : Write a serializer to convert object to jsonString
-			String jsonString = cachedPOIs.toString();
+			final String jsonString = cachedPOIs.toString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.NEARBYPOIS, jsonString);
 			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "nearbyPOIs persisted, %s", jsonString);
 		} else {
@@ -453,7 +453,7 @@ class PlacesState {
 		// persist currentPOI
 		if (currentPOI != null) {
 			// TODO : Write a serializer to convert object to jsonString
-			String jsonString = currentPOI.toString();
+			final String jsonString = currentPOI.toString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.CURRENT_POI, jsonString);
 			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "currentPOI persisted, %s", jsonString);
 		} else {
@@ -463,7 +463,7 @@ class PlacesState {
 		// persist lastEnteredPOI
 		if (lastEnteredPOI != null) {
 			// TODO : Write a serializer to convert object to jsonString
-			String jsonString = lastEnteredPOI.toString();
+			final String jsonString = lastEnteredPOI.toString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, jsonString);
 			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "lastEnteredPOI persisted, %s", jsonString);
 		} else {
@@ -473,7 +473,7 @@ class PlacesState {
 		// persist lastExitedPOI
 		if (lastExitedPOI != null) {
 			// TODO : Write a serializer to convert object to jsonString
-			String jsonString = lastExitedPOI.toString();
+			final String jsonString = lastExitedPOI.toString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, jsonString);
 			Log.trace(PlacesConstants.LOG_TAG, "lastExitedPOI persisted, %s", jsonString);
 		} else {

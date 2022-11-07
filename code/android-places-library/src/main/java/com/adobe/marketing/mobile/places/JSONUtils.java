@@ -24,19 +24,19 @@ class JSONUtils {
     private static final String CLASS_NAME = "JSONUtils";
 
     static Map<String, String> convertJsonObjectToStringMap(@NonNull final JSONObject jsonObject) {
-        Map<String, String> map = new HashMap<>();
-        Iterator<String> keys = jsonObject.keys();
+        final Map<String, String> map = new HashMap<>();
+        final Iterator<String> keys = jsonObject.keys();
         while (keys.hasNext()) {
-            String key = keys.next();
+            final String key = keys.next();
             try {
-                Object value = jsonObject.get(key);
+                final Object value = jsonObject.get(key);
                 if (value instanceof String) {
-                    String stringValue = (String) value;
+                    final String stringValue = (String) value;
                     map.put(key, stringValue);
                 } else {
                     Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] is not String: %s", key);
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] is not supported: %s", key, e);
             }
         }
