@@ -11,12 +11,21 @@
 
 package com.adobe.marketing.mobile.places;
 
-import com.adobe.marketing.mobile.JsonUtilityService.JSONArray;
-import com.adobe.marketing.mobile.JsonUtilityService.JSONObject;
+import com.adobe.marketing.mobile.services.HttpConnecting;
+import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.NetworkCallback;
+import com.adobe.marketing.mobile.services.NetworkRequest;
+import com.adobe.marketing.mobile.services.Networking;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StreamUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.URLBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
@@ -39,24 +48,6 @@ class PlacesQueryService {
 	private static final int POI_INDEX_LIBRARY = 5;
 	private static final int POI_INDEX_WEIGHT = 6;
 
-	private JsonUtilityService jsonUtilityService;
-	private NetworkService networkService;
-
-
-	PlacesQueryService(final JsonUtilityService jsonUtilityService,
-					   final NetworkService networkService) throws MissingPlatformServicesException {
-		if (jsonUtilityService == null) {
-			throw new MissingPlatformServicesException("JsonUtilityService not found!");
-		}
-
-		if (networkService == null) {
-			throw new MissingPlatformServicesException("LocalStorageService not found!");
-		}
-
-		this.jsonUtilityService = jsonUtilityService;
-		this.networkService = networkService;
-	}
-
 
 	/**
 	 *
@@ -67,72 +58,94 @@ class PlacesQueryService {
 	 * @return A {@link PlacesQueryResponse} instance containing the places data
 	 */
 	// Pass non null event data.
-	PlacesQueryResponse getNearbyPlaces(final Map<String,Object> eventData, final PlacesConfiguration placesConfig) {
+	void getNearbyPlaces(final Map<String,Object> eventData, final PlacesConfiguration placesConfig, final PlacesQueryResponseCallback responseCallback) {
 		PlacesQueryResponse placesResponse = new PlacesQueryResponse();
+		Networking networking = ServiceProvider.getInstance().getNetworkService();
+
+		if (networking == null) {
+			placesResponse.fetchFailed("Ignoring the get nearby places event, Networking services not available.",
+					PlacesRequestError.INVALID_LATLONG_ERROR);
+			responseCallback.call(placesResponse);
+			return;
+		}
 
 		String queryURL = getQueryURL(eventData, placesConfig);
 
 		if (queryURL == null) {
 			placesResponse.fetchFailed("Ignoring the get nearby places event, unable to form query URL",
-									   PlacesRequestError.INVALID_LATLONG_ERROR);
-			return placesResponse;
+					PlacesRequestError.INVALID_LATLONG_ERROR);
+			responseCallback.call(placesResponse);
+			return;
 		}
 
 		// add the library query parameter
 		queryURL = queryURL + placesConfig.getLibrariesQueryString();
 
 		Log.debug(PlacesConstants.LOG_TAG, "Getting nearby places:  %s", queryURL);
-		NetworkService.HttpConnection connection = networkService.connectUrl(queryURL,  NetworkService.HttpCommand.GET, null,
-				null, PlacesConstants.DEFAULT_NETWORK_TIMEOUT, PlacesConstants.DEFAULT_NETWORK_TIMEOUT);
+		final NetworkRequest request = new NetworkRequest(queryURL, HttpMethod.GET, null, null, PlacesConstants.DEFAULT_NETWORK_TIMEOUT, PlacesConstants.DEFAULT_NETWORK_TIMEOUT);
+		networking.connectAsync(request, new NetworkCallback() {
+			@Override
+			public void call(final HttpConnecting connection) {
+				if (connection == null) {
+					placesResponse.fetchFailed("Unable to get nearby places, connection is null", PlacesRequestError.CONNECTIVITY_ERROR);
+					responseCallback.call(placesResponse);
+					return;
+				}
 
-		if (connection == null) {
-			placesResponse.fetchFailed("Unable to get nearby places, connection is null", PlacesRequestError.CONNECTIVITY_ERROR);
-			return placesResponse;
-		}
+				if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+					connection.close();
+					final String message = String.format("Unable to get nearby places, connection failed with status %s, message %s",
+							connection.getResponseCode(), connection.getResponseMessage());
+					placesResponse.fetchFailed(message, PlacesRequestError.CONNECTIVITY_ERROR);
+					responseCallback.call(placesResponse);
+					connection.close();
+					return;
+				}
 
-		if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-			connection.close();
-			String message = String.format("Unable to get nearby places, connection failed with status %s, message %s",
-										   connection.getResponseCode(), connection.getResponseMessage());
-			placesResponse.fetchFailed(message, PlacesRequestError.CONNECTIVITY_ERROR);
-			return placesResponse;
-		}
+				try {
+					final String serverResponse = StreamUtils.readAsString(connection.getInputStream());
 
-		try {
-			String serverResponse = NetworkConnectionUtil.readFromInputStream(connection.getInputStream());
+					if (StringUtils.isNullOrEmpty(serverResponse)) {
+						placesResponse.fetchFailed("Unable to get nearby places, server response is empty",
+								PlacesRequestError.SERVER_RESPONSE_ERROR);
+						responseCallback.call(placesResponse);
+						return;
+					}
 
-			if (StringUtils.isNullOrEmpty(serverResponse)) {
-				placesResponse.fetchFailed("Unable to get nearby places, server response is empty",
-										   PlacesRequestError.SERVER_RESPONSE_ERROR);
-				return placesResponse;
+					Log.debug(PlacesConstants.LOG_TAG, "Got Response : %s", serverResponse);
+					final JSONObject responseJson = new JSONObject(serverResponse);
+
+					if (responseJson == null) {
+						placesResponse.fetchFailed("Unable to get nearby places, invalid json from server response",
+								PlacesRequestError.SERVER_RESPONSE_ERROR);
+						responseCallback.call(placesResponse);
+						return;
+					}
+
+					final JSONObject placesJson = responseJson.getJSONObject(PlacesConstants.QueryResponseJsonKeys.PLACES);
+					placesResponse.nearByPOIs = getNearbyPOIs(placesJson);
+					placesResponse.containsUserPOIs = getContainsUserPOIs(placesJson);
+					placesResponse.isSuccess = true;
+					placesResponse.resultStatus = PlacesRequestError.OK;
+					responseCallback.call(placesResponse);
+					return;
+
+
+				} catch (final Exception exception) {
+					final String message = String.format("Unable to get nearby places, Failed with exception: %s", exception);
+					placesResponse.fetchFailed(message, PlacesRequestError.SERVER_RESPONSE_ERROR);
+					responseCallback.call(placesResponse);
+					return;
+				}
+
+				finally {
+					connection.close();
+				}
 			}
-
-			Log.debug(PlacesConstants.LOG_TAG, "Got Response : %s", serverResponse);
-			JSONObject responseJson = jsonUtilityService.createJSONObject(serverResponse);
-
-			if (responseJson == null) {
-				placesResponse.fetchFailed("Unable to get nearby places, invalid json from server response",
-										   PlacesRequestError.SERVER_RESPONSE_ERROR);
-				return placesResponse;
-			}
-
-			JSONObject placesJson = responseJson.getJSONObject(PlacesConstants.QueryResponseJsonKeys.PLACES);
-			placesResponse.nearByPOIs = getNearbyPOIs(placesJson);
-			placesResponse.containsUserPOIs = getContainsUserPOIs(placesJson);
-			placesResponse.isSuccess = true;
-			placesResponse.resultStatus = PlacesRequestError.OK;
-			return placesResponse;
+		});
 
 
-		} catch (Exception exception) {
-			String message = String.format("Unable to get nearby places, Failed with exception: %s", exception);
-			placesResponse.fetchFailed(message, PlacesRequestError.SERVER_RESPONSE_ERROR);
-			return placesResponse;
-		}
 
-		finally {
-			connection.close();
-		}
 	}
 
 	/**
@@ -170,7 +183,7 @@ class PlacesQueryService {
 	//	 * TODO: Doc Me
 	//	 *
 	//	 */
-	private List<PlacesPOI> getContainsUserPOIs(final JsonUtilityService.JSONObject placesJson) throws JsonException {
+	private List<PlacesPOI> getContainsUserPOIs(final JSONObject placesJson) throws JSONException {
 		List<PlacesPOI> containsUserPOIList = new ArrayList<PlacesPOI>();
 
 		JSONArray containsUserPOIArray = placesJson.optJSONArray(PlacesConstants.QueryResponseJsonKeys.POI_MEMBERS);
@@ -195,7 +208,7 @@ class PlacesQueryService {
 	//	/**
 	//	 * TODO: Doc Me
 	//	 */
-	private List<PlacesPOI> getNearbyPOIs(final JsonUtilityService.JSONObject placesJson) throws JsonException {
+	private List<PlacesPOI> getNearbyPOIs(final JSONObject placesJson) throws JSONException {
 		List<PlacesPOI> nearByPOIList = new ArrayList<PlacesPOI>();
 
 		JSONArray nearByPOIArray = placesJson.optJSONArray(PlacesConstants.QueryResponseJsonKeys.POI);
@@ -224,7 +237,7 @@ class PlacesQueryService {
 	//	 * 2. invalid latitude/ longitude in poiJson
 	//	 * 3. poiJson is not in the expected format.
 	//	 */
-	private PlacesPOI createPlacesPOIFromJson(final JsonUtilityService.JSONObject poiJson) throws JsonException {
+	private PlacesPOI createPlacesPOIFromJson(final JSONObject poiJson) throws JSONException {
 
 		JSONArray poiDetails = poiJson.getJSONArray(PlacesConstants.QueryResponseJsonKeys.POI_DETAILS);
 
@@ -277,12 +290,10 @@ class PlacesQueryService {
 		JSONObject poiMetadata = poiJson.optJSONObject(PlacesConstants.QueryResponseJsonKeys.POI_METADATA);
 
 		if (poiMetadata != null) {
-			Map<String, String> metadata = jsonUtilityService.mapFromJsonObject(poiMetadata);
+			Map<String, String> metadata = JSONUtils.convertJsonObjectToStringMap(poiMetadata);
 			placesPOI.setMetadata(metadata);
 		}
 
 		return placesPOI;
 	}
-
-
 }
