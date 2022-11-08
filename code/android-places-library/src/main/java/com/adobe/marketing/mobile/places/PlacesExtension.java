@@ -114,7 +114,7 @@ public class PlacesExtension extends Extension {
 	}
 
 	@Override
-	public boolean readyForEvent(@NonNull Event event) {
+	public boolean readyForEvent(final @NonNull Event event) {
 		return getApi().getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME,
 				event, false, SharedStateResolution.ANY).getStatus() == SharedStateStatus.SET;
 	}
