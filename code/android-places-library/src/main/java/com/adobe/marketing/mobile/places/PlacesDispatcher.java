@@ -21,18 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class PlacesDispatcherPlacesResponseContent extends ModuleEventDispatcher<PlacesExtension> {
-
-	private static final String CLASS_NAME = "PlacesDispatcher";
-	/**
-	 * Constructs a new instance of {@code PlacesDispatcherPlacesResponseContent}.
-	 *
-	 * @param hub    the event hub that this dispatcher will inter-operate with
-	 * @param extension PlacesExtension module that owns this dispatcher.
-	 */
-	PlacesDispatcherPlacesResponseContent(final EventHub hub, final PlacesExtension extension) {
-		super(hub, extension);
-	}
+class PlacesDispatcher {
 
 	void dispatchNearbyPlaces(final List<PlacesPOI> poiList, final PlacesRequestError resultStatus,
 							  final String pairId) {
