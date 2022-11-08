@@ -23,60 +23,60 @@ import java.util.Map;
 
 class PlacesDispatcher {
 
-	private static final String CLASS_NAME = "PlacesDispatcher";
+    private static final String CLASS_NAME = "PlacesDispatcher";
 
-	static void dispatchNearbyPlaces(final List<PlacesPOI> poiList, final PlacesRequestError resultStatus,
-							  final Event event) {
-		final Map<String,Object> responseEventData = new HashMap<>();
-		responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, poiList);
-		responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places event with %s POIs", poiList.size());
-		final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
-												EventSource.RESPONSE_CONTENT)
-				.setEventData(responseEventData)
-				.inResponseToEvent(event)
-				.build();
-		MobileCore.dispatchEvent(responseEvent);
-	}
+    static void dispatchNearbyPlaces(final List<PlacesPOI> poiList, final PlacesRequestError resultStatus,
+                                     final Event event) {
+        final Map<String, Object> responseEventData = new HashMap<>();
+        responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, poiList);
+        responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
+        Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places event with %s POIs", poiList.size());
+        final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
+                EventSource.RESPONSE_CONTENT)
+                .setEventData(responseEventData)
+                .inResponseToEvent(event)
+                .build();
+        MobileCore.dispatchEvent(responseEvent);
+    }
 
-	static void dispatchRegionEvent(final PlacesRegion region) {
-		if (region == null) {
-			return;
-		}
+    static void dispatchRegionEvent(final PlacesRegion region) {
+        if (region == null) {
+            return;
+        }
 
-		final Map<String,Object> regionData = region.getRegionEventData();
-		final Event regionEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_PROCESSREGIONEVENT, EventType.PLACES,
-											  EventSource.RESPONSE_CONTENT)
-				.setEventData(regionData)
-				.build();
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchRegionEvent - Dispatching Places Region Event for %s with eventType %s", region.getName(),
-				  region.getPlaceEventType());
-		MobileCore.dispatchEvent(regionEvent);
-	}
+        final Map<String, Object> regionData = region.getRegionEventData();
+        final Event regionEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_PROCESSREGIONEVENT, EventType.PLACES,
+                EventSource.RESPONSE_CONTENT)
+                .setEventData(regionData)
+                .build();
+        Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchRegionEvent - Dispatching Places Region Event for %s with eventType %s", region.getName(),
+                region.getPlaceEventType());
+        MobileCore.dispatchEvent(regionEvent);
+    }
 
-	static void dispatchUserWithinPOIs(final List<PlacesPOI> poiList, final Event event) {
-		final Map<String,Object> responseEventData = new HashMap<>();
-		responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, poiList);
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event with %s POIs", poiList.size());
-		final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
-												EventSource.RESPONSE_CONTENT)
-				.setEventData(responseEventData)
-				.inResponseToEvent(event)
-				.build();
-		MobileCore.dispatchEvent(responseEvent);
-	}
+    static void dispatchUserWithinPOIs(final List<PlacesPOI> poiList, final Event event) {
+        final Map<String, Object> responseEventData = new HashMap<>();
+        responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, poiList);
+        Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event with %s POIs", poiList.size());
+        final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
+                EventSource.RESPONSE_CONTENT)
+                .setEventData(responseEventData)
+                .inResponseToEvent(event)
+                .build();
+        MobileCore.dispatchEvent(responseEvent);
+    }
 
-	static void dispatchLastKnownLocation(final double latitude, final double longitude, final Event event) {
-		final Map<String,Object> responseEventData = new HashMap<>();
-		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, latitude);
-		responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, longitude);
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchLastKnownLocation - Dispatching last known location event with latitude: %s and longitude: %s",
-				  latitude, longitude);
-		final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
-												EventSource.RESPONSE_CONTENT)
-				.setEventData(responseEventData)
-				.inResponseToEvent(event)
-				.build();
-		MobileCore.dispatchEvent(responseEvent);
-	}
+    static void dispatchLastKnownLocation(final double latitude, final double longitude, final Event event) {
+        final Map<String, Object> responseEventData = new HashMap<>();
+        responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, latitude);
+        responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, longitude);
+        Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchLastKnownLocation - Dispatching last known location event with latitude: %s and longitude: %s",
+                latitude, longitude);
+        final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
+                EventSource.RESPONSE_CONTENT)
+                .setEventData(responseEventData)
+                .inResponseToEvent(event)
+                .build();
+        MobileCore.dispatchEvent(responseEvent);
+    }
 }
