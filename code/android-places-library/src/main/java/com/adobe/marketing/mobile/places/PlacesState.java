@@ -281,7 +281,7 @@ class PlacesState {
 			return null;
 		}
 
-		Location lastKnownLocation = new Location("com.adobe.lastKnownLocation");
+		Location lastKnownLocation = new Location(PlacesConstants.Location.PROVIDER_TAG);
 		lastKnownLocation.setLatitude(latitude);
 		lastKnownLocation.setLongitude(longitude);
 		return lastKnownLocation;
