@@ -64,6 +64,7 @@ public class PlacesExtension extends Extension {
 		super(extensionApi);
 		state = new PlacesState();
 		queryService = new PlacesQueryService();
+		placesDispatcher = new PlacesDispatcher(extensionApi);
 	}
 
 	@Override
