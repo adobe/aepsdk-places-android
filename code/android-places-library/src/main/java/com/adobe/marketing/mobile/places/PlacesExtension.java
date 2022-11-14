@@ -70,6 +70,9 @@ public class PlacesExtension extends Extension {
 
 	protected PlacesExtension(ExtensionApi extensionApi) {
 		super(extensionApi);
+		state = new PlacesState();
+		queryService = new PlacesQueryService();
+		placesDispatcher = new PlacesDispatcher(extensionApi);
 	}
 
 	@Override
@@ -109,8 +112,6 @@ public class PlacesExtension extends Extension {
 
 		// TO BE REMOVED IN NEXT PR
 		this.eventsQueue = new ConcurrentLinkedQueue<Event>();
-		state = new PlacesState();
-		queryService = new PlacesQueryService();
 	}
 
 	@Override
