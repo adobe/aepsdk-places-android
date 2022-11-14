@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.places;
 
 import android.location.Location;
-
 import androidx.annotation.NonNull;
 
 import com.adobe.marketing.mobile.Event;
@@ -117,49 +116,50 @@ public class PlacesExtension extends Extension {
 		final Map<String, Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handlePlacesRequestEvent - Places request content event's eventData is empty, Ignoring event.");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handlePlacesRequestEvent - Ignoring Places Request event due to missing request type");
 			return;
 		}
 
-		// do not queue the getter events, it waits for the callback to be called
 		final String requestType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
+		if (StringUtils.isNullOrEmpty(requestType)) {
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "");
+			return;
+		}
 
-		if (!StringUtils.isNullOrEmpty(requestType)) {
-			if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES.equals(requestType)) {
-				handleGetUserWithinPOIsEvent(event);
-			}
+		if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES.equals(requestType)) {
+			handleGetUserWithinPOIsEvent(event);
+		}
 
-			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION.equals(requestType)) {
-				handleGetLastKnownLocation(event);
-			}
+		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION.equals(requestType)) {
+			handleGetLastKnownLocation(event);
+		}
 
-			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET.equals(requestType)) {
-				reset();
-			}
+		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET.equals(requestType)) {
+			reset();
+		}
 
-			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES.equals(requestType)) {
-				final Map<String,Object> configData = retrieveConfigurationEventState(event);
-				saveLastKnownLocation(event);
-				handleGetNearByPlaceEvent(event, configData);
-			}
+		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES.equals(requestType)) {
+			final Map<String,Object> configData = retrieveConfigurationEventState(event);
+			saveLastKnownLocation(event);
+			handleGetNearByPlaceEvent(event, configData);
+		}
 
-			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT.equals(requestType)) {
-				final Map<String,Object> configData = retrieveConfigurationEventState(event);
-				handleGeofenceEvent(event, configData);
-			}
+		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT.equals(requestType)) {
+			final Map<String,Object> configData = retrieveConfigurationEventState(event);
+			handleGeofenceEvent(event, configData);
+		}
 
-			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS.equals(requestType)) {
-				handleSetAuthorizationStatusEvent(event);
-			}
+		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS.equals(requestType)) {
+			handleSetAuthorizationStatusEvent(event);
+		}
 
-			else {
-				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Unknown request type, Ignoring places request content event.");
-			}
+		else {
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("handlePlacesRequestEvent - Ignoring Places Request event due to a unrecognized request type - %s.", requestType));
 		}
 	}
 
 	/**
-	 * Public method to handle changes in the configuration.
+	 * Handle changes in the configuration.
 	 * <p>
 	 * Reads the privacy value and acts accordingly.
 	 * On privacy opt-out, Stops all the location processing and clears the location and poi data in the sharedState.
@@ -171,20 +171,22 @@ public class PlacesExtension extends Extension {
 
 			// clear the queued up events if the privacy is opted-out
 			if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleConfigurationResponseEvent - Stopping Places processing due to privacy opt-out.");
 				state.clearData();
 				getApi().createSharedState(null, event);
+				getApi().stopEvents();
 				return;
 			}
 	}
 
 
 	/**
-	 * Handler for GetUserWithinPOI public api.
+	 * Handler for getUserWithinPOI public api.
 	 *
-	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
+	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event requesting the current POI
 	 */
-	void handleGetUserWithinPOIsEvent(final Event event) {
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get user-within points of interest event.");
+	private void handleGetUserWithinPOIsEvent(@NonNull final Event event) {
+		Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetUserWithinPOIsEvent - Handling get user-within points of interest event.");
 
 		// dispatch userWithinPOIS for the awaiting one time listener
 		placesDispatcher.dispatchUserWithinPOIs(state.getUserWithInPOIs(), event);
@@ -192,8 +194,13 @@ public class PlacesExtension extends Extension {
 		placesDispatcher.dispatchUserWithinPOIs(state.getUserWithInPOIs(), null);
 	}
 
-	void handleGetLastKnownLocation(final Event event) {
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get last known location event");
+	/**
+	 * Handler for getLastKnownLocation public api.
+	 *
+	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event requesting last known location
+	 */
+	private void handleGetLastKnownLocation(@NonNull final Event event) {
+		Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetLastKnownLocation - Handling get last known location event");
 		final Location location = state.loadLastKnownLocation();
 
 		if (location == null) {
@@ -210,10 +217,15 @@ public class PlacesExtension extends Extension {
 				null);
 	}
 
-	void saveLastKnownLocation(final Event event) {
+	/**
+	 * Saves the location from Places Request {@link Event} into persistence.
+	 *
+	 * @param event the getNearbyPOI {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event containing device's location
+	 */
+	private void saveLastKnownLocation(@NonNull final Event event) {
 
 		// Don't save the location if privacy is opted-out, Bail out right away
-		final Map<String, Object> configData =retrieveConfigurationEventState(event);
+		final Map<String, Object> configData = retrieveConfigurationEventState(event);
 
 		if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"saveLastKnownLocation - Ignoring to save the last known location, Privacy opted out");
@@ -244,7 +256,7 @@ public class PlacesExtension extends Extension {
 	 *
 	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
 	 */
-	void handleSetAuthorizationStatusEvent(final Event event) {
+	private void handleSetAuthorizationStatusEvent(@NonNull final Event event) {
 		final Map<String,Object> data = event.getEventData();
 		final String authStatusString = DataReader.optString(data, PlacesConstants.EventDataKeys.Places.AUTH_STATUS, null);
 
@@ -262,9 +274,11 @@ public class PlacesExtension extends Extension {
 
 
 	/**
+	 * Handler for `clear` public api.
 	 * Resets the shared state, all the in-memory and persisted places state variables.
 	 */
-	void reset() {
+	private void reset() {
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "reset - Places shared state and persisted data has been reset.");
 		state.clearData();
 		getApi().createSharedState(null, null);
 	}
@@ -278,8 +292,8 @@ public class PlacesExtension extends Extension {
 	 *
 	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
 	 */
-	private void handleGetNearByPlaceEvent(final Event event, final Map<String,Object> configData) {
-		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get near by place event.");
+	private void handleGetNearByPlaceEvent(@NonNull final Event event, final Map<String,Object> configData) {
+		Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Handling get near by place event.");
 		// Retrieve the latest configuration shared state data
 		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData);
 
@@ -331,7 +345,8 @@ public class PlacesExtension extends Extension {
 
 	}
 
-	private void handleGeofenceEvent(final Event event, final Map<String,Object> configData) {
+	private void handleGeofenceEvent(@NonNull final Event event, final Map<String,Object> configData) {
+		Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGeofenceEvent - Handling get geofence place event.");
 		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData);
 
 		// Bail out if privacy is opted out.
@@ -351,18 +366,13 @@ public class PlacesExtension extends Extension {
 
 		// dispatch the processed region event
 		placesDispatcher.dispatchRegionEvent(regionEvent);
-
 	}
 
 
 	/**
-	 * Retrieves the configuration corresponding to the provided {@code Event}.
-	 * <p>
-	 * If the configuration shared state is pending, attempts to read the last known configuration shared state from cache.
-	 * If the configuration shared state is pending and the last known configuration shared state is null, tries to read the oldest configuration shared state.
-	 * If the configuration shared state is valid, retrieves the valid shared state and updates the last known configuration shared cache variable.
+	 * Retrieves the current Mobile SDK's configuration corresponding to the provided {@code Event}.
 	 *
-	 * @param event the {@link EventType#CONFIGURATION} - {@link EventSource#RESPONSE_CONTENT} event associated with the configuration change
+	 * @param event the {@link Event} for which the configuration has to be retrieved.
 	 * @return {@code Map<String,Object>} containing configuration shared state
 	 */
 	private Map<String,Object> retrieveConfigurationEventState(final Event event) {
