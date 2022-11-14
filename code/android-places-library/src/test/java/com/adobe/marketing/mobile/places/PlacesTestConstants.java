@@ -17,11 +17,10 @@
  **************************************************************************/
 
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.places;
 
 final class PlacesTestConstants {
 
-	static final String LOG_TAG = PlacesExtension.class.getSimpleName();
 	static final int DEFAULT_RADIUS = 500;
 	static final int DEFAULT_NETWORK_TIMEOUT = 2;
 	static final int DEFAULT_NEARBYPOI_COUNT = 50;

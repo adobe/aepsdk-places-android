@@ -16,13 +16,11 @@
  * from Adobe Inc..
  **************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.places;
 
 import org.junit.Test;
 import java.util.*;
-
 import static org.junit.Assert.*;
-
 
 public class PlacesPOITests {
 

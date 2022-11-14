@@ -16,7 +16,7 @@
  * from Adobe Inc..
  **************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.places;
 
 public class PlacesRegionTests {
 
