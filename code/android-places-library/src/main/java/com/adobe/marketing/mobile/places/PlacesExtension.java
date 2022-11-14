@@ -30,7 +30,6 @@ import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * The Places module allows customers to take actions based on the location of their users. The Places module will act
@@ -51,18 +50,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *	   <li>{@link EventType#PLACES} - {@link EventSource#RESPONSE_CONTENT}</li>
  * </ol>
  *
- * The {@code PlacesExtension} module has dependencies on the following  {@link PlatformServices}:
- * <ol>
- *     <li>List all the service that's used by places module</li>
- * </ol>
  */
 public class PlacesExtension extends Extension {
 
 	private static final String CLASS_NAME = "PlacesExtension";
 
-	ConcurrentLinkedQueue<Event> eventsQueue;
-	// TODO : to be removed in next PR. Now there is not need to save configuration
-	Map<String,Object> lastKnownConfigurationState;
 	PlacesDispatcher placesDispatcher;
 	PlacesQueryService queryService;
 	PlacesState state;
@@ -70,6 +62,8 @@ public class PlacesExtension extends Extension {
 
 	protected PlacesExtension(ExtensionApi extensionApi) {
 		super(extensionApi);
+		state = new PlacesState();
+		queryService = new PlacesQueryService();
 	}
 
 	@Override
@@ -106,97 +100,61 @@ public class PlacesExtension extends Extension {
 		if (placesSharedState != null && !placesSharedState.isEmpty()) {
 			getApi().createSharedState(placesSharedState, null);
 		}
-
-		// TO BE REMOVED IN NEXT PR
-		this.eventsQueue = new ConcurrentLinkedQueue<Event>();
-		state = new PlacesState();
-		queryService = new PlacesQueryService();
 	}
 
 	@Override
 	public boolean readyForEvent(final @NonNull Event event) {
-		return getApi().getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME,
-				event, false, SharedStateResolution.ANY).getStatus() == SharedStateStatus.SET;
+		if (getApi().getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME,
+				event, false, SharedStateResolution.ANY).getStatus() == SharedStateStatus.SET) {
+			return true;
+		}
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "readyForEvent - Waiting for configuration to process places events.");
+		return false;
 	}
 
-	private void handlePlacesRequestEvent(final Event event) {
-	// TODO: to be done in next PR
-	}
+	private void handlePlacesRequestEvent(@NonNull final Event event) {
+		final Map<String, Object> eventData = event.getEventData();
 
-	private void handleConfigurationResponseEvent(final Event event) {
-	// TODO: to be done in next PR
-	}
-
-
-	/**
-	 * This method queues the incoming event in {@link #eventsQueue} and processes them in order of occurrence.
-	 * Only the {@link Event}'s that needs on Configuration shared state to be resolved before processing should be queued.
-	 *
-	 * @param event the {@code Event} the needs to be queued
-	 */
-	// TODO: to be removed in next PR
-	void queueEvent(final Event event) {
-		if (event == null) {
+		if (eventData == null || eventData.isEmpty()) {
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handlePlacesRequestEvent - Places request content event's eventData is empty, Ignoring event.");
 			return;
 		}
 
-		// queue only non null event
-		eventsQueue.add(event);
-		processEventQueue();
-	}
-
-	/**
-	 * Processes stored events in the queue as long there's a corresponding
-	 * configuration state available.
-	 */
-	void processEventQueue() {
-		while (!eventsQueue.isEmpty()) {
-			final Event currentEvent = eventsQueue.peek();
-			boolean isEventProcessed = processPlacesRequestEvent(currentEvent);
-
-			if (isEventProcessed) {
-				eventsQueue.poll();
-			} else {
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Processes the places request content events.
-	 * Returns false, if the configuration for the event is pending.
-	 * Returns true, if the event is processed with the valid configuration.
-	 *
-	 * @param event the {@link EventType#PLACES} - {@link EventSource#REQUEST_CONTENT} event
-	 * @return {@code Boolean} representing the event processed status.
-	 */
-	boolean processPlacesRequestEvent(final Event event) {
-		// quick return if the eventData is empty/null
-		final Map<String,Object> eventData = event.getEventData();
-
-		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "processPlacesRequestEvent - Places request content event's eventData is empty, Ignoring event");
-			return true;
-		}
-
-		// Retrieve the latest configuration shared state data
-		final Map<String,Object> configData = retrieveConfigurationEventState(event);
-
+		// do not queue the getter events, it waits for the callback to be called
 		final String requestType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
 
 		if (!StringUtils.isNullOrEmpty(requestType)) {
-			if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES.equals(requestType)) {
-				handleGetNearByPlaceEvent(event, configData);
-				return true;
+			if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES.equals(requestType)) {
+				handleGetUserWithinPOIsEvent(event);
 			}
 
-			if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT.equals(requestType)) {
+			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION.equals(requestType)) {
+				handleGetLastKnownLocation(event);
+			}
+
+			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET.equals(requestType)) {
+				reset();
+			}
+
+			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES.equals(requestType)) {
+				final Map<String,Object> configData = retrieveConfigurationEventState(event);
+				saveLastKnownLocation(event);
+				handleGetNearByPlaceEvent(event, configData);
+			}
+
+			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT.equals(requestType)) {
+				final Map<String,Object> configData = retrieveConfigurationEventState(event);
 				handleGeofenceEvent(event, configData);
-				return true;
+			}
+
+			else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS.equals(requestType)) {
+				handleSetAuthorizationStatusEvent(event);
+			}
+
+			else {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Unknown request type, Ignoring places request content event.");
 			}
 		}
-
-		return true;
 	}
 
 	/**
@@ -207,21 +165,15 @@ public class PlacesExtension extends Extension {
 	 *
 	 * @param event the {@link EventType#CONFIGURATION} - {@link EventSource#RESPONSE_CONTENT} event associated with the configuration change
 	 */
-	void handleConfigurationEvent(final Event event) {
-		if (event != null) {
-			retrieveConfigurationEventState(event);
+	private void handleConfigurationResponseEvent(@NonNull final Event event) {
+			final Map<String, Object> configData = retrieveConfigurationEventState(event);
 
 			// clear the queued up events if the privacy is opted-out
-			if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
+			if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 				state.clearData();
-				eventsQueue.clear();
 				getApi().createSharedState(null, event);
 				return;
 			}
-
-			// Else try processing the pending event in queue on configuration change
-			processEventQueue();
-		}
 	}
 
 
@@ -260,9 +212,9 @@ public class PlacesExtension extends Extension {
 	void saveLastKnownLocation(final Event event) {
 
 		// Don't save the location if privacy is opted-out, Bail out right away
-		retrieveConfigurationEventState(event);
+		final Map<String, Object> configData =retrieveConfigurationEventState(event);
 
-		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
+		if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"saveLastKnownLocation - Ignoring to save the last known location, Privacy opted out");
 			return;
 		}
@@ -338,7 +290,7 @@ public class PlacesExtension extends Extension {
 		}
 
 		// Bail out if privacy is opted out.
-		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
+		if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Privacy opted out.");
 			placesDispatcher.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.PRIVACY_OPTED_OUT,
@@ -382,9 +334,7 @@ public class PlacesExtension extends Extension {
 		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData);
 
 		// Bail out if privacy is opted out.
-		retrieveConfigurationEventState(event);
-
-		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
+		if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGeofenceEvent - Ignoring the geofence event, Privacy opted out.");
 			return;
 		}
@@ -414,23 +364,8 @@ public class PlacesExtension extends Extension {
 	 * @param event the {@link EventType#CONFIGURATION} - {@link EventSource#RESPONSE_CONTENT} event associated with the configuration change
 	 * @return {@code Map<String,Object>} containing configuration shared state
 	 */
-	// TODO : To be removed in next PR
 	private Map<String,Object> retrieveConfigurationEventState(final Event event) {
-		final Map<String,Object> configData = this.getSharedEventState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event);
-
-		if (configData == EventHub.SHARED_STATE_PENDING) {
-			if (this.lastKnownConfigurationState == null) {
-				configData = this.getSharedEventState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME,
-													  Event.SHARED_STATE_OLDEST);
-				this.lastKnownConfigurationState = configData;
-			} else {
-				configData = this.lastKnownConfigurationState;
-			}
-		} else {
-			this.lastKnownConfigurationState = configData;
-		}
-
-		return configData;
+		return getApi().getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event,false,SharedStateResolution.ANY).getValue();
 	}
 
 	/**
@@ -443,12 +378,10 @@ public class PlacesExtension extends Extension {
 	 * </ol>
 	 * @return the privacy status.
 	 */
-	private MobilePrivacyStatus getMobilePrivacyStatus() {
-		if (this.lastKnownConfigurationState != null
-				&& this.lastKnownConfigurationState.containsKey(
-					PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY)) {
-			final String privacyString = this.lastKnownConfigurationState.optString(
-									   PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, "unknown");
+	private MobilePrivacyStatus getMobilePrivacyStatus(final Map<String, Object> configData) {
+		if (configData != null
+				&& configData.containsKey(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY)) {
+			final String privacyString = DataReader.optString(configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, "unknown");
 			return MobilePrivacyStatus.fromString(privacyString);
 		} else {
 			return MobilePrivacyStatus.UNKNOWN;
