@@ -78,6 +78,12 @@ public final class PlacesConstants {
 		}
 	}
 
+	static final class Location {
+		static final String PROVIDER_TAG = "com.adobe.lastKnownLocation";
+		private Location() {
+		}
+	}
+
 	static final class QueryResponseJsonKeys {
 		static final String PLACES = "places";
 		static final String POI = "pois";

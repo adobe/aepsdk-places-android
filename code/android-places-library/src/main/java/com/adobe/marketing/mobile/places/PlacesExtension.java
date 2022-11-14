@@ -13,11 +13,17 @@ package com.adobe.marketing.mobile.places;
 
 import android.location.Location;
 
+import androidx.annotation.NonNull;
+
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
+import com.adobe.marketing.mobile.Places;
+import com.adobe.marketing.mobile.SharedStateResolution;
+import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;
@@ -55,41 +61,73 @@ public class PlacesExtension extends Extension {
 	private static final String CLASS_NAME = "PlacesExtension";
 
 	ConcurrentLinkedQueue<Event> eventsQueue;
+	// TODO : to be removed in next PR. Now there is not need to save configuration
 	Map<String,Object> lastKnownConfigurationState;
-	PlacesDispatcherPlacesResponseContent placesDispatcherPlacesResponseContent;
+	PlacesDispatcher placesDispatcher;
 	PlacesQueryService queryService;
 	PlacesState state;
 
 
+	protected PlacesExtension(ExtensionApi extensionApi) {
+		super(extensionApi);
+		state = new PlacesState();
+		queryService = new PlacesQueryService();
+		placesDispatcher = new PlacesDispatcher(extensionApi);
+	}
 
-	/**
-	 * Constructor for {@code PlacesExtension} module.
-	 * <p>
-	 * Constructs a new instance of a {@code PlacesExtension} module, registers required listeners and dispatchers.
-	 * with the associated {@code EventHub} instance.
-	 *
-	 * @param hub the {@link EventHub} instance where this module is registered
-	 * @param services the {@link PlatformServices} used by this module
-	 */
-	PlacesExtension(final EventHub hub, final PlatformServices services) {
-		super(PlacesConstants.EventDataKeys.Places.MODULE_NAME, hub, services);
-		this.registerListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT,
-							  PlacesListenerConfigurationResponseContent.class);
-		this.registerListener(EventType.PLACES, EventSource.REQUEST_CONTENT, PlacesListenerPlacesRequestContent.class);
-		this.placesDispatcherPlacesResponseContent = this.createDispatcher(
-					PlacesDispatcherPlacesResponseContent.class);
-		this.eventsQueue = new ConcurrentLinkedQueue<Event>();
+	@Override
+	protected String getVersion() {
+		return Places.extensionVersion();
+	}
+
+	@NonNull
+	@Override
+	protected String getName() {
+		return PlacesConstants.MODULE_NAME;
+	}
+
+	@Override
+	protected String getFriendlyName() {
+		return PlacesConstants.FRIENDLY_NAME;
+	}
+
+	@Override
+	protected void onRegistered() {
+		getApi().registerEventListener(
+				EventType.CONFIGURATION,
+				EventSource.RESPONSE_CONTENT,
+				this::handleConfigurationResponseEvent
+		);
+		getApi().registerEventListener(
+				EventType.PLACES,
+				EventSource.REQUEST_CONTENT,
+				this::handlePlacesRequestEvent
+		);
 
 		// share places state if we got one
 		final Map<String,Object> placesSharedState = state.getPlacesSharedState();
-
 		if (placesSharedState != null && !placesSharedState.isEmpty()) {
-			createOrUpdateSharedState(0, placesSharedState);
+			getApi().createSharedState(placesSharedState, null);
 		}
 
-		state = new PlacesState();
-		queryService = new PlacesQueryService();
+		// TO BE REMOVED IN NEXT PR
+		this.eventsQueue = new ConcurrentLinkedQueue<Event>();
 	}
+
+	@Override
+	public boolean readyForEvent(final @NonNull Event event) {
+		return getApi().getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME,
+				event, false, SharedStateResolution.ANY).getStatus() == SharedStateStatus.SET;
+	}
+
+	private void handlePlacesRequestEvent(final Event event) {
+	// TODO: to be done in next PR
+	}
+
+	private void handleConfigurationResponseEvent(final Event event) {
+	// TODO: to be done in next PR
+	}
+
 
 	/**
 	 * This method queues the incoming event in {@link #eventsQueue} and processes them in order of occurrence.
@@ -97,6 +135,7 @@ public class PlacesExtension extends Extension {
 	 *
 	 * @param event the {@code Event} the needs to be queued
 	 */
+	// TODO: to be removed in next PR
 	void queueEvent(final Event event) {
 		if (event == null) {
 			return;
@@ -141,14 +180,8 @@ public class PlacesExtension extends Extension {
 			return true;
 		}
 
-
 		// Retrieve the latest configuration shared state data
 		final Map<String,Object> configData = retrieveConfigurationEventState(event);
-
-		if (configData == EventHub.SHARED_STATE_PENDING) {
-			return false;
-		}
-
 
 		final String requestType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
 
@@ -183,7 +216,7 @@ public class PlacesExtension extends Extension {
 			if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
 				state.clearData();
 				eventsQueue.clear();
-				clearSharedStates();
+				getApi().createSharedState(null, event);
 				return;
 			}
 
@@ -202,9 +235,9 @@ public class PlacesExtension extends Extension {
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Handling get user-within points of interest event.");
 
 		// dispatch userWithinPOIS for the awaiting one time listener
-		placesDispatcherPlacesResponseContent.dispatchUserWithinPOIs(state.getUserWithInPOIs(), event.getResponsePairID());
+		placesDispatcher.dispatchUserWithinPOIs(state.getUserWithInPOIs(), event);
 		// dispatch userWithinPOIS for all other listeners
-		placesDispatcherPlacesResponseContent.dispatchUserWithinPOIs(state.getUserWithInPOIs(), null);
+		placesDispatcher.dispatchUserWithinPOIs(state.getUserWithInPOIs(), null);
 	}
 
 	void handleGetLastKnownLocation(final Event event) {
@@ -212,16 +245,16 @@ public class PlacesExtension extends Extension {
 		final Location location = state.loadLastKnownLocation();
 
 		if (location == null) {
-			placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(PlacesConstants.INVALID_LAT_LON,
-					PlacesConstants.INVALID_LAT_LON, event.getResponsePairID());
+			placesDispatcher.dispatchLastKnownLocation(PlacesConstants.INVALID_LAT_LON,
+					PlacesConstants.INVALID_LAT_LON, event);
 			return;
 		}
 
 		// dispatch lastKnownLocation for all other listeners
-		placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(location.getLatitude(), location.getLongitude(),
-				event.getResponsePairID());
+		placesDispatcher.dispatchLastKnownLocation(location.getLatitude(), location.getLongitude(),
+				event);
 		// dispatch lastKnownLocation for all other listeners
-		placesDispatcherPlacesResponseContent.dispatchLastKnownLocation(location.getLatitude(), location.getLongitude(),
+		placesDispatcher.dispatchLastKnownLocation(location.getLatitude(), location.getLongitude(),
 				null);
 	}
 
@@ -272,8 +305,7 @@ public class PlacesExtension extends Extension {
 		state.setAuthorizationStatus(authStatusString);
 
 		// update the places shared state
-		createOrUpdateSharedState(event.getEventNumber(), state.getPlacesSharedState());
-
+		getApi().createSharedState(state.getPlacesSharedState(), event);
 	}
 
 
@@ -282,7 +314,7 @@ public class PlacesExtension extends Extension {
 	 */
 	void reset() {
 		state.clearData();
-		clearSharedStates();
+		getApi().createSharedState(null, null);
 	}
 
 
@@ -301,48 +333,51 @@ public class PlacesExtension extends Extension {
 
 		if (!placesConfig.isValid()) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Invalid Configuration");
-			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
-					PlacesRequestError.CONFIGURATION_ERROR, event.getResponsePairID());
+			placesDispatcher.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
+					PlacesRequestError.CONFIGURATION_ERROR, event);
 			return;
 		}
 
 		// Bail out if privacy is opted out.
 		if (getMobilePrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Privacy opted out.");
-			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
+			placesDispatcher.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
 					PlacesRequestError.PRIVACY_OPTED_OUT,
-					event.getResponsePairID());
+					event);
 			return;
 		}
 
 
-		final PlacesQueryResponse response = queryService.getNearbyPlaces(event.getData(), placesConfig);
+		queryService.getNearbyPlaces(event.getEventData(), placesConfig, new PlacesQueryResponseCallback() {
+			@Override
+			public void call(PlacesQueryResponse response) {
 
-		if (!response.isSuccess) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, response.errorMessage);
-			placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(), response.resultStatus,
-					event.getResponsePairID());
-			return;
-		}
+				if (!response.isSuccess) {
+					Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, response.errorMessage);
+					placesDispatcher.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(), response.resultStatus,
+							event);
+					return;
+				}
 
-		// read and set the latest membership ttl value from configuration
-		state.setMembershiptTtl(placesConfig.getMembershipTtl());
+				// read and set the latest membership ttl value from configuration
+				state.setMembershiptTtl(placesConfig.getMembershipTtl());
 
-		// on success, process the response - cache POIs, persist POIs and update the shared state values
-		state.processNetworkResponse(response, event);
+				// on success, process the response - cache POIs, persist POIs and update the shared state values
+				state.processNetworkResponse(response, event);
 
-		// update the places shared state
-		createOrUpdateSharedState(event.getEventNumber(), state.getPlacesSharedState());
+				// update the places shared state
+				getApi().createSharedState(state.getPlacesSharedState(), event);
 
-		// dispatch nearbyPOI list to the awaiting one-time listener
-		placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK,
-				event.getResponsePairID());
-		// dispatch nearbyPOI list for other listeners
-		placesDispatcherPlacesResponseContent.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK, null);
+				// dispatch nearbyPOI list to the awaiting one-time listener
+				placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK,
+						event);
+				// dispatch nearbyPOI list for other listeners
+				placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK, null);
+
+			}
+		});
 
 	}
-
-
 
 	private void handleGeofenceEvent(final Event event, final Map<String,Object> configData) {
 		final PlacesConfiguration placesConfig = new PlacesConfiguration(configData);
@@ -362,10 +397,10 @@ public class PlacesExtension extends Extension {
 		final PlacesRegion regionEvent = state.processRegionEvent(event);
 
 		// update the places shared state
-		createOrUpdateSharedState(event.getEventNumber(), state.getPlacesSharedState());
+		getApi().createSharedState(state.getPlacesSharedState(), event);
 
 		// dispatch the processed region event
-		placesDispatcherPlacesResponseContent.dispatchRegionEvent(regionEvent);
+		placesDispatcher.dispatchRegionEvent(regionEvent);
 
 	}
 
@@ -380,6 +415,7 @@ public class PlacesExtension extends Extension {
 	 * @param event the {@link EventType#CONFIGURATION} - {@link EventSource#RESPONSE_CONTENT} event associated with the configuration change
 	 * @return {@code Map<String,Object>} containing configuration shared state
 	 */
+	// TODO : To be removed in next PR
 	private Map<String,Object> retrieveConfigurationEventState(final Event event) {
 		final Map<String,Object> configData = this.getSharedEventState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event);
 

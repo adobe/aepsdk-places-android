@@ -81,7 +81,7 @@ class PlacesQueryService {
 		// add the library query parameter
 		queryURL = queryURL + placesConfig.getLibrariesQueryString();
 
-		Log.debug(PlacesConstants.LOG_TAG, "Getting nearby places:  %s", queryURL);
+		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"Getting nearby places:  %s", queryURL);
 		final NetworkRequest request = new NetworkRequest(queryURL, HttpMethod.GET, null, null, PlacesConstants.DEFAULT_NETWORK_TIMEOUT, PlacesConstants.DEFAULT_NETWORK_TIMEOUT);
 		networking.connectAsync(request, new NetworkCallback() {
 			@Override
@@ -112,7 +112,7 @@ class PlacesQueryService {
 						return;
 					}
 
-					Log.debug(PlacesConstants.LOG_TAG, "Got Response : %s", serverResponse);
+					Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Got Response : %s", serverResponse);
 					final JSONObject responseJson = new JSONObject(serverResponse);
 
 					if (responseJson == null) {
@@ -275,7 +275,7 @@ class PlacesQueryService {
 
 
 		if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring POI with identifier %s, invalid latitude/ longitude", identifier);
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"Ignoring POI with identifier %s, invalid latitude/ longitude", identifier);
 			return null;
 		}
 
