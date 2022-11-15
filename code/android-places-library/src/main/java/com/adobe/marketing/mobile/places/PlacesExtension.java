@@ -116,13 +116,13 @@ public class PlacesExtension extends Extension {
 		final Map<String, Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handlePlacesRequestEvent - Ignoring Places Request event due to missing request type");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handlePlacesRequestEvent - Ignoring Places Request event, eventData is empty.");
 			return;
 		}
 
 		final String requestType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, null);
 		if (StringUtils.isNullOrEmpty(requestType)) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "");
+			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handlePlacesRequestEvent - Ignoring Places Request event due to missing request type");
 			return;
 		}
 
