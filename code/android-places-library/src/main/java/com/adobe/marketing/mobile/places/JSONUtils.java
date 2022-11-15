@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.places;
 import androidx.annotation.NonNull;
 import com.adobe.marketing.mobile.services.Log;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashMap;
