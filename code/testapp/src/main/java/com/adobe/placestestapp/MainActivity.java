@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.adobe.marketing.mobile.AdobeCallback;
@@ -81,16 +82,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 	private List<Circle> fenceCircles;
 	private List<Marker> poiMarkers;
+	private TextView statusView;
 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		statusView = (TextView)findViewById(R.id.statusView);
 
 		mGeofencingClient = LocationServices.getGeofencingClient(this);
 		mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 		mSettingsClient = LocationServices.getSettingsClient(this);
+		statusView.setText("Places version " + Places.extensionVersion());
 
 		fenceCircles = new ArrayList<>();
 
@@ -171,6 +175,39 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 		Places.clear();
 		stopMonitoringFences();
 		googleMap.clear();
+	}
+
+	public void getCurrentPOI(View view) {
+		Places.getCurrentPointsOfInterest(new AdobeCallback<List<PlacesPOI>>() {
+			@Override
+			public void call(List<PlacesPOI> placesPOIS) {
+				if (placesPOIS != null && placesPOIS.size() > 0) {
+					statusView.setText("User is Inside \n");
+					for (final PlacesPOI eachPOI : placesPOIS) {
+						statusView.append( eachPOI.getName() + " \n");
+					}
+				} else {
+					statusView.setText("User is not inside any POI");
+				}
+			}
+		});
+	}
+
+	public void getLastKnownLocation(View view) {
+		Places.getLastKnownLocation(new AdobeCallback<Location>() {
+			@Override
+			public void call(Location location) {
+				if (location != null) {
+					statusView.setText("Latitude : " + location.getLatitude() + "  Longitude : " + location.getLongitude());
+				} else {
+					statusView.setText("Location is null");
+				}
+			}
+		});
+	}
+
+	public void setAuthorizationStatus(View view) {
+		Places.setAuthorizationStatus(PlacesAuthorizationStatus.WHEN_IN_USE);
 	}
 
 
