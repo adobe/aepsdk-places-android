@@ -112,11 +112,11 @@ class PlacesState {
 	PlacesRegion processRegionEvent(final Event event) {
 		// no need to do null pointer check for event or its eventData
 		// check are made prior to handing over to this method
-		Map<String,Object> eventData = event.getEventData();
+		final Map<String,Object> eventData = event.getEventData();
 
 		// extract the required data from eventData
-		String regionId = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REGION_ID, null);
-		String regionType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE,
+		final String regionId = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REGION_ID, null);
+		final String regionType = DataReader.optString(eventData, PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE,
 												PlacesRegion.PLACE_EVENT_NONE);
 
 		// bail out if the event has invalid regionId
@@ -126,7 +126,7 @@ class PlacesState {
 		}
 
 		// identify the POI among the cachedPOIs.
-		PlacesPOI matchedPOI = cachedPOIs.get(regionId);
+		final PlacesPOI matchedPOI = cachedPOIs.get(regionId);
 
 		// bail out if no matchedPOI is found
 		if (matchedPOI == null) {
@@ -184,7 +184,7 @@ class PlacesState {
 	 */
 	Map<String,Object> getPlacesSharedState() {
 		// create and return the shared state eventData
-		Map<String,Object> data = new HashMap<>();
+		final Map<String,Object> data = new HashMap<>();
 
 		// ensure that our membership data is still valid, and clear it out if it's not
 		if (!isMembershipDataValid()) {
@@ -221,9 +221,9 @@ class PlacesState {
 	 * @return A list containing POIs that the user is in. Return empty array if there is no POI that contains user
 	 */
 	List<PlacesPOI> getUserWithInPOIs() {
-		ArrayList<PlacesPOI> userWithInPOIs = new ArrayList<PlacesPOI>();
+		final ArrayList<PlacesPOI> userWithInPOIs = new ArrayList<PlacesPOI>();
 
-		for (PlacesPOI eachPOI : cachedPOIs.values()) {
+		for (final PlacesPOI eachPOI : cachedPOIs.values()) {
 			if (eachPOI.containsUser()) {
 				userWithInPOIs.add(eachPOI);
 			}
@@ -281,7 +281,7 @@ class PlacesState {
 			return null;
 		}
 
-		Location lastKnownLocation = new Location(PlacesConstants.Location.PROVIDER_TAG);
+		final Location lastKnownLocation = new Location(PlacesConstants.Location.PROVIDER_TAG);
 		lastKnownLocation.setLatitude(latitude);
 		lastKnownLocation.setLongitude(longitude);
 		return lastKnownLocation;
@@ -347,7 +347,7 @@ class PlacesState {
 		// cache containsUsers POI's
 		// while caching convert the list into map<id,poiObject> for easy data handling
 		if (response.containsUserPOIs != null && !response.containsUserPOIs.isEmpty()) {
-			for (PlacesPOI eachPOI : response.containsUserPOIs) {
+			for (final PlacesPOI eachPOI : response.containsUserPOIs) {
 				cachedPOIs.put(eachPOI.getIdentifier(), eachPOI);
 			}
 		}
@@ -355,7 +355,7 @@ class PlacesState {
 		// cache NearbyPOIs
 		// while caching convert the list into map<id,poiObject> for easy data handling
 		if (response.nearByPOIs != null && !response.nearByPOIs.isEmpty()) {
-			for (PlacesPOI eachPOI : response.nearByPOIs) {
+			for (final PlacesPOI eachPOI : response.nearByPOIs) {
 				cachedPOIs.put(eachPOI.getIdentifier(), eachPOI);
 			}
 		}
@@ -384,7 +384,6 @@ class PlacesState {
 
 			} catch (final JSONException exception) {
 				Log.warning(PlacesConstants.LOG_TAG, "Unable to load cached POI from JSON String : %s", nearbyString);
-				return;
 			}
 		}
 
@@ -418,7 +417,7 @@ class PlacesState {
 		if (!StringUtils.isNullOrEmpty(lastExitedString)) {
 			try {
 				lastExitedPOI = new PlacesPOI(lastExitedString);
-			} catch (JSONException exp) {
+			} catch (final JSONException exp) {
 				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to load last exited POI from persistence : Exception - %s", exp);
 			}
 		}
@@ -442,18 +441,25 @@ class PlacesState {
 
 		// persist nearbyPOIs
 		if (cachedPOIs != null && !cachedPOIs.isEmpty()) {
-			// TODO : Write a serializer to convert object to jsonString
-			final String jsonString = cachedPOIs.toString();
-			placesDataStore.setString(PlacesConstants.DataStoreKeys.NEARBYPOIS, jsonString);
-			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "nearbyPOIs persisted, %s", jsonString);
+			try {
+				final JSONObject nearbyPOIsJSON = new JSONObject();
+				for(final String poiID : cachedPOIs.keySet()) {
+					nearbyPOIsJSON.put(poiID, new JSONObject(cachedPOIs.get(poiID).toMap()));
+				}
+				final String jsonString = nearbyPOIsJSON.toString();
+				placesDataStore.setString(PlacesConstants.DataStoreKeys.NEARBYPOIS, jsonString);
+				Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "nearbyPOIs persisted, %s", jsonString);
+			} catch (final JSONException e) {
+				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
+						String.format("Unable to persist nearByPOIs in persistence, JSONException: %s", e.getLocalizedMessage()));
+			}
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.NEARBYPOIS);
 		}
 
 		// persist currentPOI
 		if (currentPOI != null) {
-			// TODO : Write a serializer to convert object to jsonString
-			final String jsonString = currentPOI.toString();
+			final String jsonString = currentPOI.toJsonString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.CURRENT_POI, jsonString);
 			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "currentPOI persisted, %s", jsonString);
 		} else {
@@ -462,8 +468,7 @@ class PlacesState {
 
 		// persist lastEnteredPOI
 		if (lastEnteredPOI != null) {
-			// TODO : Write a serializer to convert object to jsonString
-			final String jsonString = lastEnteredPOI.toString();
+			final String jsonString = lastEnteredPOI.toJsonString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, jsonString);
 			Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "lastEnteredPOI persisted, %s", jsonString);
 		} else {
@@ -472,8 +477,7 @@ class PlacesState {
 
 		// persist lastExitedPOI
 		if (lastExitedPOI != null) {
-			// TODO : Write a serializer to convert object to jsonString
-			final String jsonString = lastExitedPOI.toString();
+			final String jsonString = lastExitedPOI.toJsonString();
 			placesDataStore.setString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, jsonString);
 			Log.trace(PlacesConstants.LOG_TAG, "lastExitedPOI persisted, %s", jsonString);
 		} else {

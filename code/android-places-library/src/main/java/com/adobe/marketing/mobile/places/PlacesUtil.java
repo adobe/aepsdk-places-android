@@ -11,7 +11,12 @@
 
 package com.adobe.marketing.mobile.places;
 
-class PlacesUtil {
+import com.adobe.marketing.mobile.util.DataReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class PlacesUtil {
 	private static final double MAX_LAT		= 90d;
 	private static final double MIN_LAT		= -90d;
 	private static final double MAX_LON		= 180d;
@@ -36,5 +41,43 @@ class PlacesUtil {
 	 */
 	static boolean isValidLon(final double longitude) {
 		return longitude >= MIN_LON && longitude <= MAX_LON;
+	}
+
+	/**
+	 * Converts the list of {@link PlacesPOI} objects to list of {@link Map} representing {@code PlacesPOI}.
+	 *
+	 * @param poiList {@link List} of {@code PlacesPOI}
+	 * @return {@code List} of Map representing {@code PlacesPOI} object
+	 */
+	static List<Map<String,Object>> convertPOIListToMap(final List<PlacesPOI> poiList) {
+		List<Map<String, Object>> poiMapList = new ArrayList<>();
+		for (final PlacesPOI eachPOI : poiList) {
+			poiMapList.add(eachPOI.toMap());
+		}
+		return poiMapList;
+	}
+
+	/**
+	 * Converts the list oflist of {@link Map} representing {@code PlacesPOI} into {@link PlacesPOI} objects.
+	 *
+	 * @param poiMap {@link List} of Map representing {@code PlacesPOI} object
+	 * @return {@code List} of {@code PlacesPOI}
+	 */
+	public static List<PlacesPOI> convertMapToPOIList(final List<Map> poiMap) {
+		List<PlacesPOI> poiMapList = new ArrayList<PlacesPOI>();
+		for (final Map<String, Object> eachMap : poiMap) {
+			PlacesPOI poi = new PlacesPOI(
+					DataReader.optString(eachMap, PlacesConstants.POIKeys.IDENTIFIER, null),
+					DataReader.optString(eachMap, PlacesConstants.POIKeys.NAME, null),
+					DataReader.optDouble(eachMap, PlacesConstants.POIKeys.LATITUDE, 0.00),
+					DataReader.optDouble(eachMap, PlacesConstants.POIKeys.LONGITUDE, 0.00),
+					DataReader.optInt(eachMap, PlacesConstants.POIKeys.RADIUS, 0),
+					DataReader.optString(eachMap, PlacesConstants.POIKeys.LIBRARY, null),
+					DataReader.optInt(eachMap, PlacesConstants.POIKeys.WEIGHT, 0),
+					DataReader.optStringMap(eachMap, PlacesConstants.POIKeys.METADATA, null));
+			poi.setUserIsWithin(DataReader.optBoolean(eachMap, PlacesConstants.POIKeys.USER_IS_WITHIN, false));
+			poiMapList.add(poi);
+		}
+		return poiMapList;
 	}
 }

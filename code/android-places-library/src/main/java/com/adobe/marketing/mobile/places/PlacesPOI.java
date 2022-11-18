@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.places;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PlacesPOI {
@@ -174,10 +175,6 @@ public class PlacesPOI {
         this.weight = weight;
     }
 
-    public void setLibrary(final String library) {
-        this.library = library;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (o == null) {
@@ -285,4 +282,24 @@ public class PlacesPOI {
         result = prime * result + (metadata != null ? metadata.hashCode() : 0);
         return result;
     }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> poiMap = new HashMap<>();
+        poiMap.put(PlacesConstants.POIKeys.IDENTIFIER, this.identifier);
+        poiMap.put(PlacesConstants.POIKeys.NAME, this.name);
+        poiMap.put(PlacesConstants.POIKeys.LATITUDE, this.latitude);
+        poiMap.put(PlacesConstants.POIKeys.LONGITUDE, this.longitude);
+        poiMap.put(PlacesConstants.POIKeys.RADIUS, this.radius);
+        poiMap.put(PlacesConstants.POIKeys.METADATA, this.metadata);
+        poiMap.put(PlacesConstants.POIKeys.USER_IS_WITHIN, this.userIsWithin);
+        poiMap.put(PlacesConstants.POIKeys.LIBRARY, this.library);
+        poiMap.put(PlacesConstants.POIKeys.WEIGHT, this.weight);
+        return poiMap;
+    }
+
+    public String toJsonString() {
+        JSONObject jsonObject = new JSONObject(toMap());
+        return jsonObject.toString();
+    }
+
 }

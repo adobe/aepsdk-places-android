@@ -16,9 +16,9 @@ import java.util.Map;
 
 public final class PlacesRegion extends PlacesPOI {
 
-	private String              placeEventType;
-	private long                timestamp;
-	private PlacesPOI 			poi;
+	private final String              placeEventType;
+	private final long                timestamp;
+	private final PlacesPOI 			poi;
 
 	public static final String PLACE_EVENT_NONE  = "none";
 	public static final String PLACE_EVENT_ENTRY = "entry";
@@ -28,7 +28,7 @@ public final class PlacesRegion extends PlacesPOI {
 		return timestamp;
 	}
 
-	public Map<String,Object> getRegionEventData() {
+	Map<String,Object> getRegionEventData() {
 		Map<String,Object> data = new HashMap<>();
 		data.put(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION, poi);
 		data.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, getPlaceEventType());
@@ -36,7 +36,7 @@ public final class PlacesRegion extends PlacesPOI {
 		return data;
 	}
 
-	protected PlacesRegion(final PlacesPOI placesPOI,
+	PlacesRegion(final PlacesPOI placesPOI,
 						   final String placeEventType,
 						   final long timestamp) {
 		super(placesPOI);
@@ -46,10 +46,9 @@ public final class PlacesRegion extends PlacesPOI {
 	}
 
 
-	protected String getPlaceEventType() {
+	String getPlaceEventType() {
 		return placeEventType;
 	}
-
 }
 
 

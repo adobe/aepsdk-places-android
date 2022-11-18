@@ -38,7 +38,7 @@ class PlacesConfiguration {
 		}
 
 		// initiate the libraries list
-		libraries = new ArrayList<PlacesLibrary>();
+		libraries = new ArrayList<>();
 
 		// read the libraries from the configuration
 		final List<Map> libraryList = DataReader.optTypedList(Map.class, configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, null);
@@ -107,6 +107,4 @@ class PlacesConfiguration {
 
 	// hiding the default constructor
 	private PlacesConfiguration() { }
-
-
 }

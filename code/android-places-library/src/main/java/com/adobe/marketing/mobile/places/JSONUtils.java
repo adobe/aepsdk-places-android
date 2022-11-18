@@ -8,13 +8,12 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+
 package com.adobe.marketing.mobile.places;
 
 import androidx.annotation.NonNull;
 import com.adobe.marketing.mobile.services.Log;
-
 import org.json.JSONObject;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -33,7 +32,7 @@ class JSONUtils {
                     final String stringValue = (String) value;
                     map.put(key, stringValue);
                 } else {
-                    Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] is not String: %s", key);
+                    Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] : %s is not String:", key, value);
                 }
             } catch (final Exception e) {
                 Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] is not supported: %s", key, e);

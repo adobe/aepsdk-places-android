@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.places.PlacesConstants;
 import com.adobe.marketing.mobile.places.PlacesPOI;
 import com.adobe.marketing.mobile.places.PlacesRegion;
 import com.adobe.marketing.mobile.places.PlacesRequestError;
+import com.adobe.marketing.mobile.places.PlacesUtil;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.DataReaderException;
@@ -199,14 +200,20 @@ public class Places {
 
 			@Override
 			public void call(final Event event) {
-				final Map<String, Object> eventDataMap = event.getEventData();
+				final Map<String, Object> responseEventData = event.getEventData();
 
-				if (eventDataMap == null) {
-					callback.call(new ArrayList<PlacesPOI>());
+				if (responseEventData == null) {
+					callback.call(new ArrayList<>());
 					return;
 				}
 
-				callback.call(DataReader.optTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, new ArrayList<PlacesPOI>()));
+				try {
+					final List<Map> poisMap = DataReader.getTypedList(Map.class, responseEventData, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS);
+					callback.call(PlacesUtil.convertMapToPOIList(poisMap));
+				} catch (DataReaderException e) {
+					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Exception while reading POI from eventData. Returning empty POI list.");
+					callback.call(new ArrayList<>());
+				}
 			}
 
 			private void executeCallbackWithError(final AdobeError adobeError) {
@@ -435,24 +442,22 @@ public class Places {
 
 			@Override
 			public void call(final Event event) {
-				final Map<String,Object> eventData = event.getEventData();
+				final Map<String,Object> responseEventData = event.getEventData();
 
-				if (eventData == null) {
+				if (responseEventData == null) {
 					callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
 					return;
 				}
 
 				try {
 					// retrieve the status and the list of POI's from eventData
-					final List<PlacesPOI> pois = DataReader.getTypedList(PlacesPOI.class, eventDataMap, PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST);
-
-
-					final int resultStatusInteger = DataReader.getInt(eventDataMap,PlacesConstants.EventDataKeys.Places.RESULT_STATUS);
+					final List<Map> poiMap = DataReader.getTypedList(Map.class, responseEventData, PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST);
+					final int resultStatusInteger = DataReader.getInt(responseEventData,PlacesConstants.EventDataKeys.Places.RESULT_STATUS);
 					final PlacesRequestError status = PlacesRequestError.fromInt(resultStatusInteger);
 
 					// call the successCallback if the status is OK
 					if (status == PlacesRequestError.OK) {
-						callSuccessCallback(pois);
+						callSuccessCallback(PlacesUtil.convertMapToPOIList(poiMap));
 						return;
 					}
 
