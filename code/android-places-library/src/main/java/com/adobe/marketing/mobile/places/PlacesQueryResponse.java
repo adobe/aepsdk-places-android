@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile.places;
 import java.util.ArrayList;
 import java.util.List;
 
-class PlacesQueryResponse {
+final class PlacesQueryResponse {
 	String errorMessage;
 	boolean isSuccess;
 	List<PlacesPOI> containsUserPOIs;
@@ -27,16 +27,16 @@ class PlacesQueryResponse {
 		this.resultStatus = placesStatus;
 	}
 
-	public List<PlacesPOI> getContainsUserPOIs() {
+	List<PlacesPOI> getContainsUserPOIs() {
 		return containsUserPOIs;
 	}
 
-	public List<PlacesPOI> getNearByPOIs() {
+	List<PlacesPOI> getNearByPOIs() {
 		return nearByPOIs;
 	}
 
 	List<PlacesPOI> getAllPOIs() {
-		ArrayList<PlacesPOI> allPOIs = new ArrayList<PlacesPOI>();
+		ArrayList<PlacesPOI> allPOIs = new ArrayList<>();
 		allPOIs.addAll(containsUserPOIs);
 		allPOIs.addAll(nearByPOIs);
 		return allPOIs;

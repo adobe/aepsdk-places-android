@@ -24,7 +24,7 @@ import java.util.Map;
 class PlacesDispatcher {
 
     private static final String CLASS_NAME = "PlacesDispatcher";
-    private ExtensionApi extensionApi;
+    private final ExtensionApi extensionApi;
 
     PlacesDispatcher(final ExtensionApi extensionApi) {
         this.extensionApi = extensionApi;
@@ -33,7 +33,7 @@ class PlacesDispatcher {
     void dispatchNearbyPlaces(final List<PlacesPOI> poiList, final PlacesRequestError resultStatus,
                                      final Event event) {
         final Map<String, Object> responseEventData = new HashMap<>();
-        responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, poiList);
+        responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, PlacesUtil.convertPOIListToMap(poiList));
         responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
         Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places event with %d POIs", poiList.size());
         final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
@@ -61,7 +61,7 @@ class PlacesDispatcher {
 
     void dispatchUserWithinPOIs(final List<PlacesPOI> poiList, final Event event) {
         final Map<String, Object> responseEventData = new HashMap<>();
-        responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, poiList);
+        responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, PlacesUtil.convertPOIListToMap(poiList));
         Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event with %d POIs", poiList.size());
         final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
                 EventSource.RESPONSE_CONTENT)

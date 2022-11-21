@@ -44,7 +44,7 @@ public enum PlacesAuthorizationStatus {
 	 */
 	WHEN_IN_USE("wheninuse");
 
-	private String authStatus;
+	private final String authStatus;
 	public static String DEFAULT_VALUE = PlacesAuthorizationStatus.UNKNOWN.stringValue();
 
 	PlacesAuthorizationStatus(final String authStatus) {
@@ -83,7 +83,7 @@ public enum PlacesAuthorizationStatus {
 
 
 	// generate look up table on load time
-	private static final Map<String, PlacesAuthorizationStatus> lookup = new HashMap<String, PlacesAuthorizationStatus>();
+	private static final Map<String, PlacesAuthorizationStatus> lookup = new HashMap<>();
 	static
 	{
 		for (PlacesAuthorizationStatus env : PlacesAuthorizationStatus.values()) {

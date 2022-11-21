@@ -126,35 +126,33 @@ public class PlacesExtension extends Extension {
 			return;
 		}
 
-		if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES.equals(requestType)) {
-			handleGetUserWithinPOIsEvent(event);
-		}
-
-		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION.equals(requestType)) {
-			handleGetLastKnownLocation(event);
-		}
-
-		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET.equals(requestType)) {
-			reset();
-		}
-
-		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES.equals(requestType)) {
-			final Map<String,Object> configData = retrieveConfigurationEventState(event);
-			saveLastKnownLocation(event);
-			handleGetNearByPlaceEvent(event, configData);
-		}
-
-		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT.equals(requestType)) {
-			final Map<String,Object> configData = retrieveConfigurationEventState(event);
-			handleGeofenceEvent(event, configData);
-		}
-
-		else if (PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS.equals(requestType)) {
-			handleSetAuthorizationStatusEvent(event);
-		}
-
-		else {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("handlePlacesRequestEvent - Ignoring Places Request event due to a unrecognized request type - %s.", requestType));
+		switch (requestType) {
+			case PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES:
+				handleGetUserWithinPOIsEvent(event);
+				break;
+			case PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION:
+				handleGetLastKnownLocation(event);
+				break;
+			case PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET:
+				reset();
+				break;
+			case PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES: {
+				final Map<String, Object> configData = retrieveConfigurationEventState(event);
+				saveLastKnownLocation(event);
+				handleGetNearByPlaceEvent(event, configData);
+				break;
+			}
+			case PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT: {
+				final Map<String, Object> configData = retrieveConfigurationEventState(event);
+				handleGeofenceEvent(event, configData);
+				break;
+			}
+			case PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS:
+				handleSetAuthorizationStatusEvent(event);
+				break;
+			default:
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("handlePlacesRequestEvent - Ignoring Places Request event due to a unrecognized request type - %s.", requestType));
+				break;
 		}
 	}
 
@@ -172,10 +170,8 @@ public class PlacesExtension extends Extension {
 			// clear the queued up events if the privacy is opted-out
 			if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleConfigurationResponseEvent - Stopping Places processing due to privacy opt-out.");
-				state.clearData();
-				getApi().createSharedState(null, event);
 				getApi().stopEvents();
-				return;
+				reset();
 			}
 	}
 
@@ -299,7 +295,7 @@ public class PlacesExtension extends Extension {
 
 		if (!placesConfig.isValid()) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Invalid Configuration");
-			placesDispatcher.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
+			placesDispatcher.dispatchNearbyPlaces(new ArrayList<>(),
 					PlacesRequestError.CONFIGURATION_ERROR, event);
 			return;
 		}
@@ -307,40 +303,37 @@ public class PlacesExtension extends Extension {
 		// Bail out if privacy is opted out.
 		if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetNearByPlaceEvent - Ignoring the get nearby places event, Privacy opted out.");
-			placesDispatcher.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(),
+			placesDispatcher.dispatchNearbyPlaces(new ArrayList<>(),
 					PlacesRequestError.PRIVACY_OPTED_OUT,
 					event);
 			return;
 		}
 
 
-		queryService.getNearbyPlaces(event.getEventData(), placesConfig, new PlacesQueryResponseCallback() {
-			@Override
-			public void call(PlacesQueryResponse response) {
+		queryService.getNearbyPlaces(event.getEventData(), placesConfig, response -> {
 
-				if (!response.isSuccess) {
-					Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, response.errorMessage);
-					placesDispatcher.dispatchNearbyPlaces(new ArrayList<PlacesPOI>(), response.resultStatus,
-							event);
-					return;
-				}
-
-				// read and set the latest membership ttl value from configuration
-				state.setMembershiptTtl(placesConfig.getMembershipTtl());
-
-				// on success, process the response - cache POIs, persist POIs and update the shared state values
-				state.processNetworkResponse(response, event);
-
-				// update the places shared state
-				getApi().createSharedState(state.getPlacesSharedState(), event);
-
-				// dispatch nearbyPOI list to the awaiting one-time listener
-				placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK,
+			if (!response.isSuccess) {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, response.errorMessage);
+				placesDispatcher.dispatchNearbyPlaces(new ArrayList<>(), response.resultStatus,
 						event);
-				// dispatch nearbyPOI list for other listeners
-				placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK, null);
-
+				return;
 			}
+
+			// read and set the latest membership ttl value from configuration
+			state.setMembershiptTtl(placesConfig.getMembershipTtl());
+
+			// on success, process the response - cache POIs, persist POIs and update the shared state values
+			state.processNetworkResponse(response, event);
+
+			// update the places shared state
+			getApi().createSharedState(state.getPlacesSharedState(), event);
+
+			// dispatch nearbyPOI list to the awaiting one-time listener
+			placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK,
+					event);
+			// dispatch nearbyPOI list for other listeners
+			placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK, null);
+
 		});
 
 	}
