@@ -210,8 +210,8 @@ public class Places {
 				try {
 					final List<Map> poisMap = DataReader.getTypedList(Map.class, responseEventData, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS);
 					callback.call(PlacesUtil.convertMapToPOIList(poisMap));
-				} catch (DataReaderException e) {
-					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Exception while reading POI from eventData. Returning empty POI list.");
+				} catch (final DataReaderException e) {
+					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("Exception while reading POI from eventData. Returning empty POI list. Exception : %s", e.getLocalizedMessage()));
 					callback.call(new ArrayList<>());
 				}
 			}

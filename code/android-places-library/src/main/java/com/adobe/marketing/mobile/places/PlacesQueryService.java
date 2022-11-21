@@ -93,7 +93,6 @@ class PlacesQueryService {
 						connection.getResponseCode(), connection.getResponseMessage());
 				placesResponse.fetchFailed(message, PlacesRequestError.CONNECTIVITY_ERROR);
 				responseCallback.call(placesResponse);
-				connection.close();
 				return;
 			}
 

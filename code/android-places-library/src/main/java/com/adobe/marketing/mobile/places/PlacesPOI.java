@@ -284,7 +284,7 @@ public class PlacesPOI {
     }
 
     public Map<String, Object> toMap() {
-        Map<String, Object> poiMap = new HashMap<>();
+        final Map<String, Object> poiMap = new HashMap<>();
         poiMap.put(PlacesConstants.POIKeys.IDENTIFIER, this.identifier);
         poiMap.put(PlacesConstants.POIKeys.NAME, this.name);
         poiMap.put(PlacesConstants.POIKeys.LATITUDE, this.latitude);
@@ -298,7 +298,7 @@ public class PlacesPOI {
     }
 
     public String toJsonString() {
-        JSONObject jsonObject = new JSONObject(toMap());
+        final JSONObject jsonObject = new JSONObject(toMap());
         return jsonObject.toString();
     }
 
