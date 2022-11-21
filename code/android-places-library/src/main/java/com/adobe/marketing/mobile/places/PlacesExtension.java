@@ -24,10 +24,12 @@ import com.adobe.marketing.mobile.Places;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -61,8 +63,8 @@ public class PlacesExtension extends Extension {
 
 	protected PlacesExtension(ExtensionApi extensionApi) {
 		super(extensionApi);
-		state = new PlacesState();
-		queryService = new PlacesQueryService();
+		state = new PlacesState(ServiceProvider.getInstance().getDataStoreService());
+		queryService = new PlacesQueryService(ServiceProvider.getInstance().getNetworkService());
 		placesDispatcher = new PlacesDispatcher(extensionApi);
 	}
 
@@ -276,7 +278,7 @@ public class PlacesExtension extends Extension {
 	private void reset() {
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "reset - Places shared state and persisted data has been reset.");
 		state.clearData();
-		getApi().createSharedState(null, null);
+		getApi().createSharedState(new HashMap<>(), null);
 	}
 
 
@@ -323,7 +325,7 @@ public class PlacesExtension extends Extension {
 			state.setMembershiptTtl(placesConfig.getMembershipTtl());
 
 			// on success, process the response - cache POIs, persist POIs and update the shared state values
-			state.processNetworkResponse(response, event);
+			state.processNetworkResponse(response);
 
 			// update the places shared state
 			getApi().createSharedState(state.getPlacesSharedState(), event);

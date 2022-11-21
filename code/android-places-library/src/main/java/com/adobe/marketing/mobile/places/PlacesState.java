@@ -16,9 +16,9 @@ import android.location.Location;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.services.DataStoring;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
@@ -49,9 +49,9 @@ class PlacesState {
 	 * Creates a new instance of the {@link PlacesState}.
 	 * Attempts to load the previous session data from the places dataStore.
 	 */
-	PlacesState() {
+	PlacesState(final DataStoring datastore) {
 		cachedPOIs = new LinkedHashMap<>();
-		placesDataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(PLACES_DATA_STORE);
+		placesDataStore = datastore.getNamedCollection(PLACES_DATA_STORE);
 		// load the persisted POI's to cache variable
 		loadPersistedPOIs();
 	}
@@ -68,9 +68,8 @@ class PlacesState {
 	 * </ol>
 	 *
 	 * @param response the places query response
-	 * @param event the {@link Event} that requested to getNearbyPointsOfInterest
 	 */
-	void processNetworkResponse(final PlacesQueryResponse response, final Event event) {
+	void processNetworkResponse(final PlacesQueryResponse response) {
 		// always reset the current POI
 		currentPOI = null;
 

@@ -46,6 +46,11 @@ class PlacesQueryService {
 	private static final int POI_INDEX_LIBRARY = 5;
 	private static final int POI_INDEX_WEIGHT = 6;
 
+	private final Networking networking;
+
+	public PlacesQueryService(Networking networking) {
+		this.networking = networking;
+	}
 
 	/**
 	 *
@@ -57,7 +62,6 @@ class PlacesQueryService {
 	// Pass non null event data.
 	void getNearbyPlaces(final Map<String,Object> eventData, final PlacesConfiguration placesConfig, final PlacesQueryResponseCallback responseCallback) {
 		final PlacesQueryResponse placesResponse = new PlacesQueryResponse();
-		final Networking networking = ServiceProvider.getInstance().getNetworkService();
 
 		if (networking == null) {
 			placesResponse.fetchFailed("Ignoring the get nearby places event, Networking services not available.",
@@ -110,10 +114,6 @@ class PlacesQueryService {
 				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Got Response : %s", serverResponse);
 				final JSONObject responseJson = new JSONObject(serverResponse);
 
-				placesResponse.fetchFailed("Unable to get nearby places, invalid json from server response",
-							PlacesRequestError.SERVER_RESPONSE_ERROR);
-				responseCallback.call(placesResponse);
-
 				final JSONObject placesJson = responseJson.getJSONObject(PlacesConstants.QueryResponseJsonKeys.PLACES);
 				placesResponse.nearByPOIs = getNearbyPOIs(placesJson);
 				placesResponse.containsUserPOIs = getContainsUserPOIs(placesJson);
@@ -132,9 +132,6 @@ class PlacesQueryService {
 				connection.close();
 			}
 		});
-
-
-
 	}
 
 	/**
