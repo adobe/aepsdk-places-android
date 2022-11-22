@@ -56,13 +56,14 @@ public class PlacesExtension extends Extension {
 
 	private static final String CLASS_NAME = "PlacesExtension";
 
+	ExtensionApi extensionApi;
 	PlacesDispatcher placesDispatcher;
 	PlacesQueryService queryService;
 	PlacesState state;
 
-
 	protected PlacesExtension(ExtensionApi extensionApi) {
 		super(extensionApi);
+		this.extensionApi = extensionApi;
 		state = new PlacesState(ServiceProvider.getInstance().getDataStoreService());
 		queryService = new PlacesQueryService(ServiceProvider.getInstance().getNetworkService());
 		placesDispatcher = new PlacesDispatcher(extensionApi);
@@ -86,12 +87,12 @@ public class PlacesExtension extends Extension {
 
 	@Override
 	protected void onRegistered() {
-		getApi().registerEventListener(
+		extensionApi.registerEventListener(
 				EventType.CONFIGURATION,
 				EventSource.RESPONSE_CONTENT,
 				this::handleConfigurationResponseEvent
 		);
-		getApi().registerEventListener(
+		extensionApi.registerEventListener(
 				EventType.PLACES,
 				EventSource.REQUEST_CONTENT,
 				this::handlePlacesRequestEvent
@@ -100,13 +101,13 @@ public class PlacesExtension extends Extension {
 		// share places state if we got one
 		final Map<String,Object> placesSharedState = state.getPlacesSharedState();
 		if (placesSharedState != null && !placesSharedState.isEmpty()) {
-			getApi().createSharedState(placesSharedState, null);
+			extensionApi.createSharedState(placesSharedState, null);
 		}
 	}
 
 	@Override
 	public boolean readyForEvent(final @NonNull Event event) {
-		if (getApi().getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME,
+		if (extensionApi.getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME,
 				event, false, SharedStateResolution.ANY).getStatus() == SharedStateStatus.SET) {
 			return true;
 		}
@@ -114,7 +115,7 @@ public class PlacesExtension extends Extension {
 		return false;
 	}
 
-	private void handlePlacesRequestEvent(@NonNull final Event event) {
+	void handlePlacesRequestEvent(@NonNull final Event event) {
 		final Map<String, Object> eventData = event.getEventData();
 
 		if (eventData == null || eventData.isEmpty()) {
@@ -166,13 +167,13 @@ public class PlacesExtension extends Extension {
 	 *
 	 * @param event the {@link EventType#CONFIGURATION} - {@link EventSource#RESPONSE_CONTENT} event associated with the configuration change
 	 */
-	private void handleConfigurationResponseEvent(@NonNull final Event event) {
+	void handleConfigurationResponseEvent(@NonNull final Event event) {
 			final Map<String, Object> configData = retrieveConfigurationEventState(event);
 
 			// clear the queued up events if the privacy is opted-out
 			if (getMobilePrivacyStatus(configData) == MobilePrivacyStatus.OPT_OUT) {
 				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "handleConfigurationResponseEvent - Stopping Places processing due to privacy opt-out.");
-				getApi().stopEvents();
+				extensionApi.stopEvents();
 				reset();
 			}
 	}
@@ -267,7 +268,7 @@ public class PlacesExtension extends Extension {
 		state.setAuthorizationStatus(authStatusString);
 
 		// update the places shared state
-		getApi().createSharedState(state.getPlacesSharedState(), event);
+		extensionApi.createSharedState(state.getPlacesSharedState(), event);
 	}
 
 
@@ -278,7 +279,7 @@ public class PlacesExtension extends Extension {
 	private void reset() {
 		Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "reset - Places shared state and persisted data has been reset.");
 		state.clearData();
-		getApi().createSharedState(new HashMap<>(), null);
+		extensionApi.createSharedState(new HashMap<>(), null);
 	}
 
 
@@ -328,7 +329,7 @@ public class PlacesExtension extends Extension {
 			state.processNetworkResponse(response);
 
 			// update the places shared state
-			getApi().createSharedState(state.getPlacesSharedState(), event);
+			extensionApi.createSharedState(state.getPlacesSharedState(), event);
 
 			// dispatch nearbyPOI list to the awaiting one-time listener
 			placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK,
@@ -357,7 +358,7 @@ public class PlacesExtension extends Extension {
 		final PlacesRegion regionEvent = state.processRegionEvent(event);
 
 		// update the places shared state
-		getApi().createSharedState(state.getPlacesSharedState(), event);
+		extensionApi.createSharedState(state.getPlacesSharedState(), event);
 
 		// dispatch the processed region event
 		placesDispatcher.dispatchRegionEvent(regionEvent);
@@ -371,7 +372,7 @@ public class PlacesExtension extends Extension {
 	 * @return {@code Map<String,Object>} containing configuration shared state
 	 */
 	private Map<String,Object> retrieveConfigurationEventState(final Event event) {
-		return getApi().getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event,false,SharedStateResolution.ANY).getValue();
+		return extensionApi.getSharedState(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME, event,false,SharedStateResolution.ANY).getValue();
 	}
 
 	/**

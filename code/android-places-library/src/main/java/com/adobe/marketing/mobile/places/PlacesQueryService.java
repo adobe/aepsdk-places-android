@@ -15,7 +15,6 @@ import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.NetworkRequest;
 import com.adobe.marketing.mobile.services.Networking;
-import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StreamUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
@@ -222,63 +221,66 @@ class PlacesQueryService {
 	//	 * 2. invalid latitude/ longitude in poiJson
 	//	 * 3. poiJson is not in the expected format.
 	//	 */
-	private PlacesPOI createPlacesPOIFromJson(final JSONObject poiJson) throws JSONException {
-
-		final JSONArray poiDetails = poiJson.getJSONArray(PlacesConstants.QueryResponseJsonKeys.POI_DETAILS);
-
-		// bail out by returning null if array length for a poi is not equal to 8
-		if (poiDetails.length() != POI_DETAIL_MIN_ARRAY_LENGTH) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "poiJson does not have the expected format");
-			return null;
-		}
-
-		// retrieve the respective data from the array
-		final String identifier = poiDetails.optString(POI_INDEX_IDENTIFIER, null);
-
-		if (identifier == null) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring a POI, invalid identifier");
-			return null;
-		}
-
-		final String name = poiDetails.optString(POI_INDEX_NAME, "unnamed");
-
-
-		double latitude;
-		double longitude;
-
+	private PlacesPOI createPlacesPOIFromJson(final JSONObject poiJson) {
 		try {
-			latitude = Double.parseDouble(poiDetails.optString(POI_INDEX_LATITUDE,
-										  String.valueOf(PlacesConstants.INVALID_LAT_LON)));
-			longitude = Double.parseDouble(poiDetails.optString(POI_INDEX_LONGITUDE,
-										   String.valueOf(PlacesConstants.INVALID_LAT_LON)));
-		} catch (final Exception exp) {
-			// catch the numberFormat and nullPointer Exception
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,
-					  "Ignoring POI with identifier %s, exception occurred while reading latitude/ longitude", identifier);
+			final JSONArray poiDetails = poiJson.getJSONArray(PlacesConstants.QueryResponseJsonKeys.POI_DETAILS);
+
+			// bail out by returning null if array length for a poi is not equal to 8
+			if (poiDetails.length() != POI_DETAIL_MIN_ARRAY_LENGTH) {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "poiJson does not have the expected format");
+				return null;
+			}
+
+			// retrieve the respective data from the array
+			final String identifier = poiDetails.optString(POI_INDEX_IDENTIFIER, null);
+
+			if (identifier == null) {
+				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring a POI, invalid identifier");
+				return null;
+			}
+
+			final String name = poiDetails.optString(POI_INDEX_NAME, "unnamed");
+
+
+			double latitude;
+			double longitude;
+
+			try {
+				latitude = Double.parseDouble(poiDetails.optString(POI_INDEX_LATITUDE,
+						String.valueOf(PlacesConstants.INVALID_LAT_LON)));
+				longitude = Double.parseDouble(poiDetails.optString(POI_INDEX_LONGITUDE,
+						String.valueOf(PlacesConstants.INVALID_LAT_LON)));
+			} catch (final Exception exp) {
+				// catch the numberFormat and nullPointer Exception
+				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
+						"Ignoring POI with identifier %s, exception occurred while reading latitude/ longitude", identifier);
+				return null;
+			}
+
+
+			if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
+				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring POI with identifier %s, invalid latitude/ longitude", identifier);
+				return null;
+			}
+
+			final int radius = poiDetails.optInt(POI_INDEX_RADIUS, DEFAULT_POI_RADIUS);
+			final String library = poiDetails.optString(POI_INDEX_LIBRARY, "");
+			final int weight = poiDetails.optInt(POI_INDEX_WEIGHT, DEFAULT_POI_WEIGHT);
+
+			final PlacesPOI placesPOI = new PlacesPOI(identifier, name, latitude, longitude, radius, library, weight);
+
+			final JSONObject poiMetadata = poiJson.optJSONObject(PlacesConstants.QueryResponseJsonKeys.POI_METADATA);
+
+			if (poiMetadata != null) {
+				final Map<String, String> metadata = JSONUtils.convertJsonObjectToStringMap(poiMetadata);
+				placesPOI.setMetadata(metadata);
+			}
+
+			return placesPOI;
+		} catch (final JSONException exception) {
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("Unable to create a PlacesPOI object with json %s. JSONException: %s", poiJson, exception.getLocalizedMessage()));
 			return null;
 		}
 
-
-		if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME,"Ignoring POI with identifier %s, invalid latitude/ longitude", identifier);
-			return null;
-		}
-
-		final int radius = poiDetails.optInt(POI_INDEX_RADIUS, DEFAULT_POI_RADIUS);
-		final String library = poiDetails.optString(POI_INDEX_LIBRARY, "");
-		final int weight = poiDetails.optInt(POI_INDEX_WEIGHT, DEFAULT_POI_WEIGHT);
-
-
-
-		final PlacesPOI placesPOI = new PlacesPOI(identifier, name, latitude, longitude, radius, library, weight);
-
-		final JSONObject poiMetadata = poiJson.optJSONObject(PlacesConstants.QueryResponseJsonKeys.POI_METADATA);
-
-		if (poiMetadata != null) {
-			final Map<String, String> metadata = JSONUtils.convertJsonObjectToStringMap(poiMetadata);
-			placesPOI.setMetadata(metadata);
-		}
-
-		return placesPOI;
 	}
 }
