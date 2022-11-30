@@ -30,8 +30,9 @@ class PlacesDispatcher {
         this.extensionApi = extensionApi;
     }
 
-    void dispatchNearbyPlaces(final List<PlacesPOI> poiList, final PlacesRequestError resultStatus,
-                                     final Event event) {
+    void dispatchNearbyPlaces(final List<PlacesPOI> poiList,
+                              final PlacesRequestError resultStatus,
+                              final Event event) {
         final Map<String, Object> responseEventData = new HashMap<>();
         responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, PlacesUtil.convertPOIListToMap(poiList));
         responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());

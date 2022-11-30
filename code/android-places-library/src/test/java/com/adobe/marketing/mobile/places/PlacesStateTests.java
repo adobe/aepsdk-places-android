@@ -14,11 +14,15 @@ package com.adobe.marketing.mobile.places;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+
+import org.mockito.junit.MockitoRule;
+import org.robolectric.RobolectricTestRunner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +40,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import android.location.Location;
-
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
@@ -45,8 +48,13 @@ import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.DataReaderException;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+
+@RunWith(RobolectricTestRunner.class)
 public class PlacesStateTests {
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
     @Mock
     private DataStoring dataStoring;
 
@@ -723,8 +731,25 @@ public class PlacesStateTests {
         Location location = placesState.loadLastKnownLocation();
 
         // verify
-        // TODO: Location object is not available in Junit tests
+        assertEquals(12.3, location.getLatitude(), 0);
+        assertEquals(-33.3, location.getLongitude(), 0);
     }
+
+    @Test
+    public void LoadLastKnownLocation_when_InvalidLocation() {
+        // setup
+        when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
+                PlacesConstants.INVALID_LAT_LON)).thenReturn(1233.33);
+        when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
+                PlacesConstants.INVALID_LAT_LON)).thenReturn(-333.3);
+
+        // test
+        Location location = placesState.loadLastKnownLocation();
+
+        // verify
+        assertNull(location);
+    }
+
 
     // ========================================================================================
     // setAuthorizationStatus
@@ -796,7 +821,7 @@ public class PlacesStateTests {
     // privacyOptedOut
     // ========================================================================================
     @Test
-    public void clearData_ClearsInMemoryVariables() throws Exception {
+    public void clearData_ClearsInMemoryVariables() {
         // setup
         placesState.cachedPOIs = getSampleCachePOIs();
         placesState.currentPOI = sampleCurrentPOI;
