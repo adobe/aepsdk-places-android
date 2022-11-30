@@ -3,7 +3,6 @@ package com.adobe.placestestapp;
 import android.app.Application;
 import android.util.Log;
 
-import com.adobe.marketing.mobile.AdobeCallback;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.Places;

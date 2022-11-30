@@ -16,9 +16,9 @@ import android.location.Location;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.services.DataStoring;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
@@ -49,10 +49,14 @@ class PlacesState {
 	 * Creates a new instance of the {@link PlacesState}.
 	 * Attempts to load the previous session data from the places dataStore.
 	 */
-	PlacesState() {
+	PlacesState(final DataStoring datastore) {
 		cachedPOIs = new LinkedHashMap<>();
-		placesDataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(PLACES_DATA_STORE);
+		if (datastore == null) {
+			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Datastore is empty, Places cannot load/save POI information in persistence.");
+			return;
+		}
 		// load the persisted POI's to cache variable
+		placesDataStore = datastore.getNamedCollection(PLACES_DATA_STORE);
 		loadPersistedPOIs();
 	}
 
@@ -68,9 +72,8 @@ class PlacesState {
 	 * </ol>
 	 *
 	 * @param response the places query response
-	 * @param event the {@link Event} that requested to getNearbyPointsOfInterest
 	 */
-	void processNetworkResponse(final PlacesQueryResponse response, final Event event) {
+	void processNetworkResponse(final PlacesQueryResponse response) {
 		// always reset the current POI
 		currentPOI = null;
 
@@ -192,7 +195,7 @@ class PlacesState {
 		}
 
 		if (cachedPOIs != null && !cachedPOIs.isEmpty()) {
-			data.put(PlacesConstants.SharedStateKeys.NEARBYPOIS, new ArrayList<PlacesPOI>(cachedPOIs.values()));
+			data.put(PlacesConstants.SharedStateKeys.NEARBYPOIS, PlacesUtil.convertPOIListToMap(new ArrayList<>(cachedPOIs.values())));
 		}
 
 		if (authStatus != null) {
@@ -200,15 +203,15 @@ class PlacesState {
 		}
 
 		if (currentPOI != null) {
-			data.put(PlacesConstants.SharedStateKeys.CURRENT_POI, currentPOI);
+			data.put(PlacesConstants.SharedStateKeys.CURRENT_POI, currentPOI.toMap());
 		}
 
 		if (lastEnteredPOI != null) {
-			data.put(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI, lastEnteredPOI);
+			data.put(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI, lastEnteredPOI.toMap());
 		}
 
 		if (lastExitedPOI != null) {
-			data.put(PlacesConstants.SharedStateKeys.LAST_EXITED_POI, lastExitedPOI);
+			data.put(PlacesConstants.SharedStateKeys.LAST_EXITED_POI, lastExitedPOI.toMap());
 		}
 
 		data.put(PlacesConstants.SharedStateKeys.VALID_UNTIL, membershipValidUntil);
@@ -310,7 +313,7 @@ class PlacesState {
 		}
 
 		placesDataStore.setString(PlacesConstants.DataStoreKeys.AUTH_STATUS, authStatus);
-		Log.trace(PlacesConstants.LOG_TAG, "Authorization status persisted, %s", authStatus);
+		Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("Authorization status persisted, %s", authStatus));
 	}
 
 
