@@ -47,8 +47,8 @@ public class PlacesExtensionTests {
 
 	PlacesExtension extension;
 
-    @Mock
-    PlacesState state;
+	@Mock
+	PlacesState state;
 
 	@Mock
 	private PlacesDispatcher placesDispatcher;
@@ -56,8 +56,8 @@ public class PlacesExtensionTests {
 	@Mock
 	private PlacesQueryService queryService;
 
-    @Mock
-    private ExtensionApi extensionApi;
+	@Mock
+	private ExtensionApi extensionApi;
 
 	@Mock
 	private Location mockLocation;
@@ -75,20 +75,20 @@ public class PlacesExtensionTests {
 		reset(state);
 	}
 
-    @Test
-    public void test_getVersion() {
-        assertEquals("2.0.0", extension.getVersion());
-    }
+	@Test
+	public void test_getVersion() {
+		assertEquals("2.0.0", extension.getVersion());
+	}
 
-    @Test
-    public void test_getName() {
-        assertEquals("com.adobe.module.places", extension.getName());
-    }
+	@Test
+	public void test_getName() {
+		assertEquals("com.adobe.module.places", extension.getName());
+	}
 
-    @Test
-    public void test_getFriendlyName() {
-        assertEquals("Places", extension.getFriendlyName());
-    }
+	@Test
+	public void test_getFriendlyName() {
+		assertEquals("Places", extension.getFriendlyName());
+	}
 
 	@Test
 	public void test_onRegister() {
@@ -316,10 +316,10 @@ public class PlacesExtensionTests {
 		// setup
 		HashMap<String, Object> data = new HashMap<>();
 		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-					   PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
 
 		Event testEvent = new Event.Builder("Get UserWithin POIs event", EventType.PLACES,
-											EventSource.REQUEST_CONTENT).setEventData(data).build();
+				EventSource.REQUEST_CONTENT).setEventData(data).build();
 		ArrayList<PlacesPOI> pois = new ArrayList<PlacesPOI>();
 		pois.add(new PlacesPOI("identifier", "name", 34.33, -121.55, 50, "libraryName", 2, null));
 		pois.add(new PlacesPOI("identifier2", "name", 34.33, -121.55, 50, "libraryName", 2, null));
@@ -344,10 +344,10 @@ public class PlacesExtensionTests {
 		// setup
 		HashMap<String, Object> data = new HashMap<>();
 		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-					   PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
 
 		Event testEvent = new Event.Builder("Get Last known location", EventType.PLACES,
-											EventSource.REQUEST_CONTENT).setEventData(data).build();
+				EventSource.REQUEST_CONTENT).setEventData(data).build();
 		when(mockLocation.getLatitude()).thenReturn(11.11);
 		when(mockLocation.getLongitude()).thenReturn(22.22);
 
@@ -367,10 +367,10 @@ public class PlacesExtensionTests {
 		// setup
 		HashMap<String, Object> data = new HashMap<>();
 		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-					   PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
 
 		Event testEvent = new Event.Builder("Get Last known location", EventType.PLACES,
-											EventSource.REQUEST_CONTENT).setEventData(data).build();
+				EventSource.REQUEST_CONTENT).setEventData(data).build();
 		when(state.loadLastKnownLocation()).thenReturn(null);
 
 		// test
@@ -387,7 +387,7 @@ public class PlacesExtensionTests {
 	public void handleSetLocationPermissionStatusEvent_Happy() {
 		// test
 		extension.handlePlacesRequestEvent(testSetLocationPermissionStatusEvent(
-					PlacesAuthorizationStatus.ALWAYS.stringValue()));
+				PlacesAuthorizationStatus.ALWAYS.stringValue()));
 
 		// verify
 		verify(state).setAuthorizationStatus(PlacesAuthorizationStatus.ALWAYS.stringValue());
@@ -428,10 +428,10 @@ public class PlacesExtensionTests {
 		data.put(PlacesConstants.EventDataKeys.Places.LATITUDE, 44.2);
 		data.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, -2124.33);
 		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-					   PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
 
 		Event testEvent = new Event.Builder("Get nearby places event", EventType.PLACES,
-											EventSource.REQUEST_CONTENT).setEventData(data).build();
+				EventSource.REQUEST_CONTENT).setEventData(data).build();
 
 		// test
 		extension.handlePlacesRequestEvent(testEvent);
@@ -490,23 +490,23 @@ public class PlacesExtensionTests {
 		data.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, -124.33);
 		data.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, 20);
 		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-					   PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
 
 		return new Event.Builder("Get nearby places event", EventType.PLACES,
-								 EventSource.REQUEST_CONTENT).setEventData(data).build();
+				EventSource.REQUEST_CONTENT).setEventData(data).build();
 	}
 
 	private Event testSetLocationPermissionStatusEvent(final String status) {
 
 		HashMap<String, Object> eventData = new HashMap<>();
 		eventData.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-							PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
 		eventData.put(PlacesConstants.EventDataKeys.Places.AUTH_STATUS, status);
 
 		return new Event.Builder(PlacesConstants.EventName.REQUEST_SETAUTHORIZATIONSTATUS, EventType.PLACES,
-								 EventSource.REQUEST_CONTENT)
-			   .setEventData(eventData)
-			   .build();
+				EventSource.REQUEST_CONTENT)
+				.setEventData(eventData)
+				.build();
 	}
 
 	private Event testGeofenceEvent() {
@@ -514,10 +514,10 @@ public class PlacesExtensionTests {
 		data.put(PlacesConstants.EventDataKeys.Places.REGION_ID, "regionID");
 		data.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, 1);
 		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-					   PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
+				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
 
 		return new Event.Builder("Geofence event", EventType.PLACES,
-								 EventSource.REQUEST_CONTENT).setEventData(data).build();
+				EventSource.REQUEST_CONTENT).setEventData(data).build();
 	}
 
 

@@ -109,22 +109,22 @@ public class PlacesTests {
 
     @Test
     public void test_registerExtension() {
-            final ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
-            final ArgumentCaptor<ExtensionErrorCallback> callbackCaptor = ArgumentCaptor.forClass(
-                    ExtensionErrorCallback.class
-            );
-            mockedMobileCore
-                    .when(() -> MobileCore.registerExtension(extensionClassCaptor.capture(), callbackCaptor.capture()))
-                    .thenReturn(true);
-            // test
-            Places.registerExtension();
+        final ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
+        final ArgumentCaptor<ExtensionErrorCallback> callbackCaptor = ArgumentCaptor.forClass(
+                ExtensionErrorCallback.class
+        );
+        mockedMobileCore
+                .when(() -> MobileCore.registerExtension(extensionClassCaptor.capture(), callbackCaptor.capture()))
+                .thenReturn(true);
+        // test
+        Places.registerExtension();
 
-            // verify: happy
-            assertNotNull(callbackCaptor.getValue());
-            assertEquals(PlacesExtension.class, extensionClassCaptor.getValue());
+        // verify: happy
+        assertNotNull(callbackCaptor.getValue());
+        assertEquals(PlacesExtension.class, extensionClassCaptor.getValue());
 
-            // verify: error callback was called
-            callbackCaptor.getValue().error(null);
+        // verify: error callback was called
+        callbackCaptor.getValue().error(null);
     }
 
     @Test
@@ -154,80 +154,80 @@ public class PlacesTests {
     }
 
     @Test
-	public void getNearbyPlaces_when_responseEvent_with_validPOIs() {
-		// setup
-		Map<String,Object> eventData = new HashMap<>();
-		eventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, PlacesUtil.convertPOIListToMap(getSamplePOIList(2)));
-		eventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, PlacesRequestError.OK.getValue());
-		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+    public void getNearbyPlaces_when_responseEvent_with_validPOIs() {
+        // setup
+        Map<String,Object> eventData = new HashMap<>();
+        eventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, PlacesUtil.convertPOIListToMap(getSamplePOIList(2)));
+        eventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, PlacesRequestError.OK.getValue());
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
 
-		// test
-		Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
-        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
-        callbackCaptor.getValue().call(responseEvent);
-
-		// verify
-		assertTrue("SuccessCallback is called ", successCallbackCalled);
-		assertFalse("ErrorCallback is not called ", errorCallbackCalled);
-		assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
-	}
-
-	@Test
-	public void getNearbyPlaces_when_responseEvent_with_connectivityError_status() {
-		// setup
-		Map<String,Object> eventData = new HashMap<>();
-		eventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS,
-							 PlacesRequestError.CONNECTIVITY_ERROR.getValue());
-		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
-
-		// test
-        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
-        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
-        callbackCaptor.getValue().call(responseEvent);
-
-		// verify
-		assertFalse("SuccessCallback is not called ", successCallbackCalled);
-		assertTrue("ErrorCallback is called ", errorCallbackCalled);
-		assertEquals(PlacesRequestError.CONNECTIVITY_ERROR, placesRequestError);
-	}
-
-	@Test
-	public void getNearbyPlaces_when_responseEvent_with_inValidPOIS() {
-		// setup
-		Map<String,Object> eventData = new HashMap<>();
-		eventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, "Invalid");
-		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
-		// test
-        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
-        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
-        callbackCaptor.getValue().call(responseEvent);
-
-		// verify
-		assertFalse("SuccessCallback is not called ", successCallbackCalled);
-		assertTrue("ErrorCallback is called ", errorCallbackCalled);
-		assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
-	}
-
-	@Test
-	public void getNearbyPlaces_when_responseEvent_with_nullEventData() {
-		// setup
-		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-												EventSource.RESPONSE_CONTENT).setEventData(null).build();
-
-		// test
         // test
         Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
         mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
         callbackCaptor.getValue().call(responseEvent);
 
-		// verify
-		assertFalse("SuccessCallback is not called ", successCallbackCalled);
-		assertTrue("ErrorCallback is called ", errorCallbackCalled);
-		assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
-	}
+        // verify
+        assertTrue("SuccessCallback is called ", successCallbackCalled);
+        assertFalse("ErrorCallback is not called ", errorCallbackCalled);
+        assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
+    }
+
+    @Test
+    public void getNearbyPlaces_when_responseEvent_with_connectivityError_status() {
+        // setup
+        Map<String,Object> eventData = new HashMap<>();
+        eventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS,
+                PlacesRequestError.CONNECTIVITY_ERROR.getValue());
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+
+        // test
+        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+        // verify
+        assertFalse("SuccessCallback is not called ", successCallbackCalled);
+        assertTrue("ErrorCallback is called ", errorCallbackCalled);
+        assertEquals(PlacesRequestError.CONNECTIVITY_ERROR, placesRequestError);
+    }
+
+    @Test
+    public void getNearbyPlaces_when_responseEvent_with_inValidPOIS() {
+        // setup
+        Map<String,Object> eventData = new HashMap<>();
+        eventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, "Invalid");
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+        // test
+        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+        // verify
+        assertFalse("SuccessCallback is not called ", successCallbackCalled);
+        assertTrue("ErrorCallback is called ", errorCallbackCalled);
+        assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
+    }
+
+    @Test
+    public void getNearbyPlaces_when_responseEvent_with_nullEventData() {
+        // setup
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(null).build();
+
+        // test
+        // test
+        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+        // verify
+        assertFalse("SuccessCallback is not called ", successCallbackCalled);
+        assertTrue("ErrorCallback is called ", errorCallbackCalled);
+        assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
+    }
 
     @Test
     public void getNearbyPlaces_when_callbackIsNull() {
@@ -256,96 +256,96 @@ public class PlacesTests {
     // getCurrentPointsOfInterest
     // ========================================================================================
 
-	@Test
-	public void getCurrentPointsOfInterest_should_dispatchPlacesRequestContentEvent() {
-		// setup
-		AdobeCallback<List<PlacesPOI>> callback = (pois) ->{};
+    @Test
+    public void getCurrentPointsOfInterest_should_dispatchPlacesRequestContentEvent() {
+        // setup
+        AdobeCallback<List<PlacesPOI>> callback = (pois) ->{};
 
-		// test
-		Places.getCurrentPointsOfInterest(callback);
+        // test
+        Places.getCurrentPointsOfInterest(callback);
 
-		// verify
+        // verify
         mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), anyLong(), any()));
         final Event dispatchedEvent = eventCaptor.getValue();
         assertNotNull(eventCaptor.getValue());
 
-		assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_GETUSERWITHINPLACES,
-					 dispatchedEvent.getName());
-		assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
-		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
-		assertEquals("event has the correct request type",
-					 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES,
-					 DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
-	}
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_GETUSERWITHINPLACES,
+                dispatchedEvent.getName());
+        assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES,
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+    }
 
-	@Test
-	public void getCurrentPointsOfInterest_when_callbackIsNull() {
-		// test
+    @Test
+    public void getCurrentPointsOfInterest_when_callbackIsNull() {
+        // test
         Places.getCurrentPointsOfInterest(null);
 
-		// verify
+        // verify
         mockedMobileCore.verifyNoInteractions();
-	}
+    }
 
-	@Test
-	public void getCurrentPointsOfInterest_when_responseEvent_with_validPOIs() {
-		// setup
+    @Test
+    public void getCurrentPointsOfInterest_when_responseEvent_with_validPOIs() {
+        // setup
         AdobeCallback<List<PlacesPOI>> callback = (pois) -> {
             responseNearByPois = pois;
         };
 
         // create response event
         Map<String,Object> eventData = new HashMap<>();
-		eventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, PlacesUtil.convertPOIListToMap(getSamplePOIList(2)));
-		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+        eventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, PlacesUtil.convertPOIListToMap(getSamplePOIList(2)));
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
 
-        
+
         // test
         Places.getCurrentPointsOfInterest(callback);
         mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(),callbackCaptor.capture()));
         callbackCaptor.getValue().call(responseEvent);
 
 
-		// verify
-		assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
-	}
+        // verify
+        assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
+    }
 
-	@Test
-	public void getCurrentPointsOfInterest_when_responseEvent_with_invalidPOIS() {
-		// setup
+    @Test
+    public void getCurrentPointsOfInterest_when_responseEvent_with_invalidPOIS() {
+        // setup
         AdobeCallback<List<PlacesPOI>> callback = (pois) -> { responseNearByPois = pois; };
-		Map<String,Object> eventData = new HashMap<>();
-		eventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, "Invalid");
-		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+        Map<String,Object> eventData = new HashMap<>();
+        eventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, "Invalid");
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
 
 
-		// test
+        // test
         Places.getCurrentPointsOfInterest(callback);
         mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(),callbackCaptor.capture()));
         callbackCaptor.getValue().call(responseEvent);
 
-		// verify
-		assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
-	}
+        // verify
+        assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
+    }
 
-	@Test
-	public void getCurrentPointsOfInterest_when_responseEvent_with_nullEventData() {
-		// setup
+    @Test
+    public void getCurrentPointsOfInterest_when_responseEvent_with_nullEventData() {
+        // setup
         AdobeCallback<List<PlacesPOI>> callback = (pois) -> {responseNearByPois = pois;};
-		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-												EventSource.RESPONSE_CONTENT).setEventData(null).build();
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(null).build();
 
 
-		// test
+        // test
         Places.getCurrentPointsOfInterest(callback);
         mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(),callbackCaptor.capture()));
         callbackCaptor.getValue().call(responseEvent);
 
-		// verify
-		assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
-	}
+        // verify
+        assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
+    }
 
     @Test
     public void getCurrentPointsOfInterest_when_callbackTimeout() {
