@@ -224,6 +224,7 @@ public class PlacesPOITests {
 		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
 				SAMPLE_LIBRARY, SAMPLE_WEIGHT);
 		assertNotNull(poi.hashCode());
+		assertEquals(poi.hashCode(), poi.hashCode());
 	}
 
 	// ========================================================================================

@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.places;
 
 import android.location.Location;
 
+import androidx.annotation.NonNull;
+
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
@@ -49,13 +51,9 @@ class PlacesState {
 	 * Creates a new instance of the {@link PlacesState}.
 	 * Attempts to load the previous session data from the places dataStore.
 	 */
-	PlacesState(final DataStoring datastore) {
-		cachedPOIs = new LinkedHashMap<>();
-		if (datastore == null) {
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Datastore is empty, Places cannot load/save POI information in persistence.");
-			return;
-		}
+	PlacesState(@NonNull final DataStoring datastore) {
 		// load the persisted POI's to cache variable
+		cachedPOIs = new LinkedHashMap<>();
 		placesDataStore = datastore.getNamedCollection(PLACES_DATA_STORE);
 		loadPersistedPOIs();
 	}
