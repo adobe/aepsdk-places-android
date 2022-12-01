@@ -265,6 +265,7 @@ public class Places {
 				final Map<String, Object> eventDataMap = event.getEventData();
 
 				if (eventDataMap == null || eventDataMap.isEmpty()) {
+					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Places response event have empty event data, returning null to getLastKnownLocation API call.");
 					callback.call(null);
 					return;
 				}
@@ -272,6 +273,11 @@ public class Places {
 				try {
 					final double latitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE);
 					final double longitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE);
+					if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
+						Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to read valid latitude and longitude from Places response event, returning null to getLastKnownLocation API call.");
+						callback.call(null);
+						return;
+					}
 					final Location lastKnownLocation = new Location("com.adobe.places.lastknownlocation");
 					lastKnownLocation.setLatitude(latitude);
 					lastKnownLocation.setLongitude(longitude);

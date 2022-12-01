@@ -235,12 +235,6 @@ public class PlacesExtension extends Extension {
 		}
 
 		final Map<String,Object> eventData = event.getEventData();
-
-		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "saveLastKnownLocation - Unable to save location, invalid eventData");
-			return;
-		}
-
 		final double latitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
 		final double longitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
 

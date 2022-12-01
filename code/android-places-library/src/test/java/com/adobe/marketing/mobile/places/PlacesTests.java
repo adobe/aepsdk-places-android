@@ -17,575 +17,698 @@
  **************************************************************************/
 package com.adobe.marketing.mobile.places;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.Assert.*;
 
 import android.location.Location;
 
 import com.adobe.marketing.mobile.AdobeCallback;
+import com.adobe.marketing.mobile.AdobeCallbackWithError;
+import com.adobe.marketing.mobile.AdobeError;
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.ExtensionErrorCallback;
+import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.Places;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingEvent;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesTests {
 
-	private Places core;
-	private List<PlacesPOI> responseNearByPois = new ArrayList<>();
-	private boolean successCallbackCalled;
-	private boolean errorCallbackCalled;
-	AdobeCallback<List<PlacesPOI>> successCallback;
-	AdobeCallback<PlacesRequestError> errorCallback;
-	private PlacesRequestError placesRequestError;
+    @Mock
+    Location mockLocation;
 
-//
-//	@Before
-//	public void testSetup() {
-//		super.beforeEach();
-//		obtainedLocation = new PlacesGpsLocation(77, 77);
-//		successCallbackCalled = false;
-//		errorCallbackCalled = false;
-//
-//		successCallback = new AdobeCallback<List<PlacesPOI>>() {
-//			@Override
-//			public void call(List<PlacesPOI> values) {
-//				successCallbackCalled = true;
-//				responseNearByPois = values;
-//			}
-//		};
-//
-//		errorCallback = new AdobeCallback<PlacesRequestError> () {
-//			@Override
-//			public void call(PlacesRequestError result) {
-//				errorCallbackCalled = true;
-//				placesRequestError = result;
-//			}
-//		};
-//	}
+    @Mock
+    GeofencingEvent geofencingEvent;
+
+    @Mock
+    Geofence geofence1;
+
+    @Mock
+    Geofence geofence2;
+
+    private List<PlacesPOI> responseNearByPois = new ArrayList<>();
+    private boolean successCallbackCalled;
+    private boolean errorCallbackCalled;
+    AdobeCallback<List<PlacesPOI>> successCallback;
+    AdobeCallback<PlacesRequestError> errorCallback;
+    private PlacesRequestError placesRequestError;
+    private ArgumentCaptor<Event> eventCaptor;
+    private ArgumentCaptor<AdobeCallbackWithError> callbackCaptor = ArgumentCaptor.forClass(AdobeCallbackWithError.class);
+    MockedStatic<MobileCore> mockedMobileCore;
+
+    @Before
+    public void testSetup() {
+        eventCaptor = ArgumentCaptor.forClass(Event.class);
+        mockedMobileCore = mockStatic(MobileCore.class);
+        successCallbackCalled = false;
+        errorCallbackCalled = false;
+        successCallback = (pois) -> {
+            successCallbackCalled = true;
+            responseNearByPois = pois;
+        };
+
+        errorCallback = (result) -> {
+            errorCallbackCalled = true;
+            placesRequestError = result;
+        };
+    }
+
+    @After
+    public void clean() {
+        mockedMobileCore.close();
+    }
+
+
+    @Test
+    public void test_registerExtension() {
+            final ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
+            final ArgumentCaptor<ExtensionErrorCallback> callbackCaptor = ArgumentCaptor.forClass(
+                    ExtensionErrorCallback.class
+            );
+            mockedMobileCore
+                    .when(() -> MobileCore.registerExtension(extensionClassCaptor.capture(), callbackCaptor.capture()))
+                    .thenReturn(true);
+            // test
+            Places.registerExtension();
+
+            // verify: happy
+            assertNotNull(callbackCaptor.getValue());
+            assertEquals(PlacesExtension.class, extensionClassCaptor.getValue());
+
+            // verify: error callback was called
+            callbackCaptor.getValue().error(null);
+    }
+
+    @Test
+    public void getNearbyPlaces_should_dispatchPlacesRequestContentEvent() {
+        // test
+        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), anyLong(), any()));
+        final Event dispatchedEvent = eventCaptor.getValue();
+        assertNotNull(eventCaptor.getValue());
+
+        // verify dispatched event details
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_GETNEARBYPLACES,
+                dispatchedEvent.getName());
+        assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+        assertEquals("event has the correct latitude data", 22.22,
+                DataReader.optDouble(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.LATITUDE, 0.00d), 0);
+        assertEquals("event has the correct longitude data", -11.11,
+                DataReader.optDouble(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.LONGITUDE, 0.00d), 0);
+        assertEquals("event has the correct places count", 20,
+                DataReader.optInt(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.PLACES_COUNT, 0));
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES,
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+    }
+
+    @Test
+	public void getNearbyPlaces_when_responseEvent_with_validPOIs() {
+		// setup
+		Map<String,Object> eventData = new HashMap<>();
+		eventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, PlacesUtil.convertPOIListToMap(getSamplePOIList(2)));
+		eventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, PlacesRequestError.OK.getValue());
+		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+
+		// test
+		Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+		// verify
+		assertTrue("SuccessCallback is called ", successCallbackCalled);
+		assertFalse("ErrorCallback is not called ", errorCallbackCalled);
+		assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
+	}
 
 	@Test
-	public void getNearbyPlaces_should_dispatchPlacesRequestContentEvent()  {
+	public void getNearbyPlaces_when_responseEvent_with_connectivityError_status() {
 		// setup
-		double latitude = 31.33;
-		double longitude = -121.34;
-		Location location = new Location("check");
-		location.setLongitude(13.00);
-		location.setLongitude(-11.44);
-		AdobeCallback<List<PlacesPOI>> callback = new AdobeCallback<List<PlacesPOI>>() {
-			@Override
-			public void call(List<PlacesPOI> values) {
+		Map<String,Object> eventData = new HashMap<>();
+		eventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS,
+							 PlacesRequestError.CONNECTIVITY_ERROR.getValue());
+		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
 
-			}
-		};
+		// test
+        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
 
-//		// test
-//		Places.getNearbyPointsOfInterest(location, 20, callback);
-//
-//		// verify
-//		assertTrue("event is dispatched", eventHub.isDispatchedCalled);
-//		assertEquals("event has correct name", PlacesTestConstants.EventName.REQUEST_GETNEARBYPLACES,
-//					 eventHub.dispatchedEvent.getName());
-//		assertEquals("event has correct event type", EventType.PLACES, eventHub.dispatchedEvent.getEventType());
-//		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, eventHub.dispatchedEvent.getEventSource());
-//		assertNotNull("event has eventData", eventHub.dispatchedEvent.getData());
-//
-//
-//		assertEquals("event has the correct latitude data", latitude,
-//					 eventHub.dispatchedEvent.getData().optDouble(PlacesTestConstants.EventDataKeys.Places.LATITUDE, 0.00d), 0);
-//		assertEquals("event has the correct longitude data", longitude,
-//					 eventHub.dispatchedEvent.getData().optDouble(PlacesTestConstants.EventDataKeys.Places.LONGITUDE, 0.00d), 0);
-//		assertEquals("event has the correct places count", 20,
-//					 eventHub.dispatchedEvent.getData().optInteger(PlacesTestConstants.EventDataKeys.Places.PLACES_COUNT, 0));
-//		assertEquals("event has the correct request type",
-//					 PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES,
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
-//		assertTrue("one-time listener is registered for callback", eventHub.registerOneTimeListenerCalled);
-//		assertNotNull("one-time listener has a callback block", eventHub.registerOneTimeListenerParamBlock);
+		// verify
+		assertFalse("SuccessCallback is not called ", successCallbackCalled);
+		assertTrue("ErrorCallback is called ", errorCallbackCalled);
+		assertEquals(PlacesRequestError.CONNECTIVITY_ERROR, placesRequestError);
 	}
 
+	@Test
+	public void getNearbyPlaces_when_responseEvent_with_inValidPOIS() {
+		// setup
+		Map<String,Object> eventData = new HashMap<>();
+		eventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, "Invalid");
+		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+		// test
+        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
 
-//	@Test
-//	public void getNearbyPlaces_when_responseEvent_with_validPOIs() {
-//		// setup
-//
-//		double latitude = 31.33;
-//		double longitude = -121.34;
-//		PlacesGpsLocation location = new PlacesGpsLocation(latitude, longitude);
-//		EventData eventData = new EventData();
-//		eventData.putTypedList(PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, getSamplePOIList(2),
-//							   new PlacesPOIVariantSerializer());
-//		eventData.putInteger(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS, PlacesRequestError.OK.getValue());
-//		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//
-//		// test
-//		core.getNearbyPointsOfInterest(location, 20, successCallback, errorCallback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertTrue("SuccessCallback is called ", successCallbackCalled);
-//		assertFalse("ErrorCallback is not called ", errorCallbackCalled);
-//		assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
-//	}
-//
-//	@Test
-//	public void getNearbyPlaces_when_responseEvent_with_connectivityError_status() {
-//		// setup
-//
-//		double latitude = 31.33;
-//		double longitude = -121.34;
-//		PlacesGpsLocation location = new PlacesGpsLocation(latitude, longitude);
-//		EventData eventData = new EventData();
-//		eventData.putTypedList(PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, getSamplePOIList(2),
-//							   new PlacesPOIVariantSerializer());
-//		eventData.putInteger(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS,
-//							 PlacesRequestError.CONNECTIVITY_ERROR.getValue());
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//
-//		// test
-//		core.getNearbyPointsOfInterest(location, 20, successCallback, errorCallback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertFalse("SuccessCallback is not called ", successCallbackCalled);
-//		assertTrue("ErrorCallback is called ", errorCallbackCalled);
-//		assertEquals(PlacesRequestError.CONNECTIVITY_ERROR, placesRequestError);
-//	}
-//
-//
-//	@Test
-//	public void getNearbyPlaces_when_responseEvent_with_inValidPOIS() {
-//		// setup
-//		double latitude = 31.33;
-//		double longitude = -121.34;
-//		PlacesGpsLocation location = new PlacesGpsLocation(latitude, longitude);
-//		EventData eventData = new EventData();
-//		eventData.putString(PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, "Invalid");
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		// test
-//		core.getNearbyPointsOfInterest(location, 20, successCallback, errorCallback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertFalse("SuccessCallback is not called ", successCallbackCalled);
-//		assertTrue("ErrorCallback is called ", errorCallbackCalled);
-//		assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
-//	}
-//
-//	@Test
-//	public void getNearbyPlaces_when_responseEvent_with_nullEventData() {
-//		// setup
-//		double latitude = 31.33;
-//		double longitude = -121.34;
-//		PlacesGpsLocation location = new PlacesGpsLocation(latitude, longitude);
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(null).build();
-//
-//		// test
-//		core.getNearbyPointsOfInterest(location, 20, successCallback, errorCallback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertFalse("SuccessCallback is not called ", successCallbackCalled);
-//		assertTrue("ErrorCallback is called ", errorCallbackCalled);
-//		assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
-//	}
-//
-//
-//	@Test
-//	public void getNearbyPlaces_when_callbackIsNull() {
-//		// setup
-//		double latitude = 31.33;
-//		double longitude = -121.34;
-//		PlacesGpsLocation location = new PlacesGpsLocation(latitude, longitude);
-//
-//		// test
-//		core.getNearbyPointsOfInterest(location, 20, null, null);
-//
-//		// verify
-//		assertTrue("event is dispatched", eventHub.isDispatchedCalled);
-//		assertFalse("one-time listener is not registered for callback", eventHub.registerOneTimeListenerCalled);
-//	}
-//
-//
-//	@Test
-//	public void getNearbyPlaces_happy_and_when_errorCallbackIsNull() {
-//		// setup
-//
-//		double latitude = 31.33;
-//		double longitude = -121.34;
-//		PlacesGpsLocation location = new PlacesGpsLocation(latitude, longitude);
-//		EventData eventData = new EventData();
-//		eventData.putTypedList(PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, getSamplePOIList(2),
-//							   new PlacesPOIVariantSerializer());
-//		eventData.putInteger(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS, PlacesRequestError.OK.getValue());
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		// test
-//		core.getNearbyPointsOfInterest(location, 20, successCallback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertTrue("SuccessCallback is called ", successCallbackCalled);
-//		assertFalse("ErrorCallback is not called ", errorCallbackCalled);
-//		assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
-//	}
-//
-//	@Test
-//	public void getUserWithinPointsOfInterest_should_dispatchPlacesRequestContentEvent() {
-//		// setup
-//		AdobeCallback<List<PlacesPOI>> callback = new AdobeCallback<List<PlacesPOI>>() {
-//			@Override
-//			public void call(List<PlacesPOI> values) {
-//
-//			}
-//		};
-//
-//		// test
-//		core.getUserWithinPointsOfInterest(callback);
-//
-//		// verify
-//		assertTrue("event is dispatched", eventHub.isDispatchedCalled);
-//		assertEquals("event has correct name", PlacesTestConstants.EventName.REQUEST_GETUSERWITHINPLACES,
-//					 eventHub.dispatchedEvent.getName());
-//		assertEquals("event has correct event type", EventType.PLACES, eventHub.dispatchedEvent.getEventType());
-//		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, eventHub.dispatchedEvent.getEventSource());
-//		assertNotNull("event has eventData", eventHub.dispatchedEvent.getData());
-//
-//
-//		assertEquals("event has the correct request type",
-//					 PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES,
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
-//		assertTrue("one-time listener is registered for callback", eventHub.registerOneTimeListenerCalled);
-//		assertNotNull("one-time listener has a callback block", eventHub.registerOneTimeListenerParamBlock);
-//	}
-//
-//	@Test
-//	public void getUserWithinPointsOfInterest_when_callbackIsNull() {
-//		// setup
-//		eventHub.isDispatchedCalled = false; // make sure you clear all the previously dispactched events
-//
-//		// test
-//		core.getUserWithinPointsOfInterest(null);
-//
-//		// verify
-//		assertFalse("event not is dispatched", eventHub.isDispatchedCalled);
-//		assertFalse("one-time listener is not registered for callback", eventHub.registerOneTimeListenerCalled);
-//	}
-//
-//
-//	@Test
-//	public void getUserWithinPointsOfInterest_when_responseEvent_with_validPOIs() {
-//		// setup
-//		EventData eventData = new EventData();
-//		eventData.putTypedList(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS, getSamplePOIList(2),
-//							   new PlacesPOIVariantSerializer());
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		AdobeCallback<List<PlacesPOI>> callback = new AdobeCallback<List<PlacesPOI>>() {
-//			@Override
-//			public void call(List<PlacesPOI> values) {
-//				responseNearByPois = values;
-//			}
-//		};
-//
-//		// test
-//		core.getUserWithinPointsOfInterest(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
-//	}
-//
-//	@Test
-//	public void getUserWithinPointsOfInterest_when_responseEvent_with_invalidPOIS() {
-//		// setup
-//
-//		EventData eventData = new EventData();
-//		eventData.putString(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS, "Invalid");
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		AdobeCallback<List<PlacesPOI>> callback = new AdobeCallback<List<PlacesPOI>>() {
-//			@Override
-//			public void call(List<PlacesPOI> values) {
-//				responseNearByPois = values;
-//			}
-//		};
-//
-//		// test
-//		core.getUserWithinPointsOfInterest(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
-//	}
-//
-//	@Test
-//	public void getUserWithinPointsOfInterest_when_responseEvent_with_nullEventData() {
-//		// setup
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(null).build();
-//		AdobeCallback<List<PlacesPOI>> callback = new AdobeCallback<List<PlacesPOI>>() {
-//			@Override
-//			public void call(List<PlacesPOI> values) {
-//				responseNearByPois = values;
-//			}
-//		};
-//
-//		// test
-//		core.getUserWithinPointsOfInterest(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
-//	}
-//
-//
-//
-//	@Test
-//	public void getLastKnownLocation_should_dispatchPlacesRequestContentEvent() {
-//		// setup
-//		AdobeCallback<PlacesGpsLocation> callback = new AdobeCallback<PlacesGpsLocation>() {
-//			@Override
-//			public void call(PlacesGpsLocation values) {
-//
-//			}
-//		};
-//
-//		// test
-//		core.getLastKnownLocation(callback);
-//
-//		// verify
-//		assertTrue("event is dispatched", eventHub.isDispatchedCalled);
-//		assertEquals("event has correct name", PlacesTestConstants.EventName.REQUEST_GETLASTKNOWNLOCATION,
-//					 eventHub.dispatchedEvent.getName());
-//		assertEquals("event has correct event type", EventType.PLACES, eventHub.dispatchedEvent.getEventType());
-//		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, eventHub.dispatchedEvent.getEventSource());
-//		assertNotNull("event has eventData", eventHub.dispatchedEvent.getData());
-//
-//
-//		assertEquals("event has the correct request type",
-//					 PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION,
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
-//		assertTrue("one-time listener is registered for callback", eventHub.registerOneTimeListenerCalled);
-//		assertNotNull("one-time listener has a callback block", eventHub.registerOneTimeListenerParamBlock);
-//	}
-//
-//	@Test
-//	public void getLastKnownLocation_when_callbackIsNull() {
-//		// setup
-//		eventHub.isDispatchedCalled = false; // make sure you clear all the previously dispactched events
-//
-//		// test
-//		core.getLastKnownLocation(null);
-//
-//		// verify
-//		assertFalse("event not is dispatched", eventHub.isDispatchedCalled);
-//		assertFalse("one-time listener is not registered for callback", eventHub.registerOneTimeListenerCalled);
-//	}
-//
-//
-//	@Test
-//	public void getLastKnownLocation_when_reponseEvent_with_nullEventData() {
-//		// setup
-//		AdobeCallback<PlacesGpsLocation> callback = new AdobeCallback<PlacesGpsLocation>() {
-//			@Override
-//			public void call(PlacesGpsLocation value) {
-//				obtainedLocation = value;
-//			}
-//		};
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES, EventSource.RESPONSE_CONTENT).build();
-//
-//		// test
-//		core.getLastKnownLocation(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertNull("The callback is called with null location", obtainedLocation);
-//	}
-//
-//	@Test
-//	public void getLastKnownLocation_when_reponseEvent_with_InvalidLatLong() {
-//		// setup
-//		AdobeCallback<PlacesGpsLocation> callback = new AdobeCallback<PlacesGpsLocation>() {
-//			@Override
-//			public void call(PlacesGpsLocation value) {
-//				obtainedLocation = value;
-//			}
-//		};
-//
-//		EventData eventData = new EventData();
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, -91);
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, 100);
-//		Event responseEventInvalidLatitudeLow = new Event.Builder("reponseEvent", EventType.PLACES,
-//				EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		// test
-//		core.getLastKnownLocation(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEventInvalidLatitudeLow);
-//		// verify
-//		assertNull("The callback is called with null location", obtainedLocation);
-//
-//
-//
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, 91);
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, 100);
-//		Event responseEventInvalidLatitudeHigh = new Event.Builder("reponseEvent", EventType.PLACES,
-//				EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		// test
-//		core.getLastKnownLocation(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEventInvalidLatitudeHigh);
-//		// verify
-//		assertNull("The callback is called with null location", obtainedLocation);
-//
-//
-//
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, 20);
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, 180.2);
-//		Event responseEventInvalidLongitudeHigh = new Event.Builder("reponseEvent", EventType.PLACES,
-//				EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		// test
-//		core.getLastKnownLocation(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEventInvalidLongitudeHigh);
-//		// verify
-//		assertNull("The callback is called with null location", obtainedLocation);
-//
-//
-//
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, 20);
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, -180.2);
-//		Event responseEventInvalidLongitudeLow = new Event.Builder("reponseEvent", EventType.PLACES,
-//				EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//		// test
-//		core.getLastKnownLocation(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEventInvalidLongitudeLow);
-//		// verify
-//		assertNull("The callback is called with null location", obtainedLocation);
-//	}
-//
-//	@Test
-//	public void getLastKnownLocation_when_responseEvent_with_validLatLong() {
-//		// setup
-//		AdobeCallback<PlacesGpsLocation> callback = new AdobeCallback<PlacesGpsLocation>() {
-//			@Override
-//			public void call(PlacesGpsLocation value) {
-//				obtainedLocation = value;
-//			}
-//		};
-//		EventData eventData = new EventData();
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, -55.55);
-//		eventData.putDouble(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, -44.44);
-//		Event responseEvent = new Event.Builder("reponseEvent", EventType.PLACES,
-//												EventSource.RESPONSE_CONTENT).setData(eventData).build();
-//
-//
-//		// test
-//		core.getLastKnownLocation(callback);
-//		eventHub.registerOneTimeListenerParamBlock.call(responseEvent);
-//
-//		// verify
-//		assertNotNull("The callback is called with valid location", obtainedLocation);
-//		assertEquals("The callback is called with valid latitude", -55.55, obtainedLocation.getLatitude(), 0.0);
-//		assertEquals("The callback is called with valid latitude", -44.44, obtainedLocation.getLongitude(), 0.0);
-//	}
-//
-//
-//	@Test
-//	public void processRegionEvent_should_dispatchPlacesRequestContentEvent() {
-//		// setup
-//		List<EventData> placesRegions = new ArrayList<EventData>();
-//		EventData eventData = new EventData();
-//		eventData.putString(PlacesConstants.EventDataKeys.Places.REGION_ID, "fenceId");
-//		eventData.putInteger(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, 1);
-//		placesRegions.add(eventData);
-//
-//		// test
-//		core.processRegionEvent(placesRegions);
-//
-//		// verify
-//		assertTrue("event is dispatched", eventHub.isDispatchedCalled);
-//		assertEquals("event has correct name", PlacesTestConstants.EventName.REQUEST_PROCESSREGIONEVENT,
-//					 eventHub.dispatchedEvent.getName());
-//		assertEquals("event has correct event type", EventType.PLACES, eventHub.dispatchedEvent.getEventType());
-//		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, eventHub.dispatchedEvent.getEventSource());
-//		assertNotNull("event has eventData", eventHub.dispatchedEvent.getData());
-//
-//		assertEquals("event has the correct radius data", "fenceId",
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.REGION_ID, null));
-//		assertEquals("event has the correct places count", 1,
-//					 eventHub.dispatchedEvent.getData().optInteger(PlacesTestConstants.EventDataKeys.Places.REGION_EVENT_TYPE, -1));
-//		assertEquals("event has the correct request type",
-//					 PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
-//
-//	}
-//
-//	@Test
-//	public void setLocationPermissionStatus_should_dispatchRequestContentEvent() {
-//		// test
-//		core.setPlacesAuthorizationStatus(PlacesAuthorizationStatus.ALWAYS);
-//
-//		// verify
-//		assertTrue("event is dispatched", eventHub.isDispatchedCalled);
-//		assertEquals("event has correct name", PlacesTestConstants.EventName.REQUEST_SETAUTHORIZATIONSTATUS,
-//					 eventHub.dispatchedEvent.getName());
-//		assertEquals("event has correct event type", EventType.PLACES, eventHub.dispatchedEvent.getEventType());
-//		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, eventHub.dispatchedEvent.getEventSource());
-//		assertNotNull("event has eventData", eventHub.dispatchedEvent.getData());
-//		assertEquals("event has the correct request type",
-//					 PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS,
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
-//		assertEquals("event has the correct authorization status",
-//					 PlacesAuthorizationStatus.ALWAYS.stringValue(),
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.AUTH_STATUS, ""));
-//	}
-//
-//	@Test
-//	public void setLocationPermissionStatus_withNullStatus_shouldNotDispatchEvent() {
-//		// setup
-//		eventHub.isDispatchedCalled = false; // make sure you clear all the previously dispactched events
-//
-//		// test
-//		core.setPlacesAuthorizationStatus(null);
-//
-//		// verify
-//		assertFalse("event is dispatched", eventHub.isDispatchedCalled);
-//	}
-//
-//
-//	@Test
-//	public void reset_should_dispatchRequestContentEvent() {
-//		// test
-//		core.reset();
-//
-//		// verify
-//		assertTrue("event is dispatched", eventHub.isDispatchedCalled);
-//		assertEquals("event has correct name", PlacesTestConstants.EventName.REQUEST_RESET, eventHub.dispatchedEvent.getName());
-//		assertEquals("event has correct event type", EventType.PLACES, eventHub.dispatchedEvent.getEventType());
-//		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, eventHub.dispatchedEvent.getEventSource());
-//		assertNotNull("event has eventData", eventHub.dispatchedEvent.getData());
-//		assertEquals("event has the correct request type",
-//					 PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_RESET,
-//					 eventHub.dispatchedEvent.getData().optString(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
-//	}
-
-
-	private List<PlacesPOI> getSamplePOIList(final int count) {
-		List<PlacesPOI> pois = new ArrayList<PlacesPOI>();
-
-		for (int i = 0 ; i < count; i++) {
-			pois.add(new PlacesPOI("nearByPOI" + i, "hidden", 34.33, -121.55, 150, "libraryName", 2, null));
-		}
-
-		return pois;
+		// verify
+		assertFalse("SuccessCallback is not called ", successCallbackCalled);
+		assertTrue("ErrorCallback is called ", errorCallbackCalled);
+		assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
 	}
 
+	@Test
+	public void getNearbyPlaces_when_responseEvent_with_nullEventData() {
+		// setup
+		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+												EventSource.RESPONSE_CONTENT).setEventData(null).build();
+
+		// test
+        // test
+        Places.getNearbyPointsOfInterest(mockLocation(22.22, -11.11), 20, successCallback, errorCallback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+		// verify
+		assertFalse("SuccessCallback is not called ", successCallbackCalled);
+		assertTrue("ErrorCallback is called ", errorCallbackCalled);
+		assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
+	}
+
+    @Test
+    public void getNearbyPlaces_when_callbackIsNull() {
+        // test
+        Places.getNearbyPointsOfInterest(mockLocation(11.11, -22.22), 20, null, null);
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), any()));
+    }
+
+    @Test
+    public void getNearbyPlaces_when_callbackTimeout() {
+        // test
+        Places.getNearbyPointsOfInterest(mockLocation(11.11, -22.22), 20, successCallback, errorCallback);
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().fail(AdobeError.CALLBACK_TIMEOUT);
+
+        // verify if the error callback is called with correct value
+        assertTrue(errorCallbackCalled);
+        assertEquals(PlacesRequestError.UNKNOWN_ERROR, placesRequestError);
+    }
+
+    // ========================================================================================
+    // getCurrentPointsOfInterest
+    // ========================================================================================
+
+	@Test
+	public void getCurrentPointsOfInterest_should_dispatchPlacesRequestContentEvent() {
+		// setup
+		AdobeCallback<List<PlacesPOI>> callback = (pois) ->{};
+
+		// test
+		Places.getCurrentPointsOfInterest(callback);
+
+		// verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), anyLong(), any()));
+        final Event dispatchedEvent = eventCaptor.getValue();
+        assertNotNull(eventCaptor.getValue());
+
+		assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_GETUSERWITHINPLACES,
+					 dispatchedEvent.getName());
+		assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+		assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+		assertEquals("event has the correct request type",
+					 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES,
+					 DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+	}
+
+	@Test
+	public void getCurrentPointsOfInterest_when_callbackIsNull() {
+		// test
+        Places.getCurrentPointsOfInterest(null);
+
+		// verify
+        mockedMobileCore.verifyNoInteractions();
+	}
+
+	@Test
+	public void getCurrentPointsOfInterest_when_responseEvent_with_validPOIs() {
+		// setup
+        AdobeCallback<List<PlacesPOI>> callback = (pois) -> {
+            responseNearByPois = pois;
+        };
+
+        // create response event
+        Map<String,Object> eventData = new HashMap<>();
+		eventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, PlacesUtil.convertPOIListToMap(getSamplePOIList(2)));
+		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+
+        
+        // test
+        Places.getCurrentPointsOfInterest(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(),callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+
+		// verify
+		assertEquals("the callback is called with correct pois", 2, responseNearByPois.size());
+	}
+
+	@Test
+	public void getCurrentPointsOfInterest_when_responseEvent_with_invalidPOIS() {
+		// setup
+        AdobeCallback<List<PlacesPOI>> callback = (pois) -> { responseNearByPois = pois; };
+		Map<String,Object> eventData = new HashMap<>();
+		eventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, "Invalid");
+		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+												EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+
+
+		// test
+        Places.getCurrentPointsOfInterest(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(),callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+		// verify
+		assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
+	}
+
+	@Test
+	public void getCurrentPointsOfInterest_when_responseEvent_with_nullEventData() {
+		// setup
+        AdobeCallback<List<PlacesPOI>> callback = (pois) -> {responseNearByPois = pois;};
+		Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+												EventSource.RESPONSE_CONTENT).setEventData(null).build();
+
+
+		// test
+        Places.getCurrentPointsOfInterest(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(),callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+		// verify
+		assertEquals("the callback is called with empty pois", 0, responseNearByPois.size());
+	}
+
+    @Test
+    public void getCurrentPointsOfInterest_when_callbackTimeout() {
+        // setup
+        AdobeError[] obtainedError = new AdobeError[1];
+        AdobeCallbackWithError<List<PlacesPOI>> callback = new AdobeCallbackWithError<List<PlacesPOI>>() {
+            @Override
+            public void fail(AdobeError adobeError) {
+                obtainedError[0] = adobeError;
+            }
+
+            @Override
+            public void call(List<PlacesPOI> pois) {}
+        };
+
+        // test
+        Places.getCurrentPointsOfInterest(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(),callbackCaptor.capture()));
+        callbackCaptor.getValue().fail(AdobeError.CALLBACK_TIMEOUT);
+
+        // verify
+        assertEquals(AdobeError.CALLBACK_TIMEOUT, obtainedError[0]);
+    }
+
+
+    // ========================================================================================
+    // processGeofenceEvent
+    // ========================================================================================
+
+    @Test
+    public void getLastKnownLocation_should_dispatchPlacesRequestContentEvent() {
+        // setup
+        AdobeCallback<Location> callback = (location) -> {};
+
+        // test
+        Places.getLastKnownLocation(callback);
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), anyLong(), any()));
+        final Event dispatchedEvent = eventCaptor.getValue();
+        assertNotNull(eventCaptor.getValue());
+
+        // verify the dispatched event details
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_GETLASTKNOWNLOCATION,
+                dispatchedEvent.getName());
+        assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION,
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+    }
+
+    @Test
+    public void getLastKnownLocation_when_callbackIsNull() {
+        // test
+        Places.getLastKnownLocation(null);
+
+        // verify
+        mockedMobileCore.verifyNoInteractions();
+    }
+
+    @Test
+    public void getLastKnownLocation_when_responseEvent_with_nullEventData() {
+        // setup
+        final Location[] obtainedLocation = new Location[1];
+        AdobeCallback<Location> callback = (location) -> {
+            obtainedLocation[0] = location;
+        };
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES, EventSource.RESPONSE_CONTENT).build();
+
+        // test
+        Places.getLastKnownLocation(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+        // verify
+        assertNull("The callback is called with null location", obtainedLocation[0]);
+    }
+
+    @Test
+    public void getLastKnownLocation_when_responseEvent_with_InvalidLatLong() {
+        // setup
+        final Location[] obtainedLocation = new Location[1];
+        AdobeCallback<Location> callback = (location) -> {
+            obtainedLocation[0] = location;
+        };
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, -91);
+        eventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, 100);
+        Event responseEventInvalidLatLong = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+
+        // test
+        Places.getLastKnownLocation(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEventInvalidLatLong);
+
+        // verify
+        assertNull("The callback is called with null location", obtainedLocation[0]);
+    }
+
+    @Test
+    public void getLastKnownLocation_when_errorResponse() {
+        // setup
+        final AdobeError[] capturedError = new AdobeError[1];
+        AdobeCallbackWithError<Location> callback = new AdobeCallbackWithError<Location>() {
+            @Override
+            public void fail(AdobeError adobeError) {
+                capturedError[0] = adobeError;
+            }
+
+            @Override
+            public void call(Location location) {
+            }
+        };
+
+        // test
+        Places.getLastKnownLocation(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().fail(AdobeError.UNEXPECTED_ERROR);
+
+        // verify
+        assertEquals("The callback is called with correct error.", capturedError[0], AdobeError.UNEXPECTED_ERROR);
+    }
+
+    @Test
+    public void getLastKnownLocation_when_responseEvent_with_validLatLong() {
+        // setup
+        final Location[] obtainedLocation = new Location[1];
+        AdobeCallback<Location> callback = (location) -> {
+            obtainedLocation[0] = location;
+        };
+
+        mockConstruction(Location.class, (mock, context) -> {
+            when(mock.getLatitude()).thenReturn(11.11);
+            when(mock.getLongitude()).thenReturn(-22.22);
+        });
+
+        Map<String, Object> eventData = new HashMap();
+        eventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, 11.11);
+        eventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, -22.22);
+        Event responseEvent = new Event.Builder("responseEvent", EventType.PLACES,
+                EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
+
+        // test
+        Places.getLastKnownLocation(callback);
+        mockedMobileCore.verify(() -> MobileCore.dispatchEventWithResponseCallback(any(), anyLong(), callbackCaptor.capture()));
+        callbackCaptor.getValue().call(responseEvent);
+
+        // verify
+        assertNotNull("The callback is called with valid location", obtainedLocation[0]);
+        assertEquals("The callback is called with valid latitude", 11.11, obtainedLocation[0].getLatitude(), 0.0);
+        assertEquals("The callback is called with valid latitude", -22.22, obtainedLocation[0].getLongitude(), 0.0);
+    }
+
+    // ========================================================================================
+    // processGeofenceEvent
+    // ========================================================================================
+
+    @Test
+    public void processGeofenceEvent_should_dispatchPlacesRequestContentEvent() {
+        // test
+        Places.processGeofenceEvent(mockGeofencingEvent(Geofence.GEOFENCE_TRANSITION_ENTER, Arrays.asList(mockGeofence1())));
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEvent(eventCaptor.capture()));
+        final Event dispatchedEvent = eventCaptor.getValue();
+        assertNotNull(dispatchedEvent);
+
+        // verify dispatched event details
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT,
+                dispatchedEvent.getName());
+        assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+        assertEquals("event has the correct regionId", "geofence1",
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+        assertEquals("event has the correct region transition type", "entry",
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+    }
+
+    @Test
+    public void processGeofenceEvent_when_multiplePOIExited() {
+        // test
+        Places.processGeofenceEvent(mockGeofencingEvent(Geofence.GEOFENCE_TRANSITION_EXIT, Arrays.asList(mockGeofence1(), mockGeofence2())));
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEvent(eventCaptor.capture()), times(2));
+        final Event exitEvent1 = eventCaptor.getAllValues().get(0);
+        final Event exitEvent2 = eventCaptor.getAllValues().get(1);
+
+
+        // verify first exit event dispatched
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT,
+                exitEvent1.getName());
+        assertEquals("event has correct event type", EventType.PLACES, exitEvent1.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, exitEvent1.getSource());
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
+                DataReader.optString(exitEvent1.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+        assertEquals("event has the correct regionId", "geofence1",
+                DataReader.optString(exitEvent1.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+        assertEquals("event has the correct region transition type", "exit",
+                DataReader.optString(exitEvent1.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+
+        // verify second exit event dispatched
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT,
+                exitEvent2.getName());
+        assertEquals("event has correct event type", EventType.PLACES, exitEvent2.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, exitEvent2.getSource());
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
+                DataReader.optString(exitEvent2.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+        assertEquals("event has the correct regionId", "geofence2",
+                DataReader.optString(exitEvent2.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+        assertEquals("event has the correct region transition type", "exit",
+                DataReader.optString(exitEvent2.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+    }
+
+    // ========================================================================================
+    // processGeofence
+    // ========================================================================================
+
+    @Test
+    public void processGeofence_should_dispatchPlacesRequestContentEvent() {
+        // test
+        Places.processGeofence(mockGeofence1(), Geofence.GEOFENCE_TRANSITION_ENTER);
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEvent(eventCaptor.capture()));
+        final Event dispatchedEvent = eventCaptor.getValue();
+        assertNotNull(dispatchedEvent);
+
+        // verify dispatched event details
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT,
+                dispatchedEvent.getName());
+        assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+        assertEquals("event has the correct regionId", "geofence1",
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+        assertEquals("event has the correct region transition type", "entry",
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+    }
+
+    @Test
+    public void processGeofence_when_nullGeofence() {
+        // test
+        Places.processGeofence(null, Geofence.GEOFENCE_TRANSITION_ENTER);
+
+        // verify not event is dispatched
+        mockedMobileCore.verifyNoInteractions();
+    }
+
+    @Test
+    public void processGeofence_when_invalidGeofenceType() {
+        // test
+        Places.processGeofence(mockGeofence1(), Geofence.GEOFENCE_TRANSITION_DWELL);
+
+        // verify not event is dispatched
+        mockedMobileCore.verifyNoInteractions();
+    }
+
+    // ========================================================================================
+    // setAuthorizationStatus
+    // ========================================================================================
+
+    @Test
+    public void setLocationPermissionStatus_should_dispatchRequestContentEvent() {
+        // test
+        Places.setAuthorizationStatus(PlacesAuthorizationStatus.ALWAYS);
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEvent(eventCaptor.capture()));
+        final Event dispatchedEvent = eventCaptor.getValue();
+        assertNotNull(dispatchedEvent);
+
+        // verify dispatched event details
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_SETAUTHORIZATIONSTATUS,
+                dispatchedEvent.getName());
+        assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS,
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+        assertEquals("event has the correct authorization status",
+                PlacesAuthorizationStatus.ALWAYS.stringValue(),
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.AUTH_STATUS, ""));
+    }
+
+    @Test
+    public void setLocationPermissionStatus_withNullStatus_shouldNotDispatchEvent() {
+        // test
+        Places.setAuthorizationStatus(null);
+
+        // verify
+        mockedMobileCore.verifyNoInteractions();
+    }
+
+    // ========================================================================================
+    // clear
+    // ========================================================================================
+
+    @Test
+    public void test_clear_dispatchPlacesRequestContentEvent() {
+        // test
+        Places.clear();
+
+        // verify
+        mockedMobileCore.verify(() -> MobileCore.dispatchEvent(eventCaptor.capture()));
+        assertNotNull(eventCaptor.getValue());
+        final Event dispatchedEvent = eventCaptor.getValue();
+
+        // verify dispatched event details
+        assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_RESET,
+                dispatchedEvent.getName());
+        assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
+        assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
+        assertEquals("event has the correct request type",
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET,
+                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+    }
+
+    // ========================================================================================
+    // Private methods
+    // ========================================================================================
+
+    private List<PlacesPOI> getSamplePOIList(final int count) {
+        List<PlacesPOI> pois = new ArrayList<PlacesPOI>();
+
+        for (int i = 0; i < count; i++) {
+            pois.add(new PlacesPOI("nearByPOI" + i, "hidden", 34.33, -121.55, 150, "libraryName", 2, null));
+        }
+
+        return pois;
+    }
+
+    private Location mockLocation(double latitude, double longitude) {
+        when(mockLocation.getLatitude()).thenReturn(latitude);
+        when(mockLocation.getLongitude()).thenReturn(longitude);
+        return mockLocation;
+    }
+
+    private GeofencingEvent mockGeofencingEvent(int geofenceTransitionType, List<Geofence> geofences) {
+        when(geofencingEvent.getGeofenceTransition()).thenReturn(geofenceTransitionType);
+        when(geofencingEvent.getTriggeringGeofences()).thenReturn(geofences);
+        return geofencingEvent;
+    }
+
+    private Geofence mockGeofence1() {
+        when(geofence1.getRequestId()).thenReturn("geofence1");
+        return geofence1;
+    }
+
+    private Geofence mockGeofence2() {
+        when(geofence2.getRequestId()).thenReturn("geofence2");
+        return geofence2;
+    }
 
 }

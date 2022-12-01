@@ -14,15 +14,13 @@ package com.adobe.marketing.mobile.places;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
+import org.mockito.MockedConstruction;
 
-import org.mockito.junit.MockitoRule;
-import org.robolectric.RobolectricTestRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +31,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,11 +48,8 @@ import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.DataReaderException;
 
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesStateTests {
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private DataStoring dataStoring;
@@ -720,23 +716,38 @@ public class PlacesStateTests {
     }
 
     @Test
-    public void LoadLastKnownLocation_when_validLocation() {
+    public void loadLastKnownLocation_when_validLocation() {
         // setup
+        double SAMPLE_LATITUDE = 11.11;
+        double SAMPLE_LONGITUDE = -22.22;
+
+        // Mock the construction of location.
+        // A location object is constructed when loadLastKnownLocation method is called.
+        MockedConstruction<Location> mockedLocation = mockConstruction(Location.class, (mock, context) -> {
+            when(mock.getLatitude()).thenReturn(11.11);
+            when(mock.getLongitude()).thenReturn(-22.22);
+        });
         when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
-                PlacesConstants.INVALID_LAT_LON)).thenReturn(12.3);
+                PlacesConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LATITUDE);
         when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
-                PlacesConstants.INVALID_LAT_LON)).thenReturn(-33.3);
+                PlacesConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LONGITUDE);
+
 
         // test
         Location location = placesState.loadLastKnownLocation();
 
         // verify
-        assertEquals(12.3, location.getLatitude(), 0);
-        assertEquals(-33.3, location.getLongitude(), 0);
+        assertEquals(SAMPLE_LATITUDE, location.getLatitude(), 0);
+        assertEquals(SAMPLE_LONGITUDE, location.getLongitude(), 0);
+
+        // verify that the interactions with the mocked location is correct
+        // mocked location object gets set with the latitude and longitude from datastore.
+        verify(mockedLocation.constructed().get(0)).setLatitude(SAMPLE_LATITUDE);
+        verify(mockedLocation.constructed().get(0)).setLongitude(SAMPLE_LONGITUDE);
     }
 
     @Test
-    public void LoadLastKnownLocation_when_InvalidLocation() {
+    public void loadLastKnownLocation_when_InvalidLocation() {
         // setup
         when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
                 PlacesConstants.INVALID_LAT_LON)).thenReturn(1233.33);

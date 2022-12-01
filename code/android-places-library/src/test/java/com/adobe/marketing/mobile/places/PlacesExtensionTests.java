@@ -12,13 +12,10 @@
 package com.adobe.marketing.mobile.places;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.robolectric.RobolectricTestRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,11 +42,8 @@ import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesExtensionTests {
-
-	@Rule
-	public MockitoRule rule = MockitoJUnit.rule();
 
 	PlacesExtension extension;
 
@@ -64,6 +58,9 @@ public class PlacesExtensionTests {
 
     @Mock
     private ExtensionApi extensionApi;
+
+	@Mock
+	private Location mockLocation;
 
 	static private final long SAMPLE_TTL = 8990;
 
@@ -110,8 +107,31 @@ public class PlacesExtensionTests {
 	}
 
 	// ========================================================================================
+	// readyForEvent
+	// ========================================================================================
+
+	@Test
+	public void test_readyForEvent_whenConfigurationSet() {
+		// setup
+		setConfigurationSharedState("optedin");
+
+		// test
+		assertTrue(extension.readyForEvent(testGeofenceEvent()));
+	}
+
+	@Test
+	public void test_readyForEvent_whenConfigurationNotSet() {
+		// setup
+		resetConfigurationSharedState();
+
+		// test
+		assertFalse(extension.readyForEvent(testGeofenceEvent()));
+	}
+
+	// ========================================================================================
 	// handleConfigurationEvent
 	// ========================================================================================
+
 	@Test
 	public void handleConfigurationEvent_WhenPrivacyOptIn() {
 		// setup
@@ -151,7 +171,6 @@ public class PlacesExtensionTests {
 		extension.handleConfigurationResponseEvent(emptyEvent());
 
 		// verify that shared state and events are not stopped.
-		// verify that shared state and events are not stopped.
 		verifyNoInteractions(state);
 		verify(extensionApi, times(0)).stopEvents();
 		verify(extensionApi, times(0)).createSharedState(eq(new HashMap<>()), eq(null));
@@ -162,7 +181,7 @@ public class PlacesExtensionTests {
 	// ========================================================================================
 
 	@Test
-	public void queue_getNearByPlaceEvent_when_InvalidConfiguration() {
+	public void getNearByPlaceEvent_when_InvalidConfiguration() {
 		// setup
 		setInvalidConfigurationSharedState();
 
@@ -176,7 +195,7 @@ public class PlacesExtensionTests {
 
 
 	@Test
-	public void queue_getNearByPlaceEvent_when_privacyOptOut() {
+	public void getNearByPlaceEvent_when_privacyOptOut() {
 		// setup
 		setConfigurationSharedState("optedout");
 
@@ -189,10 +208,8 @@ public class PlacesExtensionTests {
 		verify(placesDispatcher).dispatchNearbyPlaces(eq(new ArrayList<>()), eq(PlacesRequestError.PRIVACY_OPTED_OUT), any(Event.class));
 	}
 
-//
-
 	@Test
-	public void queue_getNearByPlaceEvent_when_queryServiceResponseIsNotASuccess() {
+	public void getNearByPlaceEvent_when_queryServiceResponseIsNotASuccess() {
 		// setup
 		setConfigurationSharedState("optedin");
 
@@ -214,7 +231,7 @@ public class PlacesExtensionTests {
 
 
 	@Test
-	public void queue_getNearByPlaceEvent_happy() {
+	public void getNearByPlaceEvent_happy() {
 		// setup
 		setConfigurationSharedState("optedin");
 
@@ -247,7 +264,7 @@ public class PlacesExtensionTests {
 	// ========================================================================================
 
 	@Test
-	public void queue_handleGeofenceEvent_when_privacyOptedOut() {
+	public void handleGeofenceEvent_when_privacyOptedOut() {
 		// setup
 		setConfigurationSharedState("optedout");
 		PlacesRegion region = new PlacesRegion(createPOI("poi"), "entry", 100);
@@ -262,12 +279,12 @@ public class PlacesExtensionTests {
 
 		// verify
 		verifyNoInteractions(state);
-		verifyNoInteractions(extensionApi);
+		verify(extensionApi,times(0)).createSharedState(any(),any());
 		verifyNoInteractions(placesDispatcher);
 	}
 
 	@Test
-	public void queue_handleGeofenceEvent_Happy() {
+	public void handleGeofenceEvent_Happy() {
 		// setup
 		setConfigurationSharedState("optedin");
 		PlacesRegion region = new PlacesRegion(createPOI("poi"), "entry", 100);
@@ -279,13 +296,13 @@ public class PlacesExtensionTests {
 
 		// test
 		final Event event = testGeofenceEvent();
-		extension.handlePlacesRequestEvent(testGeofenceEvent());
+		extension.handlePlacesRequestEvent(event);
 
 		// verify
 		verify(state).setMembershiptTtl(eq(SAMPLE_TTL));
 
 		// verify the creation of shared state
-		verify(extensionApi).createSharedState(eq(placesState) ,eq(event));
+		verify(extensionApi).createSharedState(eq(placesState),eq(event));
 
 		// verify the dispatched event
 		verify(placesDispatcher).dispatchRegionEvent(eq(region));
@@ -319,8 +336,6 @@ public class PlacesExtensionTests {
 		verify(placesDispatcher, times(1)).dispatchUserWithinPOIs(eq(pois), eq(null));
 	}
 
-
-
 	// ========================================================================================
 	// handleGetLastKnownLocation
 	// ========================================================================================
@@ -333,18 +348,18 @@ public class PlacesExtensionTests {
 
 		Event testEvent = new Event.Builder("Get Last known location", EventType.PLACES,
 											EventSource.REQUEST_CONTENT).setEventData(data).build();
-		Location location = new Location("com.adobe.lastknownlocation");
-		location.setLatitude(22.44);
-		location.setLongitude(44.22);
+		when(mockLocation.getLatitude()).thenReturn(11.11);
+		when(mockLocation.getLongitude()).thenReturn(22.22);
 
-		when(state.loadLastKnownLocation()).thenReturn(location);
+
+		when(state.loadLastKnownLocation()).thenReturn(mockLocation);
 
 		// test
 		extension.handlePlacesRequestEvent(testEvent);
 
 		// verify the interaction with dispatcher
-		verify(placesDispatcher).dispatchLastKnownLocation(eq(22.44), eq(44.22), eq(testEvent));
-		verify(placesDispatcher).dispatchLastKnownLocation(eq(22.44), eq(44.22), eq(null));
+		verify(placesDispatcher).dispatchLastKnownLocation(eq(11.11), eq(22.22), eq(testEvent));
+		verify(placesDispatcher).dispatchLastKnownLocation(eq(11.11), eq(22.22), eq(null));
 	}
 
 	@Test
@@ -428,7 +443,7 @@ public class PlacesExtensionTests {
 	// ========================================================================================
 	// Helper methods
 	// ========================================================================================
-	HashMap<String, Object> setConfigurationSharedState(final String privacyStatus) {
+	private HashMap<String, Object> setConfigurationSharedState(final String privacyStatus) {
 		HashMap<String, Object> configData = new HashMap<>();
 		configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, privacyStatus);
 		List<Map<String, String>> libraries = new ArrayList<>();
@@ -448,7 +463,14 @@ public class PlacesExtensionTests {
 		return configData;
 	}
 
-	HashMap<String, Object> setInvalidConfigurationSharedState() {
+	private HashMap<String, Object> resetConfigurationSharedState() {
+		HashMap<String, Object> configData = new HashMap<>();
+		when(extensionApi.getSharedState(eq(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME), any(), anyBoolean(), any()))
+				.thenReturn(new SharedStateResult(SharedStateStatus.NONE, configData));
+		return configData;
+	}
+
+	private HashMap<String, Object> setInvalidConfigurationSharedState() {
 		// Configuration shared state with no places properties
 		HashMap<String, Object> configData = new HashMap<>();
 		configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, "optedin");
@@ -459,14 +481,6 @@ public class PlacesExtensionTests {
 
 	private Event emptyEvent() {
 		Event event = new Event.Builder("emptyEvent", EventType.PLACES, EventSource.RESPONSE_CONTENT).build();
-		return event;
-	}
-
-	private Event randomEvent() {
-		final HashMap<String, Object> eventData = new HashMap<>();
-		eventData.put("randomKey", "randomValue");
-		Event event = new Event.Builder("randomEvent", EventType.PLACES,
-										EventSource.RESPONSE_CONTENT).setEventData(eventData).build();
 		return event;
 	}
 
