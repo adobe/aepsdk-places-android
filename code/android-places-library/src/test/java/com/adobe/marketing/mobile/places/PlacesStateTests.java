@@ -23,6 +23,7 @@ import org.mockito.MockedConstruction;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -44,9 +45,6 @@ import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.services.DataStoring;
 import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.util.DataReader;
-import com.adobe.marketing.mobile.util.DataReaderException;
-
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesStateTests {
@@ -604,7 +602,7 @@ public class PlacesStateTests {
     // ========================================================================================
 
     @Test
-    public void GetPlacesSharedState() throws DataReaderException {
+    public void GetPlacesSharedState()  {
         // setup
         placesState.cachedPOIs = getSampleCachePOIs();
         placesState.currentPOI = sampleCurrentPOI;
@@ -619,13 +617,12 @@ public class PlacesStateTests {
         // verify
         assertNotNull(data);
         assertEquals(6, data.size());
-        assertEquals("currentPOI", DataReader.getTypedMap(Object.class, data, PlacesConstants.SharedStateKeys.CURRENT_POI).get(PlacesConstants.POIKeys.IDENTIFIER));
-        assertEquals("lastEnteredPOI", DataReader.getTypedMap(Object.class, data, PlacesConstants.SharedStateKeys.LAST_ENTERED_POI).get(PlacesConstants.POIKeys.IDENTIFIER));
-        assertEquals("lastExitedPOI", DataReader.getTypedMap(Object.class, data, PlacesConstants.SharedStateKeys.LAST_EXITED_POI).get(PlacesConstants.POIKeys.IDENTIFIER));
-        assertEquals(2, DataReader.getTypedList(Object.class, data, PlacesConstants.SharedStateKeys.NEARBYPOIS).size());
-        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), DataReader.getString(data, PlacesConstants.SharedStateKeys.AUTH_STATUS));
-        assertEquals(getUnixTimeInSeconds() + 20,
-                DataReader.getLong(data, PlacesConstants.SharedStateKeys.VALID_UNTIL), 1);
+        assertEquals("currentPOI", ((Map<?,?>)data.get(PlacesConstants.SharedStateKeys.CURRENT_POI)).get(PlacesConstants.POIKeys.IDENTIFIER));
+        assertEquals("lastEnteredPOI",((Map<?,?>)data.get(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI)).get(PlacesConstants.POIKeys.IDENTIFIER));
+        assertEquals("lastExitedPOI", ((Map<?,?>)data.get(PlacesConstants.SharedStateKeys.LAST_EXITED_POI)).get(PlacesConstants.POIKeys.IDENTIFIER));
+        assertEquals(2, ((Collection<?>)data.get(PlacesConstants.SharedStateKeys.NEARBYPOIS)).size());
+        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesConstants.SharedStateKeys.AUTH_STATUS));
+        assertEquals(getUnixTimeInSeconds() + 20,(long)data.get(PlacesConstants.SharedStateKeys.VALID_UNTIL), 1);
     }
 
     @Test
@@ -643,7 +640,7 @@ public class PlacesStateTests {
         // verify
         assertNotNull(data);
         assertEquals(1, data.size());
-        assertEquals(0, DataReader.getLong(data, PlacesConstants.SharedStateKeys.VALID_UNTIL));
+        assertEquals(0, (long)(data.get(PlacesConstants.SharedStateKeys.VALID_UNTIL)));
     }
 
 
@@ -668,9 +665,9 @@ public class PlacesStateTests {
         assertFalse(data.containsKey(PlacesConstants.SharedStateKeys.LAST_EXITED_POI));
 
         // nearby POIs values still persist
-        assertEquals(2, DataReader.getTypedList(Object.class, data, PlacesConstants.SharedStateKeys.NEARBYPOIS).size());
-        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), DataReader.getString(data, PlacesConstants.SharedStateKeys.AUTH_STATUS));
-        assertEquals(0, DataReader.getLong(data, PlacesConstants.SharedStateKeys.VALID_UNTIL));
+        assertEquals(2, ((Collection<?>)data.get(PlacesConstants.SharedStateKeys.NEARBYPOIS)).size());
+        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesConstants.SharedStateKeys.AUTH_STATUS));
+        assertEquals(0, (long) data.get( PlacesConstants.SharedStateKeys.VALID_UNTIL));
     }
 
     // ========================================================================================
@@ -745,6 +742,8 @@ public class PlacesStateTests {
         // mocked location object gets set with the latitude and longitude from datastore.
         verify(mockedLocation.constructed().get(0)).setLatitude(SAMPLE_LATITUDE);
         verify(mockedLocation.constructed().get(0)).setLongitude(SAMPLE_LONGITUDE);
+
+        mockedLocation.close();
     }
 
     @Test

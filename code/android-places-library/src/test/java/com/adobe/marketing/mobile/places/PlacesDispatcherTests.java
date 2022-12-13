@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,6 @@ import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
-import com.adobe.marketing.mobile.util.DataReader;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesDispatcherTests {
@@ -84,7 +84,7 @@ public class PlacesDispatcherTests {
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		assertTrue(dispatchedEvent.getEventData().containsKey(
 					   PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST));
-		assertEquals(PlacesRequestError.OK.getValue(), DataReader.getInt(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.RESULT_STATUS));
+		assertEquals(PlacesRequestError.OK.getValue(), (int)dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.RESULT_STATUS));
 		assertEquals(2, dispatchedEvent.getEventData().size());
 	}
 
@@ -109,7 +109,7 @@ public class PlacesDispatcherTests {
 		assertTrue(eventData.containsKey(
 					   PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS));
 		assertEquals(1, eventData.size());
-		assertEquals(2, DataReader.getTypedList(Map.class, eventData, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS).size());
+		assertEquals(2, ((Collection<?>) eventData.get(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size());
 	}
 
 	@Test
@@ -122,7 +122,7 @@ public class PlacesDispatcherTests {
 	}
 
 	@Test
-	public void test_dispatchRegionEvent() throws Exception {
+	public void test_dispatchRegionEvent() {
 		// setup
 		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
 									  SAMPLE_LIBRARY, SAMPLE_WEIGHT
@@ -144,7 +144,7 @@ public class PlacesDispatcherTests {
 
 
 		// verify region details
-		final Map poiMap = DataReader.getTypedMap(Object.class, dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION);
+		final Map poiMap = (Map)dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION);
 		assertTrue(poi.getName().equals(poiMap.get(PlacesConstants.POIKeys.NAME)));
 		assertEquals(dispatchedEvent.getEventData().get(
 						 PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE), PlacesRegion.PLACE_EVENT_ENTRY);
@@ -168,8 +168,8 @@ public class PlacesDispatcherTests {
 		assertEquals(2, dispatchedEvent.getEventData().size());
 
 		// verify location details
-		assertEquals(31.33,DataReader.optDouble(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, 0.00), 0);
-		assertEquals(-121.33,DataReader.optDouble(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, 0.00), 0);
+		assertEquals(31.33,(double) dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE), 0);
+		assertEquals(-121.33, (double) dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE), 0);
 	}
 
 }

@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -55,7 +56,6 @@ import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionErrorCallback;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.Places;
-import com.adobe.marketing.mobile.util.DataReader;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
@@ -83,6 +83,7 @@ public class PlacesTests {
     private ArgumentCaptor<Event> eventCaptor;
     private ArgumentCaptor<AdobeCallbackWithError> callbackCaptor = ArgumentCaptor.forClass(AdobeCallbackWithError.class);
     MockedStatic<MobileCore> mockedMobileCore;
+    private MockedConstruction<Location> locationConstructor;
 
     @Before
     public void testSetup() {
@@ -143,14 +144,14 @@ public class PlacesTests {
         assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
         assertEquals("event has the correct latitude data", 22.22,
-                DataReader.optDouble(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.LATITUDE, 0.00d), 0);
+                (double) dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.LATITUDE), 0.0);
         assertEquals("event has the correct longitude data", -11.11,
-                DataReader.optDouble(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.LONGITUDE, 0.00d), 0);
+                (double) dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.LONGITUDE), 0.00d);
         assertEquals("event has the correct places count", 20,
-                DataReader.optInt(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.PLACES_COUNT, 0));
+                (int) dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.PLACES_COUNT), 0);
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES,
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
     }
 
     @Test
@@ -274,8 +275,7 @@ public class PlacesTests {
         assertEquals("event has correct event type", EventType.PLACES, dispatchedEvent.getType());
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
         assertEquals("event has the correct request type",
-                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES,
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES, dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
     }
 
     @Test
@@ -396,7 +396,7 @@ public class PlacesTests {
 
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION,
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
     }
 
     @Test
@@ -481,7 +481,7 @@ public class PlacesTests {
             obtainedLocation[0] = location;
         };
 
-        mockConstruction(Location.class, (mock, context) -> {
+        locationConstructor = mockConstruction(Location.class, (mock, context) -> {
             when(mock.getLatitude()).thenReturn(11.11);
             when(mock.getLongitude()).thenReturn(-22.22);
         });
@@ -501,6 +501,8 @@ public class PlacesTests {
         assertNotNull("The callback is called with valid location", obtainedLocation[0]);
         assertEquals("The callback is called with valid latitude", 11.11, obtainedLocation[0].getLatitude(), 0.0);
         assertEquals("The callback is called with valid latitude", -22.22, obtainedLocation[0].getLongitude(), 0.0);
+
+        locationConstructor.close();
     }
 
     // ========================================================================================
@@ -524,11 +526,11 @@ public class PlacesTests {
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
         assertEquals("event has the correct regionId", "geofence1",
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_ID));
         assertEquals("event has the correct region transition type", "entry",
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE));
     }
 
     @Test
@@ -549,11 +551,11 @@ public class PlacesTests {
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, exitEvent1.getSource());
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
-                DataReader.optString(exitEvent1.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                exitEvent1.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
         assertEquals("event has the correct regionId", "geofence1",
-                DataReader.optString(exitEvent1.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+                exitEvent1.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_ID));
         assertEquals("event has the correct region transition type", "exit",
-                DataReader.optString(exitEvent1.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+                exitEvent1.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE));
 
         // verify second exit event dispatched
         assertEquals("event has correct name", PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT,
@@ -562,11 +564,11 @@ public class PlacesTests {
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, exitEvent2.getSource());
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
-                DataReader.optString(exitEvent2.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                exitEvent2.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
         assertEquals("event has the correct regionId", "geofence2",
-                DataReader.optString(exitEvent2.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+                exitEvent2.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_ID));
         assertEquals("event has the correct region transition type", "exit",
-                DataReader.optString(exitEvent2.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+                exitEvent2.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE));
     }
 
     // ========================================================================================
@@ -590,11 +592,11 @@ public class PlacesTests {
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT,
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
         assertEquals("event has the correct regionId", "geofence1",
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_ID, null));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_ID));
         assertEquals("event has the correct region transition type", "entry",
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, null));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE));
     }
 
     @Test
@@ -636,10 +638,10 @@ public class PlacesTests {
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS,
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
         assertEquals("event has the correct authorization status",
                 PlacesAuthorizationStatus.ALWAYS.stringValue(),
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.AUTH_STATUS, ""));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.AUTH_STATUS));
     }
 
     @Test
@@ -672,7 +674,7 @@ public class PlacesTests {
         assertEquals("event has correct event source", EventSource.REQUEST_CONTENT, dispatchedEvent.getSource());
         assertEquals("event has the correct request type",
                 PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET,
-                DataReader.optString(dispatchedEvent.getEventData(), PlacesConstants.EventDataKeys.Places.REQUEST_TYPE, ""));
+                dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE));
     }
 
     // ========================================================================================
