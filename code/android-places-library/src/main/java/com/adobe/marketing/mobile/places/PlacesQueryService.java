@@ -153,7 +153,7 @@ class PlacesQueryService {
 
 
 		// library=x&library=y
-		// https://iu2jpewkm4.execute-api.us-east-1.amazonaws.com/dev/placesedgequery?latitude=37.338735&longitude=-121.904516&limit=15&library=738
+		// https://<places_endpoint>/placesedgequery?latitude=37.338735&longitude=-121.904516&limit=15&library=738
 		return new URLBuilder().enableSSL(true)
 			   .setServer(placesConfig.getEndpoint())
 			   .addPath(PlacesConstants.ServerKeys.PLACES_EDGE)

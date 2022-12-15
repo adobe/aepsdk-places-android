@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.places;
 
+import androidx.annotation.NonNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,15 +32,15 @@ public final class PlacesRegion extends PlacesPOI {
 
 	Map<String,Object> getRegionEventData() {
 		Map<String,Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION, poi);
+		data.put(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION, poi.toMap());
 		data.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, getPlaceEventType());
 		data.put(PlacesConstants.EventDataKeys.Places.REGION_TIMESTAMP, getTimestamp());
 		return data;
 	}
 
-	PlacesRegion(final PlacesPOI placesPOI,
-						   final String placeEventType,
-						   final long timestamp) {
+	PlacesRegion(@NonNull final PlacesPOI placesPOI,
+				 @NonNull final String placeEventType,
+				 final long timestamp) {
 		super(placesPOI);
 		this.poi = placesPOI;
 		this.placeEventType = placeEventType;

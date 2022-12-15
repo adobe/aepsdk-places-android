@@ -12,12 +12,15 @@
 package com.adobe.marketing.mobile.places;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesQueryResponseTests {
 
     @Test

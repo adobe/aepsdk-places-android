@@ -28,7 +28,7 @@ public class PlacesUtil {
 	 * @param latitude the latitude
 	 * @return true if latitude is in the range [-90,90]
 	 */
-	static boolean isValidLat(final double latitude) {
+	public static boolean isValidLat(final double latitude) {
 		return latitude >= MIN_LAT && latitude <= MAX_LAT;
 	}
 
@@ -39,7 +39,7 @@ public class PlacesUtil {
 	 * @param longitude the longitude
 	 * @return true if longitude is in the range [-180,180]
 	 */
-	static boolean isValidLon(final double longitude) {
+	public static boolean isValidLon(final double longitude) {
 		return longitude >= MIN_LON && longitude <= MAX_LON;
 	}
 

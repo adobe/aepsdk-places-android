@@ -30,6 +30,7 @@ import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -187,10 +188,12 @@ public class PlacesExtension extends Extension {
 	private void handleGetUserWithinPOIsEvent(@NonNull final Event event) {
 		Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "handleGetUserWithinPOIsEvent - Handling get user-within points of interest event.");
 
+		final List<PlacesPOI> userWithinPOIs = state.getUserWithInPOIs();
+
 		// dispatch userWithinPOIS for the awaiting one time listener
-		placesDispatcher.dispatchUserWithinPOIs(state.getUserWithInPOIs(), event);
+		placesDispatcher.dispatchUserWithinPOIs(userWithinPOIs, event);
 		// dispatch userWithinPOIS for all other listeners
-		placesDispatcher.dispatchUserWithinPOIs(state.getUserWithInPOIs(), null);
+		placesDispatcher.dispatchUserWithinPOIs(userWithinPOIs, null);
 	}
 
 	/**
@@ -232,12 +235,6 @@ public class PlacesExtension extends Extension {
 		}
 
 		final Map<String,Object> eventData = event.getEventData();
-
-		if (eventData == null || eventData.isEmpty()) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "saveLastKnownLocation - Unable to save location, invalid eventData");
-			return;
-		}
-
 		final double latitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LATITUDE, PlacesConstants.INVALID_LAT_LON);
 		final double longitude = DataReader.optDouble(eventData, PlacesConstants.EventDataKeys.Places.LONGITUDE, PlacesConstants.INVALID_LAT_LON);
 
