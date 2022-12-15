@@ -721,7 +721,7 @@ public class PlacesStateTests {
 
         // Mock the construction of location.
         // A location object is constructed when loadLastKnownLocation method is called.
-        MockedConstruction<Location> mockedLocation = mockConstruction(Location.class, (mock, context) -> {
+        MockedConstruction<Location> mockedLocationConstruction = mockConstruction(Location.class, (mock, context) -> {
             when(mock.getLatitude()).thenReturn(11.11);
             when(mock.getLongitude()).thenReturn(-22.22);
         });
@@ -740,10 +740,10 @@ public class PlacesStateTests {
 
         // verify that the interactions with the mocked location is correct
         // mocked location object gets set with the latitude and longitude from datastore.
-        verify(mockedLocation.constructed().get(0)).setLatitude(SAMPLE_LATITUDE);
-        verify(mockedLocation.constructed().get(0)).setLongitude(SAMPLE_LONGITUDE);
+        verify(mockedLocationConstruction.constructed().get(0)).setLatitude(SAMPLE_LATITUDE);
+        verify(mockedLocationConstruction.constructed().get(0)).setLongitude(SAMPLE_LONGITUDE);
 
-        mockedLocation.close();
+        mockedLocationConstruction.close();
     }
 
     @Test
