@@ -65,8 +65,8 @@ public class PlacesQueryServiceTests {
     public void getNearByPlaces_when_EventDataWithNoLatitude() {
         // setup
         HashMap<String, Object> eventData = new HashMap<>();
-        eventData.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, SAMPLE_LONGITUDE);
-        eventData.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, SAMPLE_COUNT);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.LONGITUDE, SAMPLE_LONGITUDE);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.PLACES_COUNT, SAMPLE_COUNT);
 
         // test
         queryService.getNearbyPlaces(eventData, validConfiguration(), response -> {
@@ -84,8 +84,8 @@ public class PlacesQueryServiceTests {
     public void getNearByPlaces_when_EventDataWithNoLongitude() {
         // setup
         HashMap<String, Object> eventData = new HashMap<>();
-        eventData.put(PlacesConstants.EventDataKeys.Places.LATITUDE, SAMPLE_LATITUDE);
-        eventData.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, SAMPLE_COUNT);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.LATITUDE, SAMPLE_LATITUDE);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.PLACES_COUNT, SAMPLE_COUNT);
 
         // test
         queryService.getNearbyPlaces(eventData, validConfiguration(), response -> {
@@ -114,15 +114,15 @@ public class PlacesQueryServiceTests {
                 networkResponseCapture.getValue().getMethod());
         assertEquals("network request has the correct URL",
                 "https://" + configuration.getEndpoint() + "" +
-                        "/" + PlacesConstants.ServerKeys.PLACES_EDGE + "" +
+                        "/" + PlacesTestConstants.ServerKeys.PLACES_EDGE + "" +
                         "?latitude=" + SAMPLE_LATITUDE + "&longitude=" + SAMPLE_LONGITUDE + "&limit=" + SAMPLE_COUNT +
                         configuration.getLibrariesQueryString(),
                 networkResponseCapture.getValue().getUrl());
         assertNull("network request has the correct request property", networkResponseCapture.getValue().getHeaders());
         assertNull("network request has the correct connect payload", networkResponseCapture.getValue().getBody());
-        assertEquals("network request has the correct read timeout", PlacesConstants.DEFAULT_NETWORK_TIMEOUT,
+        assertEquals("network request has the correct read timeout", PlacesTestConstants.DEFAULT_NETWORK_TIMEOUT,
                 networkResponseCapture.getValue().getReadTimeout());
-        assertEquals("network request has the correct connect timeout", PlacesConstants.DEFAULT_NETWORK_TIMEOUT,
+        assertEquals("network request has the correct connect timeout", PlacesTestConstants.DEFAULT_NETWORK_TIMEOUT,
                 networkResponseCapture.getValue().getConnectTimeout());
     }
 
@@ -404,9 +404,9 @@ public class PlacesQueryServiceTests {
 
     private HashMap<String, Object> validEventData() {
         HashMap<String, Object> eventData = new HashMap<>();
-        eventData.put(PlacesConstants.EventDataKeys.Places.LATITUDE, SAMPLE_LATITUDE);
-        eventData.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, SAMPLE_LONGITUDE);
-        eventData.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, SAMPLE_COUNT);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.LATITUDE, SAMPLE_LATITUDE);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.LONGITUDE, SAMPLE_LONGITUDE);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.PLACES_COUNT, SAMPLE_COUNT);
         return eventData;
     }
 

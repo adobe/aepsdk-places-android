@@ -79,12 +79,12 @@ public class PlacesDispatcherTests {
 		Event dispatchedEvent = dispatchedEventCaptor.getValue();
 
 		// verify dispatchedEvent
-		assertEquals(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, dispatchedEvent.getName());
+		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETNEARBYPLACES, dispatchedEvent.getName());
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		assertTrue(dispatchedEvent.getEventData().containsKey(
-					   PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST));
-		assertEquals(PlacesRequestError.OK.getValue(), (int)dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.RESULT_STATUS));
+					   PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST));
+		assertEquals(PlacesRequestError.OK.getValue(), (int)dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS));
 		assertEquals(2, dispatchedEvent.getEventData().size());
 	}
 
@@ -102,14 +102,14 @@ public class PlacesDispatcherTests {
 		Event dispatchedEvent = dispatchedEventCaptor.getValue();
 
 		// verify dispatchedEvent
-		assertEquals(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, dispatchedEvent.getName());
+		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETUSERWITHINPLACES, dispatchedEvent.getName());
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		Map<String, Object> eventData = dispatchedEvent.getEventData();
 		assertTrue(eventData.containsKey(
-					   PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS));
+					   PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS));
 		assertEquals(1, eventData.size());
-		assertEquals(2, ((Collection<?>) eventData.get(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size());
+		assertEquals(2, ((Collection<?>) eventData.get(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size());
 	}
 
 	@Test
@@ -137,19 +137,19 @@ public class PlacesDispatcherTests {
 		Event dispatchedEvent = dispatchedEventCaptor.getValue();
 
 		// verify event details
-		assertEquals(PlacesConstants.EventName.RESPONSE_PROCESSREGIONEVENT, dispatchedEvent.getName());
+		assertEquals(PlacesTestConstants.EventName.RESPONSE_PROCESSREGIONEVENT, dispatchedEvent.getName());
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		assertEquals(3, dispatchedEvent.getEventData().size());
 
 
 		// verify region details
-		final Map poiMap = (Map)dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION);
-		assertTrue(poi.getName().equals(poiMap.get(PlacesConstants.POIKeys.NAME)));
+		final Map poiMap = (Map)dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.TRIGGERING_REGION);
+		assertTrue(poi.getName().equals(poiMap.get(PlacesTestConstants.POIKeys.NAME)));
 		assertEquals(dispatchedEvent.getEventData().get(
-						 PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE), PlacesRegion.PLACE_EVENT_ENTRY);
+						 PlacesTestConstants.EventDataKeys.Places.REGION_EVENT_TYPE), PlacesRegion.PLACE_EVENT_ENTRY);
 		assertEquals(dispatchedEvent.getEventData().get(
-						 PlacesConstants.EventDataKeys.Places.REGION_TIMESTAMP), Long.valueOf(777777777));
+						 PlacesTestConstants.EventDataKeys.Places.REGION_TIMESTAMP), Long.valueOf(777777777));
 	}
 
 	@Test
@@ -162,14 +162,14 @@ public class PlacesDispatcherTests {
 		Event dispatchedEvent = dispatchedEventCaptor.getValue();
 
 		// verify event details
-		assertEquals(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, dispatchedEvent.getName());
+		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, dispatchedEvent.getName());
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		assertEquals(2, dispatchedEvent.getEventData().size());
 
 		// verify location details
-		assertEquals(31.33,(double) dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE), 0);
-		assertEquals(-121.33, (double) dispatchedEvent.getEventData().get(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE), 0);
+		assertEquals(31.33,(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE), 0);
+		assertEquals(-121.33, (double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE), 0);
 	}
 
 }
