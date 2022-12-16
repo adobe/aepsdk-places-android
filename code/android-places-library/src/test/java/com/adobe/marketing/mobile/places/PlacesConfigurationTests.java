@@ -36,7 +36,7 @@ public class PlacesConfigurationTests {
     public void testConfiguration_NoLibraryKey() {
         // setup
         Map<String, Object> configData = new HashMap<>();
-        configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, SAMPLE_ENDPOINT);
+        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, SAMPLE_ENDPOINT);
 
         // test
         PlacesConfiguration configuration = new PlacesConfiguration(configData);
@@ -136,17 +136,17 @@ public class PlacesConfigurationTests {
         // test
         final Map<String, Object> configData = new HashMap<>();
         Map<String, String> library = new HashMap<String, String>();
-        library.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib1");
+        library.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib1");
         List<Map<String, String>> libraries = new ArrayList<>();
         libraries.add(library);
-        configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
-        configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, SAMPLE_ENDPOINT);
+        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
+        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, SAMPLE_ENDPOINT);
 
         PlacesConfiguration configuration = new PlacesConfiguration(configData);
 
         // verify
         assertTrue(configuration.isValid());
-        assertEquals(PlacesConstants.DEFAULT_MEMBERSHIP_TTL, configuration.getMembershipTtl());
+        assertEquals(PlacesTestConstants.DEFAULT_MEMBERSHIP_TTL, configuration.getMembershipTtl());
     }
 
 
@@ -172,14 +172,14 @@ public class PlacesConfigurationTests {
 
         for (int i = 0; i < noOfLibraries; i++) {
             Map<String, String> library = new HashMap<>();
-            library.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib" + (i + 1));
+            library.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib" + (i + 1));
             libraries.add(library);
         }
 
         final Map<String, Object> configData = new HashMap<>();
-        configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
-        configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, endPoint);
-        configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL, membershipTtl);
+        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
+        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, endPoint);
+        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL, membershipTtl);
         return configData;
     }
 

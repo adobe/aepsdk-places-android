@@ -110,7 +110,7 @@ public class PlacesStateTests {
         // verify the persistence
         assertEquals("containsUserPOI 0", getPersistedCurrentPOI().getIdentifier());
         assertEquals("containsUserPOI 0", getPersistedLastEnteredPOI().getIdentifier());
-        verify(placesDataStore, times(0)).setString(eq(PlacesConstants.DataStoreKeys.LAST_EXITED_POI), any());
+        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), any());
         assertEquals(4, getPersistedCachedPOI().size());
     }
 
@@ -617,12 +617,12 @@ public class PlacesStateTests {
         // verify
         assertNotNull(data);
         assertEquals(6, data.size());
-        assertEquals("currentPOI", ((Map<?,?>)data.get(PlacesConstants.SharedStateKeys.CURRENT_POI)).get(PlacesConstants.POIKeys.IDENTIFIER));
-        assertEquals("lastEnteredPOI",((Map<?,?>)data.get(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI)).get(PlacesConstants.POIKeys.IDENTIFIER));
-        assertEquals("lastExitedPOI", ((Map<?,?>)data.get(PlacesConstants.SharedStateKeys.LAST_EXITED_POI)).get(PlacesConstants.POIKeys.IDENTIFIER));
-        assertEquals(2, ((Collection<?>)data.get(PlacesConstants.SharedStateKeys.NEARBYPOIS)).size());
-        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesConstants.SharedStateKeys.AUTH_STATUS));
-        assertEquals(getUnixTimeInSeconds() + 20,(long)data.get(PlacesConstants.SharedStateKeys.VALID_UNTIL), 1);
+        assertEquals("currentPOI", ((Map<?,?>)data.get(PlacesTestConstants.SharedStateKeys.CURRENT_POI)).get(PlacesTestConstants.POIKeys.IDENTIFIER));
+        assertEquals("lastEnteredPOI",((Map<?,?>)data.get(PlacesTestConstants.SharedStateKeys.LAST_ENTERED_POI)).get(PlacesTestConstants.POIKeys.IDENTIFIER));
+        assertEquals("lastExitedPOI", ((Map<?,?>)data.get(PlacesTestConstants.SharedStateKeys.LAST_EXITED_POI)).get(PlacesTestConstants.POIKeys.IDENTIFIER));
+        assertEquals(2, ((Collection<?>)data.get(PlacesTestConstants.SharedStateKeys.NEARBYPOIS)).size());
+        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesTestConstants.SharedStateKeys.AUTH_STATUS));
+        assertEquals(getUnixTimeInSeconds() + 20,(long)data.get(PlacesTestConstants.SharedStateKeys.VALID_UNTIL), 1);
     }
 
     @Test
@@ -640,7 +640,7 @@ public class PlacesStateTests {
         // verify
         assertNotNull(data);
         assertEquals(1, data.size());
-        assertEquals(0, (long)(data.get(PlacesConstants.SharedStateKeys.VALID_UNTIL)));
+        assertEquals(0, (long)(data.get(PlacesTestConstants.SharedStateKeys.VALID_UNTIL)));
     }
 
 
@@ -660,14 +660,14 @@ public class PlacesStateTests {
         // verify
         assertNotNull(data);
         assertEquals(3, data.size());
-        assertFalse(data.containsKey(PlacesConstants.SharedStateKeys.CURRENT_POI));
-        assertFalse(data.containsKey(PlacesConstants.SharedStateKeys.LAST_ENTERED_POI));
-        assertFalse(data.containsKey(PlacesConstants.SharedStateKeys.LAST_EXITED_POI));
+        assertFalse(data.containsKey(PlacesTestConstants.SharedStateKeys.CURRENT_POI));
+        assertFalse(data.containsKey(PlacesTestConstants.SharedStateKeys.LAST_ENTERED_POI));
+        assertFalse(data.containsKey(PlacesTestConstants.SharedStateKeys.LAST_EXITED_POI));
 
         // nearby POIs values still persist
-        assertEquals(2, ((Collection<?>)data.get(PlacesConstants.SharedStateKeys.NEARBYPOIS)).size());
-        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesConstants.SharedStateKeys.AUTH_STATUS));
-        assertEquals(0, (long) data.get( PlacesConstants.SharedStateKeys.VALID_UNTIL));
+        assertEquals(2, ((Collection<?>)data.get(PlacesTestConstants.SharedStateKeys.NEARBYPOIS)).size());
+        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesTestConstants.SharedStateKeys.AUTH_STATUS));
+        assertEquals(0, (long) data.get( PlacesTestConstants.SharedStateKeys.VALID_UNTIL));
     }
 
     // ========================================================================================
@@ -682,8 +682,8 @@ public class PlacesStateTests {
         placesState.saveLastKnownLocation(34.2, 12.3);
 
         // verify
-        verify(placesDataStore, times(1)).setDouble(eq(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE), eq(34.2));
-        verify(placesDataStore, times(1)).setDouble(eq(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE), eq(12.3));
+        verify(placesDataStore, times(1)).setDouble(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE), eq(34.2));
+        verify(placesDataStore, times(1)).setDouble(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE), eq(12.3));
     }
 
     @Test
@@ -695,8 +695,8 @@ public class PlacesStateTests {
         placesState.saveLastKnownLocation(355.2, -6612.3);
 
         // verify
-        verify(placesDataStore, times(1)).remove(eq(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE));
-        verify(placesDataStore, times(1)).remove(eq(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE));
+        verify(placesDataStore, times(1)).remove(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE));
+        verify(placesDataStore, times(1)).remove(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE));
     }
 
     @Test
@@ -725,10 +725,10 @@ public class PlacesStateTests {
             when(mock.getLatitude()).thenReturn(11.11);
             when(mock.getLongitude()).thenReturn(-22.22);
         });
-        when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
-                PlacesConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LATITUDE);
-        when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
-                PlacesConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LONGITUDE);
+        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
+                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LATITUDE);
+        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
+                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LONGITUDE);
 
 
         // test
@@ -749,10 +749,10 @@ public class PlacesStateTests {
     @Test
     public void loadLastKnownLocation_when_InvalidLocation() {
         // setup
-        when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
-                PlacesConstants.INVALID_LAT_LON)).thenReturn(1233.33);
-        when(placesDataStore.getDouble(PlacesConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
-                PlacesConstants.INVALID_LAT_LON)).thenReturn(-333.3);
+        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
+                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(1233.33);
+        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
+                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(-333.3);
 
         // test
         Location location = placesState.loadLastKnownLocation();
@@ -875,10 +875,10 @@ public class PlacesStateTests {
 //
     private Event prepareRegionEvent(final String regionID, final String regionType) {
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(PlacesConstants.EventDataKeys.Places.REGION_ID, regionID);
-        eventData.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, regionType);
-        eventData.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-                PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.REGION_ID, regionID);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.REGION_EVENT_TYPE, regionType);
+        eventData.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+                PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
         final Event event = new Event.Builder("Process Region Event", EventType.PLACES, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData)
                 .build();
@@ -909,28 +909,28 @@ public class PlacesStateTests {
                 nearbyPOIsJSON.put(poiID, new JSONObject(cachedPOIs.get(poiID).toMap()));
             }
             final String jsonString = nearbyPOIsJSON.toString();
-            when(placesDataStore.getString(PlacesConstants.DataStoreKeys.NEARBYPOIS, "")).thenReturn(jsonString);
+            when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.NEARBYPOIS, "")).thenReturn(jsonString);
         } catch (final JSONException e) {
         }
 
         // current POI
-        when(placesDataStore.getString(PlacesConstants.DataStoreKeys.CURRENT_POI, "")).thenReturn(sampleCurrentPOI.toJsonString());
+        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.CURRENT_POI, "")).thenReturn(sampleCurrentPOI.toJsonString());
 
         // lastEntered POI
-        when(placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI, "")).thenReturn(sampleLastEnteredPOI.toJsonString());
+        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI, "")).thenReturn(sampleLastEnteredPOI.toJsonString());
 
         // lastExited POI
-        when(placesDataStore.getString(PlacesConstants.DataStoreKeys.LAST_EXITED_POI, "")).thenReturn(sampleLastExitedPOI.toJsonString());
+        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI, "")).thenReturn(sampleLastExitedPOI.toJsonString());
 
-        when(placesDataStore.getString(PlacesConstants.DataStoreKeys.AUTH_STATUS, PlacesAuthorizationStatus.DEFAULT_VALUE)).thenReturn(PlacesAuthorizationStatus.ALWAYS.stringValue());
+        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.AUTH_STATUS, PlacesAuthorizationStatus.DEFAULT_VALUE)).thenReturn(PlacesAuthorizationStatus.ALWAYS.stringValue());
 
-        when(placesDataStore.getLong(PlacesConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL, 0)).thenReturn(SAMPLE_MEMBERSHIP_VALID_UNTIL_TIMESTAMP);
+        when(placesDataStore.getLong(PlacesTestConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL, 0)).thenReturn(SAMPLE_MEMBERSHIP_VALID_UNTIL_TIMESTAMP);
     }
 
 
     private LinkedHashMap<String, PlacesPOI> getPersistedCachedPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesConstants.DataStoreKeys.NEARBYPOIS), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.NEARBYPOIS), persistenceValueCaptor.capture());
         final LinkedHashMap<String, PlacesPOI> cachedPOIs = new LinkedHashMap<>();
         final String nearbyString = persistenceValueCaptor.getValue();
         final JSONObject nearbyJSON = new JSONObject(nearbyString);
@@ -944,52 +944,52 @@ public class PlacesStateTests {
 
     private PlacesPOI getPersistedLastEnteredPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI), persistenceValueCaptor.capture());
         return new PlacesPOI((persistenceValueCaptor.getValue()));
     }
 
     private PlacesPOI getPersistedLastExitedPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesConstants.DataStoreKeys.LAST_EXITED_POI), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), persistenceValueCaptor.capture());
         return new PlacesPOI((persistenceValueCaptor.getValue()));
     }
 
     private PlacesPOI getPersistedCurrentPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesConstants.DataStoreKeys.CURRENT_POI), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.CURRENT_POI), persistenceValueCaptor.capture());
         return new PlacesPOI((persistenceValueCaptor.getValue()));
     }
 
     private String getPersistedPermissionStatus() {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesConstants.DataStoreKeys.AUTH_STATUS), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.AUTH_STATUS), persistenceValueCaptor.capture());
         return persistenceValueCaptor.getValue();
     }
 
     private long getPersistedMembershipValidUntilTimestamp() {
         ArgumentCaptor<Long> persistenceValueCaptor = ArgumentCaptor.forClass(Long.class);
-        verify(placesDataStore, times(1)).setLong(eq(PlacesConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1)).setLong(eq(PlacesTestConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL), persistenceValueCaptor.capture());
         return persistenceValueCaptor.getValue();
     }
 
     private void verifyLastEnteredPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesConstants.DataStoreKeys.LAST_ENTERED_POI), any());
+        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI), any());
     }
 
     private void verifyCurrentPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesConstants.DataStoreKeys.CURRENT_POI), any());
+        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.CURRENT_POI), any());
     }
 
     private void verifyLastExcitedPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesConstants.DataStoreKeys.LAST_EXITED_POI), any());
+        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), any());
     }
 
     private void verifyNearbyPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesConstants.DataStoreKeys.NEARBYPOIS), any());
+        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.NEARBYPOIS), any());
     }
 
     private void verifyAuthStatusNotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesConstants.DataStoreKeys.AUTH_STATUS), any());
+        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.AUTH_STATUS), any());
     }
 
     private PlacesQueryResponse GetSampleSuccessPlacesResponse(final int containsUserPOICount, final int nearByPOIsCount) {

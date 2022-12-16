@@ -315,8 +315,8 @@ public class PlacesExtensionTests {
 	public void handleGetUserWithinPOIsEvent_Happy() {
 		// setup
 		HashMap<String, Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
+		data.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
 
 		Event testEvent = new Event.Builder("Get UserWithin POIs event", EventType.PLACES,
 				EventSource.REQUEST_CONTENT).setEventData(data).build();
@@ -343,8 +343,8 @@ public class PlacesExtensionTests {
 	public void handleGetLastKnownLocation_Happy() {
 		// setup
 		HashMap<String, Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
+		data.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
 
 		Event testEvent = new Event.Builder("Get Last known location", EventType.PLACES,
 				EventSource.REQUEST_CONTENT).setEventData(data).build();
@@ -366,8 +366,8 @@ public class PlacesExtensionTests {
 	public void handleGetLastKnownLocation_When_NullLocationReturned() {
 		// setup
 		HashMap<String, Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
+		data.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
 
 		Event testEvent = new Event.Builder("Get Last known location", EventType.PLACES,
 				EventSource.REQUEST_CONTENT).setEventData(data).build();
@@ -377,7 +377,7 @@ public class PlacesExtensionTests {
 		extension.handlePlacesRequestEvent(testEvent);
 
 		// verify the interaction with dispatcher
-		verify(placesDispatcher).dispatchLastKnownLocation(eq(PlacesConstants.INVALID_LAT_LON), eq(PlacesConstants.INVALID_LAT_LON), eq(testEvent));
+		verify(placesDispatcher).dispatchLastKnownLocation(eq(PlacesTestConstants.INVALID_LAT_LON), eq(PlacesTestConstants.INVALID_LAT_LON), eq(testEvent));
 	}
 
 	// ========================================================================================
@@ -425,10 +425,10 @@ public class PlacesExtensionTests {
 		// setup
 		setConfigurationSharedState("optedin");
 		HashMap<String, Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.LATITUDE, 44.2);
-		data.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, -2124.33);
-		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
+		data.put(PlacesTestConstants.EventDataKeys.Places.LATITUDE, 44.2);
+		data.put(PlacesTestConstants.EventDataKeys.Places.LONGITUDE, -2124.33);
+		data.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
 
 		Event testEvent = new Event.Builder("Get nearby places event", EventType.PLACES,
 				EventSource.REQUEST_CONTENT).setEventData(data).build();
@@ -445,27 +445,27 @@ public class PlacesExtensionTests {
 	// ========================================================================================
 	private HashMap<String, Object> setConfigurationSharedState(final String privacyStatus) {
 		HashMap<String, Object> configData = new HashMap<>();
-		configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, privacyStatus);
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, privacyStatus);
 		List<Map<String, String>> libraries = new ArrayList<>();
 
 		for (int i = 0; i < 2; i++) {
 			Map<String, String> library = new HashMap<>();
-			library.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib" + (i + 1));
+			library.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib" + (i + 1));
 			libraries.add(library);
 		}
 
-		configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
-		configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, "endpoint");
-		configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL, SAMPLE_TTL);
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, "endpoint");
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL, SAMPLE_TTL);
 
-		when(extensionApi.getSharedState(eq(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME), any(), anyBoolean(), any()))
+		when(extensionApi.getSharedState(eq(PlacesTestConstants.EventDataKeys.Configuration.EXTENSION_NAME), any(), anyBoolean(), any()))
 				.thenReturn(new SharedStateResult(SharedStateStatus.SET, configData));
 		return configData;
 	}
 
 	private HashMap<String, Object> resetConfigurationSharedState() {
 		HashMap<String, Object> configData = new HashMap<>();
-		when(extensionApi.getSharedState(eq(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME), any(), anyBoolean(), any()))
+		when(extensionApi.getSharedState(eq(PlacesTestConstants.EventDataKeys.Configuration.EXTENSION_NAME), any(), anyBoolean(), any()))
 				.thenReturn(new SharedStateResult(SharedStateStatus.NONE, configData));
 		return configData;
 	}
@@ -473,8 +473,8 @@ public class PlacesExtensionTests {
 	private HashMap<String, Object> setInvalidConfigurationSharedState() {
 		// Configuration shared state with no places properties
 		HashMap<String, Object> configData = new HashMap<>();
-		configData.put(PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, "optedin");
-		when(extensionApi.getSharedState(eq(PlacesConstants.EventDataKeys.Configuration.EXTENSION_NAME), any(), anyBoolean(), any()))
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY, "optedin");
+		when(extensionApi.getSharedState(eq(PlacesTestConstants.EventDataKeys.Configuration.EXTENSION_NAME), any(), anyBoolean(), any()))
 				.thenReturn(new SharedStateResult(SharedStateStatus.SET, configData));
 		return configData;
 	}
@@ -486,11 +486,11 @@ public class PlacesExtensionTests {
 
 	private Event testGetNearByPOIEvent() {
 		HashMap<String, Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.LATITUDE, 34.33);
-		data.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, -124.33);
-		data.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, 20);
-		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
+		data.put(PlacesTestConstants.EventDataKeys.Places.LATITUDE, 34.33);
+		data.put(PlacesTestConstants.EventDataKeys.Places.LONGITUDE, -124.33);
+		data.put(PlacesTestConstants.EventDataKeys.Places.PLACES_COUNT, 20);
+		data.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
 
 		return new Event.Builder("Get nearby places event", EventType.PLACES,
 				EventSource.REQUEST_CONTENT).setEventData(data).build();
@@ -499,11 +499,11 @@ public class PlacesExtensionTests {
 	private Event testSetLocationPermissionStatusEvent(final String status) {
 
 		HashMap<String, Object> eventData = new HashMap<>();
-		eventData.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
-		eventData.put(PlacesConstants.EventDataKeys.Places.AUTH_STATUS, status);
+		eventData.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
+		eventData.put(PlacesTestConstants.EventDataKeys.Places.AUTH_STATUS, status);
 
-		return new Event.Builder(PlacesConstants.EventName.REQUEST_SETAUTHORIZATIONSTATUS, EventType.PLACES,
+		return new Event.Builder(PlacesTestConstants.EventName.REQUEST_SETAUTHORIZATIONSTATUS, EventType.PLACES,
 				EventSource.REQUEST_CONTENT)
 				.setEventData(eventData)
 				.build();
@@ -511,10 +511,10 @@ public class PlacesExtensionTests {
 
 	private Event testGeofenceEvent() {
 		HashMap<String, Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.REGION_ID, "regionID");
-		data.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, 1);
-		data.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
+		data.put(PlacesTestConstants.EventDataKeys.Places.REGION_ID, "regionID");
+		data.put(PlacesTestConstants.EventDataKeys.Places.REGION_EVENT_TYPE, 1);
+		data.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+				PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
 
 		return new Event.Builder("Geofence event", EventType.PLACES,
 				EventSource.REQUEST_CONTENT).setEventData(data).build();

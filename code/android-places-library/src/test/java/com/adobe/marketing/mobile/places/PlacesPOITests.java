@@ -280,14 +280,14 @@ public class PlacesPOITests {
 				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
 
 		// test
-		assertEquals(SAMPLE_IDENTIFIER ,poi.toMap().get(PlacesConstants.POIKeys.IDENTIFIER));
-		assertEquals(SAMPLE_NAME ,poi.toMap().get(PlacesConstants.POIKeys.NAME));
-		assertEquals(SAMPLE_LATITUDE ,poi.toMap().get(PlacesConstants.POIKeys.LATITUDE));
-		assertEquals(SAMPLE_LONGITUDE ,poi.toMap().get(PlacesConstants.POIKeys.LONGITUDE));
-		assertEquals(SAMPLE_RADIUS ,poi.toMap().get(PlacesConstants.POIKeys.RADIUS));
-		assertEquals(SAMPLE_LIBRARY ,poi.toMap().get(PlacesConstants.POIKeys.LIBRARY));
-		assertEquals(SAMPLE_WEIGHT ,poi.toMap().get(PlacesConstants.POIKeys.WEIGHT));
-		assertEquals(SAMPLE_METADATA ,poi.toMap().get(PlacesConstants.POIKeys.METADATA));
+		assertEquals(SAMPLE_IDENTIFIER ,poi.toMap().get(PlacesTestConstants.POIKeys.IDENTIFIER));
+		assertEquals(SAMPLE_NAME ,poi.toMap().get(PlacesTestConstants.POIKeys.NAME));
+		assertEquals(SAMPLE_LATITUDE ,poi.toMap().get(PlacesTestConstants.POIKeys.LATITUDE));
+		assertEquals(SAMPLE_LONGITUDE ,poi.toMap().get(PlacesTestConstants.POIKeys.LONGITUDE));
+		assertEquals(SAMPLE_RADIUS ,poi.toMap().get(PlacesTestConstants.POIKeys.RADIUS));
+		assertEquals(SAMPLE_LIBRARY ,poi.toMap().get(PlacesTestConstants.POIKeys.LIBRARY));
+		assertEquals(SAMPLE_WEIGHT ,poi.toMap().get(PlacesTestConstants.POIKeys.WEIGHT));
+		assertEquals(SAMPLE_METADATA ,poi.toMap().get(PlacesTestConstants.POIKeys.METADATA));
 	}
 
 	@Test
@@ -297,11 +297,11 @@ public class PlacesPOITests {
 				null, SAMPLE_WEIGHT, null);
 
 		// test
-		assertEquals(0.00 ,poi.toMap().get(PlacesConstants.POIKeys.LATITUDE));
-		assertEquals(999.999 ,poi.toMap().get(PlacesConstants.POIKeys.LONGITUDE));
-		assertEquals(0 ,poi.toMap().get(PlacesConstants.POIKeys.RADIUS));
-		assertNull(poi.toMap().get(PlacesConstants.POIKeys.LIBRARY));
-		assertNull(poi.toMap().get(PlacesConstants.POIKeys.METADATA));
+		assertEquals(0.00 ,poi.toMap().get(PlacesTestConstants.POIKeys.LATITUDE));
+		assertEquals(999.999 ,poi.toMap().get(PlacesTestConstants.POIKeys.LONGITUDE));
+		assertEquals(0 ,poi.toMap().get(PlacesTestConstants.POIKeys.RADIUS));
+		assertNull(poi.toMap().get(PlacesTestConstants.POIKeys.LIBRARY));
+		assertNull(poi.toMap().get(PlacesTestConstants.POIKeys.METADATA));
 	}
 
 }
