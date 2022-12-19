@@ -45,7 +45,7 @@ public enum PlacesAuthorizationStatus {
 	WHEN_IN_USE("wheninuse");
 
 	private final String authStatus;
-	public static String DEFAULT_VALUE = PlacesAuthorizationStatus.UNKNOWN.stringValue();
+	static String DEFAULT_VALUE = PlacesAuthorizationStatus.UNKNOWN.stringValue();
 
 	PlacesAuthorizationStatus(final String authStatus) {
 		this.authStatus = authStatus;

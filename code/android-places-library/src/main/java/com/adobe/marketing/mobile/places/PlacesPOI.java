@@ -114,7 +114,7 @@ public class PlacesPOI {
         final JSONObject metadataJSON = poiJson.optJSONObject(PlacesConstants.POIKeys.METADATA);
 
         if (metadataJSON != null) {
-            this.metadata = JSONUtils.convertJsonObjectToStringMap(metadataJSON);
+            this.metadata = PlacesUtil.convertPOIMetadataToStringMap(metadataJSON);
         }
     }
 

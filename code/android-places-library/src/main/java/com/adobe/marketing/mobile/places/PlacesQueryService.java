@@ -272,7 +272,7 @@ class PlacesQueryService {
 			final JSONObject poiMetadata = poiJson.optJSONObject(PlacesConstants.QueryResponseJsonKeys.POI_METADATA);
 
 			if (poiMetadata != null) {
-				final Map<String, String> metadata = JSONUtils.convertJsonObjectToStringMap(poiMetadata);
+				final Map<String, String> metadata = PlacesUtil.convertPOIMetadataToStringMap(poiMetadata);
 				placesPOI.setMetadata(metadata);
 			}
 

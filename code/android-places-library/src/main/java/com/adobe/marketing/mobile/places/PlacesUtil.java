@@ -11,8 +11,17 @@
 
 package com.adobe.marketing.mobile.places;
 
+import androidx.annotation.NonNull;
+
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +30,8 @@ public class PlacesUtil {
 	private static final double MIN_LAT		= -90d;
 	private static final double MAX_LON		= 180d;
 	private static final double MIN_LON		= -180d;
+
+	private static final String CLASS_NAME = "PlacesUtil";
 
 	/**
 	 * Verifies if the provided latitude is valid.
@@ -31,7 +42,6 @@ public class PlacesUtil {
 	public static boolean isValidLat(final double latitude) {
 		return latitude >= MIN_LAT && latitude <= MAX_LAT;
 	}
-
 
 	/**
 	 * Verifies if the provided longitude is valid.
@@ -79,5 +89,24 @@ public class PlacesUtil {
 			poiMapList.add(poi);
 		}
 		return poiMapList;
+	}
+
+	static Map<String, String> convertPOIMetadataToStringMap(@NonNull final JSONObject jsonObject) {
+		final Map<String, String> map = new HashMap<>();
+		final Iterator<String> keys = jsonObject.keys();
+		while (keys.hasNext()) {
+			final String key = keys.next();
+			try {
+				final Object value = jsonObject.get(key);
+				if (value instanceof JSONObject || value instanceof JSONArray) {
+					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("Ignoring POI metadata with key: %s which contains invalid datatype.", key));
+					continue;
+				}
+				map.put(key, value.toString());
+			} catch (final Exception e) {
+				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] is not supported: %s", key, e);
+			}
+		}
+		return map;
 	}
 }
