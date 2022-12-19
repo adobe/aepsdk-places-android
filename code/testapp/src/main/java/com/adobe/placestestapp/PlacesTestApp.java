@@ -3,6 +3,7 @@ package com.adobe.placestestapp;
 import android.app.Application;
 import android.util.Log;
 
+import com.adobe.marketing.mobile.Assurance;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.Places;
@@ -17,7 +18,7 @@ public class PlacesTestApp extends Application {
 		super.onCreate();
 		MobileCore.setApplication(this);
 		MobileCore.setLogLevel(LoggingMode.VERBOSE);
-		MobileCore.registerExtensions(Arrays.asList(Places.EXTENSION), null);
+		MobileCore.registerExtensions(Arrays.asList(Places.EXTENSION, Assurance.EXTENSION), null);
 
 		try {
 			Places.registerExtension();
@@ -27,7 +28,7 @@ public class PlacesTestApp extends Application {
 		}
 
 		MobileCore.start(null);
-		MobileCore.configureWithAppID("launch-EN81be7cedb7f14132968641a6ec683adf");
+		MobileCore.configureWithAppID("");
 		HashMap<String, Object> cong = new HashMap<String, Object>();
 		cong.put("places.membershipttl", 50);
 		MobileCore.updateConfiguration(cong);
