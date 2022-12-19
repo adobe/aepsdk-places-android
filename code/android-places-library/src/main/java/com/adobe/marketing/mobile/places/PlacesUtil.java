@@ -64,7 +64,7 @@ public class PlacesUtil {
 	 * @return {@code List} of {@code PlacesPOI}
 	 */
 	public static List<PlacesPOI> convertMapToPOIList(final List<Map> poiMap) {
-		List<PlacesPOI> poiMapList = new ArrayList<PlacesPOI>();
+		List<PlacesPOI> poiMapList = new ArrayList<>();
 		for (final Map<String, Object> eachMap : poiMap) {
 			PlacesPOI poi = new PlacesPOI(
 					DataReader.optString(eachMap, PlacesConstants.POIKeys.IDENTIFIER, null),

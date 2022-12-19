@@ -13,9 +13,12 @@ package com.adobe.marketing.mobile.places;
 
 import androidx.annotation.NonNull;
 import com.adobe.marketing.mobile.services.Log;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 class JSONUtils {
@@ -28,12 +31,7 @@ class JSONUtils {
             final String key = keys.next();
             try {
                 final Object value = jsonObject.get(key);
-                if (value instanceof String) {
-                    final String stringValue = (String) value;
-                    map.put(key, stringValue);
-                } else {
-                    Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] : %s is not String:", key, value);
-                }
+                map.put(key, value.toString());
             } catch (final Exception e) {
                 Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "The value of [%s] is not supported: %s", key, e);
             }

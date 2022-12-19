@@ -222,7 +222,7 @@ class PlacesState {
 	 * @return A list containing POIs that the user is in. Return empty array if there is no POI that contains user
 	 */
 	List<PlacesPOI> getUserWithInPOIs() {
-		final ArrayList<PlacesPOI> userWithInPOIs = new ArrayList<PlacesPOI>();
+		final ArrayList<PlacesPOI> userWithInPOIs = new ArrayList<>();
 
 		for (final PlacesPOI eachPOI : cachedPOIs.values()) {
 			if (eachPOI.containsUser()) {
@@ -297,7 +297,7 @@ class PlacesState {
 	 *
 	 * @param status the string value of {@link PlacesAuthorizationStatus} that needs to be persisted
 	 */
-	public void setAuthorizationStatus(final String status) {
+	void setAuthorizationStatus(final String status) {
 		this.authStatus = status;
 
 		if (this.authStatus == null) {
@@ -450,9 +450,9 @@ class PlacesState {
 				final String jsonString = nearbyPOIsJSON.toString();
 				placesDataStore.setString(PlacesConstants.DataStoreKeys.NEARBYPOIS, jsonString);
 				Log.trace(PlacesConstants.LOG_TAG, CLASS_NAME, "nearbyPOIs persisted, %s", jsonString);
-			} catch (final JSONException e) {
+			} catch (final Exception e) {
 				Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
-						String.format("Unable to persist nearByPOIs in persistence, JSONException: %s", e.getLocalizedMessage()));
+						String.format("Unable to persist nearByPOIs in persistence, Exception: %s", e.getLocalizedMessage()));
 			}
 		} else {
 			placesDataStore.remove(PlacesConstants.DataStoreKeys.NEARBYPOIS);

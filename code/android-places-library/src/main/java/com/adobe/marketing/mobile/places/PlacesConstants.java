@@ -11,9 +11,9 @@
 
 package com.adobe.marketing.mobile.places;
 
-public final class PlacesConstants {
+final class PlacesConstants {
 
-	public static final String LOG_TAG = "Places";
+	static final String LOG_TAG = "Places";
 	static final String FRIENDLY_NAME = "Places";
 	static final String MODULE_NAME = "com.adobe.module.places";
 
@@ -22,25 +22,6 @@ public final class PlacesConstants {
 	static final long DEFAULT_MEMBERSHIP_TTL = 60 * 60;  // 1 hour in seconds
 	static final double INVALID_LAT_LON 	= 999.999d;
 	private PlacesConstants() {
-	}
-
-	public static final class EventName {
-		// places request content event names
-		public static final String REQUEST_GETUSERWITHINPLACES = "requestgetuserwithinplaces";
-		public static final String REQUEST_GETLASTKNOWNLOCATION = "requestgetlastknownlocation";
-		public static final String REQUEST_GETNEARBYPLACES = "requestgetnearbyplaces";
-		public static final String REQUEST_PROCESSREGIONEVENT = "requestprocessregionevent";
-		public static final String REQUEST_RESET = "requestreset";
-		public static final String REQUEST_SETAUTHORIZATIONSTATUS = "requestsetauthorizationstatus";
-
-		// places response content event names
-		public static final String RESPONSE_GETNEARBYPLACES = "responsegetnearbyplaces";
-		public static final String RESPONSE_PROCESSREGIONEVENT = "responseprocessregionevent";
-		public static final String RESPONSE_GETUSERWITHINPLACES = "responsegetuserwithinplaces";
-		public static final String RESPONSE_GETLASTKNOWNLOCATION = "responsegetlastknownlocation";
-
-		private EventName() {
-		}
 	}
 
 	static final class DataStoreKeys {
@@ -105,49 +86,57 @@ public final class PlacesConstants {
 		}
 	}
 
-	public static final class EventDataKeys {
-		static final String STATE_OWNER = "stateowner";
+	static final class EventName {
+		// places response content event names
+		static final String RESPONSE_GETNEARBYPLACES = "responsegetnearbyplaces";
+		static final String RESPONSE_PROCESSREGIONEVENT = "responseprocessregionevent";
+		static final String RESPONSE_GETUSERWITHINPLACES = "responsegetuserwithinplaces";
+		static final String RESPONSE_GETLASTKNOWNLOCATION = "responsegetlastknownlocation";
 
+		private EventName() {
+		}
+	}
+
+	static final class EventDataKeys {
 
 		private EventDataKeys() {
 		}
 
-		public static final class Places {
-			public 	static final String MODULE_NAME = "com.adobe.module.places";
+		static final class Places {
 
 			// Places Request Content event keys
-			public static final String PLACES_COUNT = "count";
-			public static final String LATITUDE = "latitude";
-			public static final String LONGITUDE = "longitude";
+			static final String PLACES_COUNT = "count";
+			static final String LATITUDE = "latitude";
+			static final String LONGITUDE = "longitude";
 
 			// Places Response Content event keys
-			public static final String NEAR_BY_PLACES_LIST = "nearbypois";
-			public static final String RESULT_STATUS = "status";
-			public static final String USER_WITHIN_POIS = "userwithinpois";
-			public static final String TRIGGERING_REGION = "triggeringregion";
+			static final String NEAR_BY_PLACES_LIST = "nearbypois";
+			static final String RESULT_STATUS = "status";
+			static final String USER_WITHIN_POIS = "userwithinpois";
+			static final String TRIGGERING_REGION = "triggeringregion";
 
 			// request types
-			public static final String REQUEST_TYPE = "requesttype";
-			public static final String REQUEST_TYPE_GET_NEARBY_PLACES = "requestgetnearbyplaces";
-			public static final String REQUEST_TYPE_PROCESS_REGION_EVENT = "requestprocessregionevent";
-			public static final String REQUEST_TYPE_GET_USER_WITHIN_PLACES = "requestgetuserwithinplaces";
-			public static final String REQUEST_TYPE_GET_LAST_KNOWN_LOCATION = "requestgetlastknownlocation";
-			public static final String REQUEST_TYPE_RESET = "requestreset";
-			public static final String REQUEST_TYPE_SET_AUTHORIZATION_STATUS = "requestsetauthorizationstatus";
+			static final String REQUEST_TYPE = "requesttype";
+			static final String REQUEST_TYPE_GET_NEARBY_PLACES = "requestgetnearbyplaces";
+			static final String REQUEST_TYPE_PROCESS_REGION_EVENT = "requestprocessregionevent";
+			static final String REQUEST_TYPE_GET_USER_WITHIN_PLACES = "requestgetuserwithinplaces";
+			static final String REQUEST_TYPE_GET_LAST_KNOWN_LOCATION = "requestgetlastknownlocation";
+			static final String REQUEST_TYPE_RESET = "requestreset";
+			static final String REQUEST_TYPE_SET_AUTHORIZATION_STATUS = "requestsetauthorizationstatus";
 
 			// Region Keys
 			static final String REGION_NAME = "regionname";
-			public static final String REGION_ID = "regionid";
-			public static final String REGION_EVENT_TYPE = "regioneventtype";
+			static final String REGION_ID = "regionid";
+			static final String REGION_EVENT_TYPE = "regioneventtype";
 			static final String REGION_METADATA = "regionmetadata";
 			static final String REGION_TIMESTAMP = "timestamp";
 
 			// last known location keys
-			public static final String LAST_KNOWN_LATITUDE = "lastknownlatitude";
-			public static final String LAST_KNOWN_LONGITUDE = "lastknownlongitude";
+			static final String LAST_KNOWN_LATITUDE = "lastknownlatitude";
+			static final String LAST_KNOWN_LONGITUDE = "lastknownlongitude";
 
 			// places authorization status
-			public static final String AUTH_STATUS = "authstatus";
+			static final String AUTH_STATUS = "authstatus";
 
 			private Places() {
 			}

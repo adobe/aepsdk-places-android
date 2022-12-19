@@ -171,7 +171,7 @@ public class PlacesPOI {
         this.metadata = metadata;
     }
 
-    public void setWeight(final int weight) {
+    void setWeight(final int weight) {
         this.weight = weight;
     }
 
@@ -199,7 +199,7 @@ public class PlacesPOI {
 
     }
 
-    public boolean equalsWithOutMetaData(final Object o) {
+    boolean equalsWithOutMetaData(final Object o) {
         if (this == o) {
             return true;
         }
@@ -283,7 +283,7 @@ public class PlacesPOI {
         return result;
     }
 
-    public Map<String, Object> toMap() {
+    Map<String, Object> toMap() {
         final Map<String, Object> poiMap = new HashMap<>();
         poiMap.put(PlacesConstants.POIKeys.IDENTIFIER, this.identifier);
         poiMap.put(PlacesConstants.POIKeys.NAME, this.name);
@@ -297,7 +297,7 @@ public class PlacesPOI {
         return poiMap;
     }
 
-    public String toJsonString() {
+    String toJsonString() {
         final JSONObject jsonObject = new JSONObject(toMap());
         return jsonObject.toString();
     }

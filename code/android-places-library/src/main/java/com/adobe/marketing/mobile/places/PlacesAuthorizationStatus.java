@@ -67,7 +67,7 @@ public enum PlacesAuthorizationStatus {
 	 *
 	 * @return {@link PlacesAuthorizationStatus} value for provided status string
 	 */
-	public static PlacesAuthorizationStatus get(final String statusString) {
+	static PlacesAuthorizationStatus get(final String statusString) {
 		return lookup.get(statusString);
 	}
 
@@ -77,7 +77,7 @@ public enum PlacesAuthorizationStatus {
 	 *
 	 * @return {@code boolean} indicating the validity of the provided status string.
 	 */
-	public static boolean isValidStatus(final String statusString) {
+	static boolean isValidStatus(final String statusString) {
 		return lookup.containsKey(statusString);
 	}
 
