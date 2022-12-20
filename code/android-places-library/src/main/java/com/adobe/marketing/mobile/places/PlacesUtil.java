@@ -91,6 +91,12 @@ public class PlacesUtil {
 		return poiMapList;
 	}
 
+	/**
+	 * Converts provided metadata {@link JSONObject} into {@link Map}<String,String>
+	 *
+	 * @param jsonObject {@code JSONObject} from server response representing the POI's metadata
+	 * @return {@code Map} containing cleaned POIMetadata
+	 */
 	static Map<String, String> convertPOIMetadataToStringMap(@NonNull final JSONObject jsonObject) {
 		final Map<String, String> map = new HashMap<>();
 		final Iterator<String> keys = jsonObject.keys();
@@ -98,6 +104,7 @@ public class PlacesUtil {
 			final String key = keys.next();
 			try {
 				final Object value = jsonObject.get(key);
+				// Metadata should only contain values that are primitive datatype, hence ignoring Map or Array values
 				if (value instanceof JSONObject || value instanceof JSONArray) {
 					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("Ignoring POI metadata with key: %s which contains invalid datatype.", key));
 					continue;
