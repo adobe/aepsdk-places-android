@@ -13,9 +13,7 @@ package com.adobe.marketing.mobile;
 import android.location.Location;
 import com.adobe.marketing.mobile.places.PlacesAuthorizationStatus;
 import com.adobe.marketing.mobile.places.PlacesExtension;
-import com.adobe.marketing.mobile.places.PlacesConstants;
 import com.adobe.marketing.mobile.places.PlacesPOI;
-import com.adobe.marketing.mobile.places.PlacesRegion;
 import com.adobe.marketing.mobile.places.PlacesRequestError;
 import com.adobe.marketing.mobile.places.PlacesUtil;
 import com.adobe.marketing.mobile.services.Log;
@@ -38,6 +36,9 @@ public class Places {
 	private static final String CLASS_NAME = "Places";
 	private static final long EVENT_RESPONSE_TIMEOUT = 5000L;
 
+	// Constants
+	static final String LOG_TAG = "Places";
+
 	private Places() { }
 
 	// =======================================================================
@@ -55,7 +56,7 @@ public class Places {
 			if (extensionError == null) {
 				return;
 			}
-			Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "There was an error when registering the Places extension: %s",
+			Log.error(LOG_TAG, CLASS_NAME, "There was an error when registering the Places extension: %s",
 					extensionError.getErrorName());
 		});
 	}
@@ -104,21 +105,21 @@ public class Places {
 	public static void processGeofenceEvent(final GeofencingEvent geofencingEvent) {
 
 		if (geofencingEvent.hasError()) {
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent. Provided GeofencingEvent has an error. ErrorCode: %d ", geofencingEvent.getErrorCode());
+			Log.warning(LOG_TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent. Provided GeofencingEvent has an error. ErrorCode: %d ", geofencingEvent.getErrorCode());
 			return;
 		}
 
 		final String regionEventType = getRegionTransitionType(geofencingEvent.getGeofenceTransition());
 
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring call to processGeofenceEvent. Transition type of GeofencingEvent is not recognized.");
+			Log.warning(LOG_TAG, CLASS_NAME, "Ignoring call to processGeofenceEvent. Transition type of GeofencingEvent is not recognized.");
 			return;
 		}
 
 		final List<Map<String,Object>> regions = createRegionsEventData(geofencingEvent.getTriggeringGeofences(), regionEventType);
 
 		if (regions == null) {
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent. No valid Places region found for the provided GeofencingEvent.");
+			Log.warning(LOG_TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent. No valid Places region found for the provided GeofencingEvent.");
 			return;
 		}
 
@@ -144,12 +145,12 @@ public class Places {
 	public static void processGeofence(final Geofence geofence, final int transitionType) {
 
 		if (geofence == null) {
-			Log.warning(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. Geofence object is null.");
+			Log.warning(LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. Geofence object is null.");
 		}
 
 		final String regionEventType = getRegionTransitionType(transitionType);
 		if (PlacesRegion.PLACE_EVENT_NONE.equals(regionEventType)) {
-			Log.warning(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. TransitionType of the Geofence is not recognized.");
+			Log.warning(LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. TransitionType of the Geofence is not recognized.");
 			return;
 		}
 
@@ -159,7 +160,7 @@ public class Places {
 		final List<Map<String,Object>> regions = createRegionsEventData(geofences, regionEventType);
 
 		if (regions == null) {
-			Log.debug(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. No valid Places region found for the provided Geofence");
+			Log.debug(LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. No valid Places region found for the provided Geofence");
 			return;
 		}
 
@@ -176,16 +177,16 @@ public class Places {
 	 */
 	public static void getCurrentPointsOfInterest(final AdobeCallback<List<PlacesPOI>> callback) {
 		if (callback == null) {
-			Log.debug(PlacesConstants.LOG_TAG,CLASS_NAME, "Ignoring call to getCurrentPointsOfInterest. Callback provided with getCurrentPointsOfInterest API is null.");
+			Log.debug(LOG_TAG,CLASS_NAME, "Ignoring call to getCurrentPointsOfInterest. Callback provided with getCurrentPointsOfInterest API is null.");
 			return;
 		}
 
 		// Create Event Data
 		final Map<String, Object> eventDataMap = new HashMap<>();
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
+		eventDataMap.put(EventDataKeys.REQUEST_TYPE,
+				EventDataKeys.REQUEST_TYPE_GET_USER_WITHIN_PLACES);
 
-		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_GETUSERWITHINPLACES, EventType.PLACES,
+		final Event event = new Event.Builder(EventName.REQUEST_GETUSERWITHINPLACES, EventType.PLACES,
 				EventSource.REQUEST_CONTENT)
 				.setEventData(eventDataMap)
 				.build();
@@ -208,10 +209,10 @@ public class Places {
 				}
 
 				try {
-					final List<Map> poisMap = DataReader.getTypedList(Map.class, responseEventData, PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS);
+					final List<Map> poisMap = DataReader.getTypedList(Map.class, responseEventData, EventDataKeys.USER_WITHIN_POIS);
 					callback.call(PlacesUtil.convertMapToPOIList(poisMap));
 				} catch (final DataReaderException e) {
-					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, String.format("Exception while reading POI from eventData. Returning empty POI list. Exception : %s", e.getLocalizedMessage()));
+					Log.warning(LOG_TAG, CLASS_NAME, String.format("Exception while reading POI from eventData. Returning empty POI list. Exception : %s", e.getLocalizedMessage()));
 					callback.call(new ArrayList<>());
 				}
 			}
@@ -220,7 +221,7 @@ public class Places {
 				if (userCallbackWithError != null) {
 					userCallbackWithError.fail(adobeError);
 				} else {
-					callback.call(new ArrayList<PlacesPOI>());
+					callback.call(new ArrayList<>());
 				}
 			}
 		});
@@ -238,16 +239,16 @@ public class Places {
 	public static void getLastKnownLocation(final AdobeCallback<Location> callback) {
 
 		if (callback == null) {
-			Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Ignoring call to getLastKnownLocation. Callback is null.");
+			Log.debug(LOG_TAG, CLASS_NAME, "Ignoring call to getLastKnownLocation. Callback is null.");
 			return;
 		}
 
 		// Create Event Data
 		final Map<String, Object> eventDataMap = new HashMap<>();
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
+		eventDataMap.put(EventDataKeys.REQUEST_TYPE,
+				EventDataKeys.REQUEST_TYPE_GET_LAST_KNOWN_LOCATION);
 
-		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_GETLASTKNOWNLOCATION, EventType.PLACES,
+		final Event event = new Event.Builder(EventName.REQUEST_GETLASTKNOWNLOCATION, EventType.PLACES,
 				EventSource.REQUEST_CONTENT)
 				.setEventData(eventDataMap)
 				.build();
@@ -265,16 +266,16 @@ public class Places {
 				final Map<String, Object> eventDataMap = event.getEventData();
 
 				if (eventDataMap == null || eventDataMap.isEmpty()) {
-					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Places response event have empty event data, returning null to getLastKnownLocation API call.");
+					Log.warning(LOG_TAG, CLASS_NAME, "Places response event have empty event data, returning null to getLastKnownLocation API call.");
 					callback.call(null);
 					return;
 				}
 
 				try {
-					final double latitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE);
-					final double longitude = DataReader.getDouble(eventDataMap, PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE);
+					final double latitude = DataReader.getDouble(eventDataMap, EventDataKeys.LAST_KNOWN_LATITUDE);
+					final double longitude = DataReader.getDouble(eventDataMap, EventDataKeys.LAST_KNOWN_LONGITUDE);
 					if (!(PlacesUtil.isValidLat(latitude) && PlacesUtil.isValidLon(longitude))) {
-						Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to read valid latitude and longitude from Places response event, returning null to getLastKnownLocation API call.");
+						Log.warning(LOG_TAG, CLASS_NAME, "Unable to read valid latitude and longitude from Places response event, returning null to getLastKnownLocation API call.");
 						callback.call(null);
 						return;
 					}
@@ -283,7 +284,7 @@ public class Places {
 					lastKnownLocation.setLongitude(longitude);
 					callback.call(lastKnownLocation);
 				} catch (final DataReaderException exp) {
-					Log.error(PlacesConstants.LOG_TAG, CLASS_NAME, "Unable to read latitude and longitude from Places response event");
+					Log.error(LOG_TAG, CLASS_NAME, "Unable to read latitude and longitude from Places response event");
 					userCallbackWithError.fail(AdobeError.UNEXPECTED_ERROR);
 				}
 			}
@@ -304,11 +305,11 @@ public class Places {
 	public static void clear() {
 		// Create Event Data
 		final Map<String, Object> eventDataMap = new HashMap<>();
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_RESET);
+		eventDataMap.put(EventDataKeys.REQUEST_TYPE,
+				EventDataKeys.REQUEST_TYPE_RESET);
 
 		// make an event
-		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_RESET, EventType.PLACES,
+		final Event event = new Event.Builder(EventName.REQUEST_RESET, EventType.PLACES,
 				EventSource.REQUEST_CONTENT)
 				.setEventData(eventDataMap)
 				.build();
@@ -327,17 +328,17 @@ public class Places {
 	 */
 	public static void setAuthorizationStatus(final PlacesAuthorizationStatus status) {
 		if (status == null) {
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,
+			Log.warning(LOG_TAG, CLASS_NAME,
 					"Ignoring call to setAuthorizationStatus. PlacesAuthorizationStatus cannot be set to null. Provide a valid value.");
 			return;
 		}
 
 		final Map<String, Object> eventDataMap = new HashMap<>();
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.AUTH_STATUS, status.stringValue());
+		eventDataMap.put(EventDataKeys.REQUEST_TYPE,
+				EventDataKeys.REQUEST_TYPE_SET_AUTHORIZATION_STATUS);
+		eventDataMap.put(EventDataKeys.AUTH_STATUS, status.stringValue());
 
-		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_SETAUTHORIZATIONSTATUS,
+		final Event event = new Event.Builder(EventName.REQUEST_SETAUTHORIZATIONSTATUS,
 				EventType.PLACES,
 				EventSource.REQUEST_CONTENT)
 				.setEventData(eventDataMap)
@@ -350,7 +351,7 @@ public class Places {
 	 *
 	 * @param geofences {@code List} of {@link Geofence} instances
 	 * @param regionEventType eventType for all the geofences in the list
-	 * @return a {@link List} of {@link Map<String,String>} containing geofence event details
+	 * @return a {@link List} of {@link Map} containing geofence event details
 	 */
 	private static List<Map<String,Object>> createRegionsEventData(final List<Geofence> geofences, final String regionEventType) {
 		final List<Map<String,Object>> placesRegions = new ArrayList<>();
@@ -365,8 +366,8 @@ public class Places {
 			}
 
 			final Map<String,Object> eventDataMap = new HashMap<>();
-			eventDataMap.put(PlacesConstants.EventDataKeys.Places.REGION_ID, geofence.getRequestId());
-			eventDataMap.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, regionEventType);
+			eventDataMap.put(EventDataKeys.REGION_ID, geofence.getRequestId());
+			eventDataMap.put(EventDataKeys.REGION_EVENT_TYPE, regionEventType);
 			placesRegions.add(eventDataMap);
 		}
 
@@ -381,9 +382,9 @@ public class Places {
 	 */
 	private static void sendGeofenceEvents(final List<Map<String,Object>> placesRegions) {
 		for (final Map<String,Object> placesRegion : placesRegions) {
-			placesRegion.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-					PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
-			final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_PROCESSREGIONEVENT, EventType.PLACES,
+			placesRegion.put(EventDataKeys.REQUEST_TYPE,
+					EventDataKeys.REQUEST_TYPE_PROCESS_REGION_EVENT);
+			final Event event = new Event.Builder(EventName.REQUEST_PROCESSREGIONEVENT, EventType.PLACES,
 					EventSource.REQUEST_CONTENT)
 					.setEventData(placesRegion)
 					.build();
@@ -427,13 +428,13 @@ public class Places {
 
 		// Create Event Data
 		final Map<String,Object> eventDataMap = new HashMap<>();
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.LATITUDE, location.getLatitude());
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.LONGITUDE, location.getLongitude());
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.PLACES_COUNT, placesCount);
-		eventDataMap.put(PlacesConstants.EventDataKeys.Places.REQUEST_TYPE,
-				PlacesConstants.EventDataKeys.Places.REQUEST_TYPE_GET_NEARBY_PLACES);
+		eventDataMap.put(EventDataKeys.LATITUDE, location.getLatitude());
+		eventDataMap.put(EventDataKeys.LONGITUDE, location.getLongitude());
+		eventDataMap.put(EventDataKeys.PLACES_COUNT, placesCount);
+		eventDataMap.put(EventDataKeys.REQUEST_TYPE,
+				EventDataKeys.REQUEST_TYPE_GET_NEARBY_PLACES);
 
-		final Event event = new Event.Builder(PlacesConstants.EventName.REQUEST_GETNEARBYPLACES, EventType.PLACES,
+		final Event event = new Event.Builder(EventName.REQUEST_GETNEARBYPLACES, EventType.PLACES,
 				EventSource.REQUEST_CONTENT)
 				.setEventData(eventDataMap)
 				.build();
@@ -442,7 +443,7 @@ public class Places {
 		MobileCore.dispatchEventWithResponseCallback(event, EVENT_RESPONSE_TIMEOUT, new AdobeCallbackWithError<Event>() {
 			@Override
 			public void fail(final AdobeError adobeError) {
-				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Adobe Error: %s.", adobeError.getErrorName());
+				Log.debug(LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Adobe Error: %s.", adobeError.getErrorName());
 				callErrorCallback(PlacesRequestError.UNKNOWN_ERROR);
 			}
 
@@ -457,8 +458,8 @@ public class Places {
 
 				try {
 					// retrieve the status and the list of POI's from eventData
-					final List<Map> poiMap = DataReader.getTypedList(Map.class, responseEventData, PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST);
-					final int resultStatusInteger = DataReader.getInt(responseEventData,PlacesConstants.EventDataKeys.Places.RESULT_STATUS);
+					final List<Map> poiMap = DataReader.getTypedList(Map.class, responseEventData, EventDataKeys.NEAR_BY_PLACES_LIST);
+					final int resultStatusInteger = DataReader.getInt(responseEventData,EventDataKeys.RESULT_STATUS);
 					final PlacesRequestError status = PlacesRequestError.fromInt(resultStatusInteger);
 
 					// call the successCallback if the status is OK
@@ -477,7 +478,7 @@ public class Places {
 			}
 
 			private void callErrorCallback(final PlacesRequestError requestError) {
-				Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Error code: %s.", requestError);
+				Log.debug(LOG_TAG, CLASS_NAME, "Error occurred while retrieving nearbyPOIs, Error code: %s.", requestError);
 
 				if (errorCallback != null) {
 					errorCallback.call(requestError);
@@ -490,6 +491,73 @@ public class Places {
 				}
 			}
 		});
+	}
+
+	private static final class EventDataKeys {
+		static final String STATE_OWNER = "stateowner";
+
+
+		private EventDataKeys() {
+		}
+
+			private static final String MODULE_NAME = "com.adobe.module.places";
+
+			// Places Request Content event keys
+			private static final String PLACES_COUNT = "count";
+			private static final String LATITUDE = "latitude";
+			private static final String LONGITUDE = "longitude";
+
+			// Places Response Content event keys
+			private	static final String NEAR_BY_PLACES_LIST = "nearbypois";
+			private static final String RESULT_STATUS = "status";
+			static final String USER_WITHIN_POIS = "userwithinpois";
+			static final String TRIGGERING_REGION = "triggeringregion";
+
+			// request types
+			static final String REQUEST_TYPE = "requesttype";
+			static final String REQUEST_TYPE_GET_NEARBY_PLACES = "requestgetnearbyplaces";
+			static final String REQUEST_TYPE_PROCESS_REGION_EVENT = "requestprocessregionevent";
+			static final String REQUEST_TYPE_GET_USER_WITHIN_PLACES = "requestgetuserwithinplaces";
+			static final String REQUEST_TYPE_GET_LAST_KNOWN_LOCATION = "requestgetlastknownlocation";
+			static final String REQUEST_TYPE_RESET = "requestreset";
+			static final String REQUEST_TYPE_SET_AUTHORIZATION_STATUS = "requestsetauthorizationstatus";
+
+			// Region Keys
+			static final String REGION_NAME = "regionname";
+			static final String REGION_ID = "regionid";
+			static final String REGION_EVENT_TYPE = "regioneventtype";
+			static final String REGION_METADATA = "regionmetadata";
+			static final String REGION_TIMESTAMP = "timestamp";
+
+			// last known location keys
+			static final String LAST_KNOWN_LATITUDE = "lastknownlatitude";
+			static final String LAST_KNOWN_LONGITUDE = "lastknownlongitude";
+
+			// places authorization status
+			static final String AUTH_STATUS = "authstatus";
+		}
+
+	private static final class EventName {
+		// places request content event names
+		static final String REQUEST_GETUSERWITHINPLACES = "requestgetuserwithinplaces";
+		static final String REQUEST_GETLASTKNOWNLOCATION = "requestgetlastknownlocation";
+		static final String REQUEST_GETNEARBYPLACES = "requestgetnearbyplaces";
+		static final String REQUEST_PROCESSREGIONEVENT = "requestprocessregionevent";
+		static final String REQUEST_RESET = "requestreset";
+		static final String REQUEST_SETAUTHORIZATIONSTATUS = "requestsetauthorizationstatus";
+
+		private EventName() {
+		}
+	}
+
+	private static final class PlacesRegion {
+		static final String PLACE_EVENT_NONE  = "none";
+		static final String PLACE_EVENT_ENTRY = "entry";
+		static final String PLACE_EVENT_EXIT  = "exit";
+
+		private PlacesRegion() {
+
+		}
 	}
 
 }

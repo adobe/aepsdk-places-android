@@ -47,7 +47,7 @@ class PlacesQueryService {
 
 	private final Networking networking;
 
-	public PlacesQueryService(Networking networking) {
+	PlacesQueryService(Networking networking) {
 		this.networking = networking;
 	}
 
@@ -272,7 +272,7 @@ class PlacesQueryService {
 			final JSONObject poiMetadata = poiJson.optJSONObject(PlacesConstants.QueryResponseJsonKeys.POI_METADATA);
 
 			if (poiMetadata != null) {
-				final Map<String, String> metadata = JSONUtils.convertJsonObjectToStringMap(poiMetadata);
+				final Map<String, String> metadata = PlacesUtil.convertPOIMetadataToStringMap(poiMetadata);
 				placesPOI.setMetadata(metadata);
 			}
 

@@ -16,17 +16,17 @@ import androidx.annotation.NonNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class PlacesRegion extends PlacesPOI {
+final class PlacesRegion extends PlacesPOI {
 
 	private final String              placeEventType;
 	private final long                timestamp;
 	private final PlacesPOI 			poi;
 
-	public static final String PLACE_EVENT_NONE  = "none";
-	public static final String PLACE_EVENT_ENTRY = "entry";
-	public static final String PLACE_EVENT_EXIT  = "exit";
+	static final String PLACE_EVENT_NONE  = "none";
+	static final String PLACE_EVENT_ENTRY = "entry";
+	static final String PLACE_EVENT_EXIT  = "exit";
 
-	public long getTimestamp() {
+	long getTimestamp() {
 		return timestamp;
 	}
 
