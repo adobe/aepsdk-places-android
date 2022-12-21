@@ -12,6 +12,13 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
+def isReleaseBuild() {
+    return hasProperty('release')
+}
+
+def groupIdForPublish = 'com.adobe.marketing.mobile'
+version = isReleaseBuild() ? rootProject.campaignClassicExtensionVersion : rootProject.campaignClassicExtensionVersion+"-SNAPSHOT"
+
 android.libraryVariants.all { variant ->
     tasks.withType(Javadoc) {
         source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
@@ -27,22 +34,10 @@ android.libraryVariants.all { variant ->
     }
 }
 
-task javadoc(type: Javadoc) {
-    failOnError false
-    options.memberLevel = JavadocMemberLevel.PUBLIC
-}
-
-task javadocPublish(type: Jar) {
-    from javadoc
-    archiveClassifier.set('javadoc')
-}
-
-publish.dependsOn('assemblePhone')
-
 publishing {
     publications {
         release(MavenPublication) {
-            groupId = 'com.adobe.marketing.mobile'
+            groupId = groupIdForPublish
             artifactId = rootProject.moduleName
             version = version
             artifact("$buildDir/outputs/aar/${rootProject.moduleAARName}")
@@ -51,7 +46,7 @@ publishing {
             pom {
                 name = mavenRepoName
                 description = mavenRepoDescription
-                url = 'https://aep-sdks.gitbook.io'
+                url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {
                         name = 'Adobe Proprietary'
@@ -65,9 +60,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
+                    connection = 'scm:git:github.com//adobe/aepsdk-places-android.git'
+                    developerConnection = 'scm:git:ssh://github.com//adobe/aepsdk-places-android.git'
+                    url = 'https://github.com/adobe/aepsdk-places-android'
                 }
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
@@ -83,7 +78,7 @@ publishing {
     repositories {
         maven {
             name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+            url = version.endsWith('SNAPSHOT') ? "https://oss.sonatype.org/content/repositories/snapshots/" : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
                 username = System.getenv("SONATYPE_USERNAME")
                 password = System.getenv("SONATYPE_PASSWORD")
@@ -91,6 +86,8 @@ publishing {
         }
     }
 }
+publish.dependsOn('assemblePhone')
+tasks.withType(Javadoc).all { enabled = false }
 
 ext."signing.gnupg.executable"="gpg"
 ext."signing.gnupg.keyName"=System.getenv("GPG_KEY_ID")
