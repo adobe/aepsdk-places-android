@@ -1,0 +1,199 @@
+{
+  "places": {
+    "userWithin": [
+      {
+        "p": [
+          "d74cb328-d2f3-4ea9-9af8-7dc8c3393280",
+          "Cityview Plaza",
+          "37.3325958",
+          "-121.8910217",
+          82,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "125 S Market St",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      }
+    ],
+    "pois": [
+      {
+        "p": [
+          "ba50fab5-7d98-4bd9-b0b8-129554171a8a",
+          "Pavilion Downtown",
+          "37.3334198",
+          "-121.8873444",
+          50,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "150 S. First Street",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "f7609853-5383-41eb-b619-981d68f552d2",
+          "San Pedro Sq",
+          "37.3352776",
+          "-121.8928680",
+          50,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "145 West Santa Clara Street",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "d2577fe0-df6a-4274-af6f-7addcf2a93b7",
+          "E. Santa Clara",
+          "37.3374023",
+          "-121.8883972",
+          62,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "The Alliance Building",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "779e5343-9604-41ee-a785-86359704a946",
+          "Student Union",
+          "37.3366737",
+          "-121.8801117",
+          90,
+          "Restaurants",
+          40
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "LS",
+          "city": "San Jose",
+          "street": "One Washington Square",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "e364bf37-9442-4522-8fa5-726c3e0b230f",
+          "Target College Park",
+          "37.3393631",
+          "-121.9045563",
+          42,
+          "Restaurants",
+          10
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "LS",
+          "city": "San Jose",
+          "street": "533 Coleman Ave",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "86b6f0bf-38f8-45e5-b176-42cd62c1ba98",
+          "Alameda & Julian",
+          "37.3324089",
+          "-121.9127121",
+          58,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "1338 The Alameda",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "5cd266a7-25ad-4532-a196-6bc036c0cb56",
+          "Coleman & Taylor",
+          "37.3413696",
+          "-121.9115677",
+          42,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "695 Coleman Ave",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad",
+          "Meridian & SanCarlos",
+          "37.3232841",
+          "-121.9139709",
+          78,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "1432 West San Carlos, 70",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      },
+      {
+        "p": [
+          "2b3bf31d-3c18-4310-a1a0-76f292cd8317",
+          "Monterey & Alma",
+          "37.3153191",
+          "-121.8717117",
+          82,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "US",
+          "ownership": "CO",
+          "city": "San Jose",
+          "street": "1430 Monterey Road",
+          "state": "CA",
+          "brand": "Starbucks"
+        }
+      }
+    ]
+  },
+  "input": null
+}
