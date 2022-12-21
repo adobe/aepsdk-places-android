@@ -2,12 +2,18 @@ package com.adobe.marketing.mobile.places
 
 import com.adobe.marketing.mobile.*
 
+internal typealias ConfigurationMonitor = (firstValidConfiguration: Map<String, Any>) -> Unit
+
 class MonitorExtension : Extension {
     val PLACES_MODULE_NAME = "com.adobe.module.places"
 
     companion object {
         var placesSharedState: Map<String, Any>? = null
         var latestRegionEvent: Event? = null
+        private var configurationMonitor: ConfigurationMonitor? = null
+        internal fun configurationAwareness(callback: ConfigurationMonitor) {
+            configurationMonitor = callback
+        }
     }
 
     private val extensionApi: ExtensionApi
@@ -34,6 +40,18 @@ class MonitorExtension : Extension {
         }
         api.registerEventListener(EventType.PLACES, EventSource.RESPONSE_CONTENT) {
             handlePlacesResponseContent(it)
+        }
+        api.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) { event ->
+            val result = api.getSharedState(
+                "com.adobe.module.configuration",
+                event,
+                false,
+                SharedStateResolution.LAST_SET
+            )
+            val configuration = result?.value
+            configuration?.let {
+                configurationMonitor?.let { it(configuration) }
+            }
         }
     }
 
