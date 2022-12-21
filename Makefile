@@ -6,6 +6,9 @@ check-format:
 		
 format:
 		(./code/gradlew -p code/android-places-library ktlintFormat)
+
+clean:
+	  (./code/gradlew -p code clean)
 		
 format-license:
 		(./code/gradlew -p code licenseFormat)
@@ -38,3 +41,8 @@ assemble-phone-release:
 assemble-app:
 		(./code/gradlew -p code/testapp  assemble)
 
+ci-publish-staging: clean assemble-phone-release
+		(./code/gradlew -p code/android-places-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+ci-publish-main: clean assemble-phone-release
+		(./code/gradlew -p code/android-places-library publishReleasePublicationToSonatypeRepository -Prelease)
