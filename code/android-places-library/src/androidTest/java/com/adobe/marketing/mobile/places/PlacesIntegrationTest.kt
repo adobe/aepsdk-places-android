@@ -458,10 +458,10 @@ class PlacesIntegrationTest {
     fun test_regionEntryEvent() {
         // setup
         val countDownLatch = CountDownLatch(1)
-        setNetworkResponse(fileName = "validQuery.json")
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         setupConfiguration()
+        setNetworkResponse(fileName = "validQuery.json")
 
         // test
         Places.getNearbyPointsOfInterest(mockLocation(),20,{
