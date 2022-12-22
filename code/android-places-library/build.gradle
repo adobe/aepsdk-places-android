@@ -16,6 +16,7 @@ plugins {
 }
 
 apply from: 'release.gradle'
+apply from: '../checkstyle.gradle'
 
 android {
     compileSdk 31
