@@ -34,6 +34,16 @@ android.libraryVariants.all { variant ->
     }
 }
 
+task javadoc(type: Javadoc) {
+    failOnError false
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+}
+
+task javadocPublish(type: Jar) {
+    from javadoc
+    archiveClassifier.set('javadoc')
+}
+
 publishing {
     publications {
         release(MavenPublication) {
