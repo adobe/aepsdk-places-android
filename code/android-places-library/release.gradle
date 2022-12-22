@@ -17,7 +17,7 @@ def isReleaseBuild() {
 }
 
 def groupIdForPublish = 'com.adobe.marketing.mobile'
-version = isReleaseBuild() ? rootProject.campaignClassicExtensionVersion : rootProject.campaignClassicExtensionVersion+"-SNAPSHOT"
+version = isReleaseBuild() ? rootProject.moduleVersion : rootProject.moduleVersion+"-SNAPSHOT"
 
 android.libraryVariants.all { variant ->
     tasks.withType(Javadoc) {
