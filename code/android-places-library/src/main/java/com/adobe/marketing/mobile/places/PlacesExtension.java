@@ -62,7 +62,7 @@ public class PlacesExtension extends Extension {
 	PlacesQueryService queryService;
 	PlacesState state;
 
-	protected PlacesExtension(ExtensionApi extensionApi) {
+	protected PlacesExtension(final ExtensionApi extensionApi) {
 		super(extensionApi);
 		this.extensionApi = extensionApi;
 		state = new PlacesState(ServiceProvider.getInstance().getDataStoreService());

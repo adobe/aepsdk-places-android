@@ -47,7 +47,7 @@ class PlacesQueryService {
 
 	private final Networking networking;
 
-	PlacesQueryService(Networking networking) {
+	PlacesQueryService(final Networking networking) {
 		this.networking = networking;
 	}
 
