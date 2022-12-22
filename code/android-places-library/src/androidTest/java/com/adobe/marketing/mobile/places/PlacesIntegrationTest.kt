@@ -75,7 +75,7 @@ class PlacesIntegrationTest {
         dataStore?.removeAll()
 
         SDKHelper.resetSDK()
-
+        networkMonitor = null
     }
 
     @Test
@@ -267,15 +267,11 @@ class PlacesIntegrationTest {
 
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
-        setupConfiguration(libraries = listOf("libOne", "lib2", "lib3"))
+        setupConfiguration(libraries = listOf("lib1", "lib2", "lib3"))
 
         networkMonitor = { request ->
             // verify network request made
-            //assertTrue(request.url.contains("library=lib1&library=lib2&library=lib3"))
-            //assertTrue(request.url.contains("libOne"))
-            //assertTrue(request.url.contains("lib2"))
-            assertEquals(request.url, "https://placesendpoint/placesedgequery?latitude=22.22&longitude=33.33&limit=20&library=libOne&library=lib2&library=lib3")
-//            assertTrue(request.url.contains("library=lib3"))
+            assertEquals(request.url, "https://placesendpoint/placesedgequery?latitude=22.22&longitude=33.33&limit=20&library=lib1&library=lib2&library=lib3")
             countDownLatch.countDown()
         }
 
@@ -285,7 +281,7 @@ class PlacesIntegrationTest {
         }, {})
 
         // verify
-        Assert.assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
+        Assert.assertTrue(countDownLatch.await(2, TimeUnit.SECONDS))
     }
 
     @Test
@@ -318,8 +314,6 @@ class PlacesIntegrationTest {
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         setupConfiguration()
-
-        networkMonitor = null
 
         // test
         Places.getNearbyPointsOfInterest(mockLocation(), 20, {
@@ -461,7 +455,7 @@ class PlacesIntegrationTest {
     //---------------------------------------------------------------------------------------------
     // Process Region Entry Exit
     //---------------------------------------------------------------------------------------------
-    /* @Test
+    @Test
     fun test_regionEntryEvent() {
         // setup
         val countDownLatch = CountDownLatch(1)
@@ -480,7 +474,7 @@ class PlacesIntegrationTest {
         val geofence = Geofence.Builder().setCircularRegion(
             22.22,
             33.33,
-            radius.toFloat())
+            200.0f)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
             .setNotificationResponsiveness(0)
@@ -519,7 +513,7 @@ class PlacesIntegrationTest {
         val geofence = Geofence.Builder().setCircularRegion(
             22.22,
             33.33,
-            radius.toFloat())
+            200.0f)
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT)
             .setNotificationResponsiveness(0)
@@ -539,7 +533,7 @@ class PlacesIntegrationTest {
         assertNotNull(MonitorExtension.latestRegionEvent)
         assertEquals("exit",getLastRegionEventType())
         assertEquals("Cityview Plaza",getLastRegionEventPOIName())
-    } */
+    }
 
     //---------------------------------------------------------------------------------------------
     // Private methods
