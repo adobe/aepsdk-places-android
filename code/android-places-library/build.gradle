@@ -61,7 +61,7 @@ android {
 dependencies {
     //noinspection GradleDependency
     implementation 'androidx.appcompat:appcompat:1.4.2'
-    implementation 'com.github.adobe.aepsdk-core-android:core:dev-v2.0.0-SNAPSHOT'
+    implementation 'com.adobe.marketing.mobile:core:2.0.0-SNAPSHOT'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
 
     testImplementation 'junit:junit:4.13.2'

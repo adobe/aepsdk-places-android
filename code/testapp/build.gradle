@@ -49,10 +49,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
     implementation project(':android-places-library')
-    implementation 'com.github.adobe.aepsdk-core-android:core:dev-v2.0.0-SNAPSHOT'
-    implementation('com.github.adobe:aepsdk-assurance-android:v2.0.0-alpha.1') {
-        transitive = false
-    }
+    implementation 'com.adobe.marketing.mobile:core:2.0.0-SNAPSHOT'
+    implementation 'com.adobe.marketing.mobile:assurance:2.0.0-SNAPSHOT'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     testImplementation 'junit:junit:4.13.2'
