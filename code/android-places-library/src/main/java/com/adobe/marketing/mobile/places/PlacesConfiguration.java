@@ -78,7 +78,7 @@ class PlacesConfiguration {
 		}
 
 		membershipTtl = DataReader.optLong(configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
-										   PlacesConstants.DEFAULT_MEMBERSHIP_TTL);
+				PlacesConstants.DEFAULT_MEMBERSHIP_TTL);
 		isValid = true;
 	}
 

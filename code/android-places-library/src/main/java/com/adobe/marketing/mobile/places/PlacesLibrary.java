@@ -10,19 +10,21 @@
  */
 
 package com.adobe.marketing.mobile.places;
+
 class PlacesLibrary {
-	private String libraryId;
+    private String libraryId;
 
-	PlacesLibrary(final String libraryId) {
-		this();
-		this.libraryId =  libraryId;
-	}
+    PlacesLibrary(final String libraryId) {
+        this();
+        this.libraryId = libraryId;
+    }
 
-	String getLibraryId() {
-		return libraryId;
-	}
+    String getLibraryId() {
+        return libraryId;
+    }
 
-	// hide the default constructor
-	private PlacesLibrary() {}
+    // hide the default constructor
+    private PlacesLibrary() {
+    }
 
 }

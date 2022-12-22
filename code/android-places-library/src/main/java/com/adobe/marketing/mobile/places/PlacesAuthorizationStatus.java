@@ -19,75 +19,75 @@ import java.util.Map;
  */
 public enum PlacesAuthorizationStatus {
 
-	/**
-	 * DENIED - The app can never use your location, even when you’re using the app.
-	 */
-	DENIED("denied"),
+    /**
+     * DENIED - The app can never use your location, even when you’re using the app.
+     */
+    DENIED("denied"),
 
-	/**
-	 * ALWAYS - The app can use your location at any time.
-	 */
-	ALWAYS("always"),
+    /**
+     * ALWAYS - The app can use your location at any time.
+     */
+    ALWAYS("always"),
 
-	/**
-	 * UNKNOWN - The location authorization status is unknown. This is the default authorization status.
-	 */
-	UNKNOWN("unknown"),
+    /**
+     * UNKNOWN - The location authorization status is unknown. This is the default authorization status.
+     */
+    UNKNOWN("unknown"),
 
-	/**
-	 * RESTRICTED - The location authorization status is restricted.
-	 */
-	RESTRICTED("restricted"),
+    /**
+     * RESTRICTED - The location authorization status is restricted.
+     */
+    RESTRICTED("restricted"),
 
-	/**
-	 * WHEN_IN_USE - The app can use your location only when you're using that app.
-	 */
-	WHEN_IN_USE("wheninuse");
+    /**
+     * WHEN_IN_USE - The app can use your location only when you're using that app.
+     */
+    WHEN_IN_USE("wheninuse");
 
-	private final String authStatus;
-	static String DEFAULT_VALUE = PlacesAuthorizationStatus.UNKNOWN.stringValue();
+    private final String authStatus;
+    static String DEFAULT_VALUE = PlacesAuthorizationStatus.UNKNOWN.stringValue();
 
-	PlacesAuthorizationStatus(final String authStatus) {
-		this.authStatus = authStatus;
-	}
+    PlacesAuthorizationStatus(final String authStatus) {
+        this.authStatus = authStatus;
+    }
 
-	/**
-	 * Returns the string value of the PlacesAuthorizationStatus.
-	 *
-	 * @return {@link String} representation of {@link PlacesAuthorizationStatus}
-	 */
-	public String stringValue() {
-		return authStatus;
-	}
+    /**
+     * Returns the string value of the PlacesAuthorizationStatus.
+     *
+     * @return {@link String} representation of {@link PlacesAuthorizationStatus}
+     */
+    public String stringValue() {
+        return authStatus;
+    }
 
-	/**
-	 * Returns {@link PlacesAuthorizationStatus} value of the provided string.
-	 * <p>
-	 * Returns null if the provided string is not a valid {@link PlacesAuthorizationStatus} enum value
-	 *
-	 * @return {@link PlacesAuthorizationStatus} value for provided status string
-	 */
-	static PlacesAuthorizationStatus get(final String statusString) {
-		return lookup.get(statusString);
-	}
-
-
-	/**
-	 * Checks the validity of the status string.
-	 *
-	 * @return {@code boolean} indicating the validity of the provided status string.
-	 */
-	static boolean isValidStatus(final String statusString) {
-		return lookup.containsKey(statusString);
-	}
+    /**
+     * Returns {@link PlacesAuthorizationStatus} value of the provided string.
+     * <p>
+     * Returns null if the provided string is not a valid {@link PlacesAuthorizationStatus} enum value
+     *
+     * @return {@link PlacesAuthorizationStatus} value for provided status string
+     */
+    static PlacesAuthorizationStatus get(final String statusString) {
+        return lookup.get(statusString);
+    }
 
 
-	// generate look up table on load time
-	private static final Map<String, PlacesAuthorizationStatus> lookup = new HashMap<>();
-	static
-	{
-		for (PlacesAuthorizationStatus env : PlacesAuthorizationStatus.values()) {
-			lookup.put(env.stringValue(), env);
-		}
-	}
+    /**
+     * Checks the validity of the status string.
+     *
+     * @return {@code boolean} indicating the validity of the provided status string.
+     */
+    static boolean isValidStatus(final String statusString) {
+        return lookup.containsKey(statusString);
+    }
+
+
+    // generate look up table on load time
+    private static final Map<String, PlacesAuthorizationStatus> lookup = new HashMap<>();
+
+    static {
+        for (PlacesAuthorizationStatus env : PlacesAuthorizationStatus.values()) {
+            lookup.put(env.stringValue(), env);
+        }
+    }
 }
