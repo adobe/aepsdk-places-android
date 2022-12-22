@@ -1,11 +1,5 @@
 checkstyle:
 		(./code/gradlew -p code/android-places-library checkstyle)
-		
-check-format:
-		(./code/gradlew -p code/android-places-library ktlintCheck)
-		
-format:
-		(./code/gradlew -p code/android-places-library ktlintFormat)
 
 clean:
 	  (./code/gradlew -p code clean)
@@ -28,8 +22,8 @@ functional-test-coverage:
 
 javadoc:
 	(mkdir -p ci/javadoc)
-	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) javadocPublic)
-	(cp -r ./code/$(EXTENSION-LIBRARY-FOLDER-NAME)/build ./ci/javadoc)
+	(./code/gradlew -p code/android-places-library javadocPublish)
+	(cp -r ./code/android-places-library/build ./ci/javadoc)
 
 publish:
 		(./code/gradlew -p code/android-places-library publishReleasePublicationToSonatypeRepository)
