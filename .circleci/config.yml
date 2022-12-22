@@ -12,7 +12,7 @@
 
 version: 2.1
 orbs:
-  android: circleci/android@2.0
+  android: circleci/android@2.1.2
 
 # Workflows orchestrate a set of jobs to be run;
 workflows:
@@ -31,9 +31,6 @@ jobs:
     working_directory: ~/code
     steps:
       - checkout
-      - run:
-          name: Check format
-          command: make check-format
       - run:
           name: Check style
           command: make checkstyle
