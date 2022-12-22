@@ -371,7 +371,6 @@ class PlacesIntegrationTest {
 
         // test
         Places.clear()
-        Thread.sleep(1)
         countDownLatch = CountDownLatch(1)
 
         // verify last known location is reset
@@ -460,6 +459,8 @@ class PlacesIntegrationTest {
         // setup
         val countDownLatch = CountDownLatch(1)
         setNetworkResponse(fileName = "validQuery.json")
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
         setupConfiguration()
 
         // test
@@ -499,13 +500,17 @@ class PlacesIntegrationTest {
     @Test
     fun test_regionExitEvent() {
         // setup
-        setNetworkResponse(fileName = "validQuery.json")
-        setNetworkResponse(fileName = "validQuery.json")
+        val countDownLatch = CountDownLatch(1)
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
         setupConfiguration()
+        setNetworkResponse(fileName = "validQuery.json")
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(),20,{},{})
-        Thread.sleep(500)
+        Places.getNearbyPointsOfInterest(mockLocation(),20,{
+            countDownLatch.countDown()
+        },{})
+        Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
 
         assertEquals("Cityview Plaza", getCurrentPOIName())
         assertEquals("Cityview Plaza", getLastEnteredPOIName())
