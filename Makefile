@@ -27,7 +27,9 @@ functional-test-coverage:
 		(./code/gradlew -p code/android-places-library createPhoneDebugAndroidTestCoverageReport)
 
 javadoc:
-		(./code/gradlew -p code/android-places-library dokkaJavadoc)
+	(mkdir -p ci/javadoc)
+	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) javadocPublic)
+	(cp -r ./code/$(EXTENSION-LIBRARY-FOLDER-NAME)/build ./ci/javadoc)
 
 publish:
 		(./code/gradlew -p code/android-places-library publishReleasePublicationToSonatypeRepository)
