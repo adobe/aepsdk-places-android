@@ -12,9 +12,6 @@
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
 buildscript {
-    ext {
-        compose_version = '1.0.1'
-    }
     repositories {
         maven {
             url "https://plugins.gradle.org/m2/"
