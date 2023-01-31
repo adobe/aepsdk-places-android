@@ -62,7 +62,7 @@ class MonitorExtension : Extension {
     fun handleStateChange(event: Event) {
         if (event.eventData["stateowner"] == PLACES_MODULE_NAME) {
             placesSharedState =
-                api.getSharedState(PLACES_MODULE_NAME, null, false, SharedStateResolution.ANY).value
+                api.getSharedState(PLACES_MODULE_NAME, null, false, SharedStateResolution.ANY)?.value
         }
     }
 
