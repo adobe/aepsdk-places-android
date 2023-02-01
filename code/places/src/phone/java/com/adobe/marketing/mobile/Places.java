@@ -69,6 +69,7 @@ public class Places {
 	 *
 	 * @return A {@link String} representing the extension version
 	 */
+	@NonNull
 	public static String extensionVersion() {
 		return EXTENSION_VERSION;
 	}
