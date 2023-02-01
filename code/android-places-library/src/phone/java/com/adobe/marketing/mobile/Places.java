@@ -8,6 +8,7 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+
 package com.adobe.marketing.mobile;
 
 import android.location.Location;
@@ -21,6 +22,8 @@ import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.DataReaderException;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,10 +86,10 @@ public class Places {
 	 * @param successCallback called on success, with list of {@link PlacesPOI} objects that represent the nearest POI to the device
 	 * @param errorCallback called on failure, with {@link PlacesRequestError} representing the cause of failure
 	 */
-	public static void getNearbyPointsOfInterest(final Location location,
-			final int limit,
-			final AdobeCallback<List<PlacesPOI>> successCallback,
-			final AdobeCallback<PlacesRequestError> errorCallback) {
+	public static void getNearbyPointsOfInterest(@NonNull final Location location,
+												 final int limit,
+												 @NonNull final AdobeCallback<List<PlacesPOI>> successCallback,
+												 @NonNull final AdobeCallback<PlacesRequestError> errorCallback) {
 
 		getNearbyPointsOfInterestInternal(location, limit, successCallback, errorCallback);
 	}
@@ -102,7 +105,7 @@ public class Places {
 	 *
 	 * @param geofencingEvent the {@link GeofencingEvent} object that occurred while entering/exiting a GeoFence
 	 */
-	public static void processGeofenceEvent(final GeofencingEvent geofencingEvent) {
+	public static void processGeofenceEvent(@NonNull final GeofencingEvent geofencingEvent) {
 
 		if (geofencingEvent.hasError()) {
 			Log.warning(LOG_TAG, CLASS_NAME,"Ignoring call to processGeofenceEvent. Provided GeofencingEvent has an error. ErrorCode: %d ", geofencingEvent.getErrorCode());
@@ -142,7 +145,7 @@ public class Places {
 	 * @param geofence the {@code Geofence} object obtained from the {@link GeofencingEvent}
 	 * @param transitionType an {@code int} representing the transition type for the passed geofence
 	 */
-	public static void processGeofence(final Geofence geofence, final int transitionType) {
+	public static void processGeofence(@NonNull final Geofence geofence, final int transitionType) {
 
 		if (geofence == null) {
 			Log.warning(LOG_TAG,CLASS_NAME, "Ignoring call to processGeofence. Geofence object is null.");
@@ -175,7 +178,7 @@ public class Places {
 	 *
 	 * @param callback called with the list of {@link PlacesPOI} objects that represent the POIs within which the user is currently in
 	 */
-	public static void getCurrentPointsOfInterest(final AdobeCallback<List<PlacesPOI>> callback) {
+	public static void getCurrentPointsOfInterest(@NonNull final AdobeCallback<List<PlacesPOI>> callback) {
 		if (callback == null) {
 			Log.debug(LOG_TAG,CLASS_NAME, "Ignoring call to getCurrentPointsOfInterest. Callback provided with getCurrentPointsOfInterest API is null.");
 			return;
@@ -236,7 +239,7 @@ public class Places {
 	 *
 	 * @param callback called with a {@link Location} object representing the last known lat/lon provided to the extension
 	 */
-	public static void getLastKnownLocation(final AdobeCallback<Location> callback) {
+	public static void getLastKnownLocation(@NonNull final AdobeCallback<Location> callback) {
 
 		if (callback == null) {
 			Log.debug(LOG_TAG, CLASS_NAME, "Ignoring call to getLastKnownLocation. Callback is null.");
@@ -326,7 +329,7 @@ public class Places {
 	 *
 	 * @param status the PlacesAuthorizationStatus to be set for this device
 	 */
-	public static void setAuthorizationStatus(final PlacesAuthorizationStatus status) {
+	public static void setAuthorizationStatus(@NonNull final PlacesAuthorizationStatus status) {
 		if (status == null) {
 			Log.warning(LOG_TAG, CLASS_NAME,
 					"Ignoring call to setAuthorizationStatus. PlacesAuthorizationStatus cannot be set to null. Provide a valid value.");
@@ -421,10 +424,10 @@ public class Places {
 	 * @param successCallback      {@link AdobeCallback} success callback delivering an ordered list of nearby places
 	 * @param errorCallback		   {@code AdobeCallback} error callback describing the errorStatus
 	 */
-	private static void getNearbyPointsOfInterestInternal(final Location location,
-								   final int placesCount,
-								   final AdobeCallback<List<PlacesPOI>> successCallback,
-								   final AdobeCallback<PlacesRequestError> errorCallback) {
+	private static void getNearbyPointsOfInterestInternal(@NonNull final Location location,
+														  final int placesCount,
+														  @NonNull final AdobeCallback<List<PlacesPOI>> successCallback,
+														  final AdobeCallback<PlacesRequestError> errorCallback) {
 
 		// Create Event Data
 		final Map<String,Object> eventDataMap = new HashMap<>();
