@@ -386,9 +386,20 @@ class PlacesIntegrationTest {
         assertEquals("Cityview Plaza", getLastEnteredPOIName())
         assertNull(getLastExitedPOI())
 
+        // reset
+        MonitorExtension.reset()
+
         // test
         Places.clear()
         countDownLatch = CountDownLatch(1)
+
+        // wait
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
+
+        // verify shared states are reset
+        assertNull(getCurrentPOIName())
+        assertNull(getLastEnteredPOIName())
+        assertNull(getLastExitedPOI())
 
         // verify last known location is reset
         Places.getLastKnownLocation { location ->
@@ -396,11 +407,8 @@ class PlacesIntegrationTest {
             countDownLatch.countDown()
         }
 
-        // verify shared states are reset
+        // wait and verify
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
-        assertNull(getCurrentPOIName())
-        assertNull(getLastEnteredPOIName())
-        assertNull(getLastExitedPOI())
     }
 
     //---------------------------------------------------------------------------------------------
