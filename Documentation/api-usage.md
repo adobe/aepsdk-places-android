@@ -194,6 +194,15 @@ public class GeofenceTransitionsIntentService extends IntentService {
 #### Kotlin
 
 ```kotlin
+fun onHandleIntent(intent: Intent) {
+    val geofencingEvent = GeofencingEvent.fromIntent(intent)
+
+    val geofences = geofencingEvent.getTriggeringGeofences()
+
+    if (!geofences.isEmpty()) {
+        Places.processGeofence(geofences.first(), geofencingEvent.getGeofenceTransition())
+    }
+}
 ```
 
 ## processGeofenceEvent
@@ -226,6 +235,11 @@ public class GeofenceTransitionsIntentService extends IntentService {
 #### Kotlin
 
 ```kotlin
+fun onHandleIntent(intent: Intent) {
+    val geofencingEvent = GeofencingEvent.fromIntent(intent)
+    // Call the Places API to process information
+    Places.processGeofenceEvent(geofencingEvent)
+}
 ```
 
 ## registerExtension

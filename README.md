@@ -10,7 +10,7 @@ This project contains the Places mobile extension for the Android 2.x [Adobe Exp
 
 ### Installation
 
-Integrate the Places mobile extension into your app by following the [getting started guide](Documentation/getting-started.md).
+Integrate the Places mobile extension into your app by following the [getting started guide](./Documentation/getting-started.md).
 
 ### Development
 
@@ -28,7 +28,7 @@ To open and run the project, open the `code/settings.gradle` file in Android Stu
 
 ## Documentation
 
-Additional documentation for setup and usage can be found under the [Documentation](Documentation) directory.
+Additional documentation for setup and usage can be found under the [Documentation](./Documentation) directory.
 
 ## Contributing
 
@@ -36,4 +36,4 @@ Contributions are welcomed! Read the [Contributing Guide](./.github/CONTRIBUTING
 
 ## Licensing
 
-This project is licensed under the Apache V2 License. See [LICENSE](LICENSE) for more information.
+This project is licensed under the Apache V2 License. See [LICENSE](./LICENSE) for more information.
