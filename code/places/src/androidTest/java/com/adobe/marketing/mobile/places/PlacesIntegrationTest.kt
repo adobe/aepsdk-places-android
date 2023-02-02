@@ -124,13 +124,21 @@ class PlacesIntegrationTest {
             assertEquals(10, pois.size)
             countDownLatch.countDown()
         }, { error ->
-
+            countDownLatch.countDown()
         })
 
+        // wait
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
+
+        // verify
         assertEquals("Cityview Plaza", getCurrentPOIName())
         assertEquals("Cityview Plaza", getLastEnteredPOIName())
         assertNull(getLastExitedPOI())
+
+        // verify response event is dispatched for external listeners
+        Assert.assertTrue(MonitorExtension.waitForNearByPOIExternalEvent.await(3, TimeUnit.SECONDS))
+        assertNotNull(MonitorExtension.capturedNearByPOIEvent)
     }
 
     @Test
@@ -152,7 +160,11 @@ class PlacesIntegrationTest {
         })
 
         // verify
-        Assert.assertTrue(countDownLatch.await(2, TimeUnit.SECONDS))
+        Assert.assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
+
+        // verify no event is dispatched for external listeners
+        Assert.assertFalse(MonitorExtension.waitForNearByPOIExternalEvent.await(2, TimeUnit.SECONDS))
+        assertNull(MonitorExtension.capturedNearByPOIEvent)
     }
 
     @Test
@@ -328,6 +340,10 @@ class PlacesIntegrationTest {
         }
 
         Assert.assertTrue(countDownLatch2.await(1, TimeUnit.SECONDS))
+
+        // verify response event is dispatched for external listeners
+        Assert.assertTrue(MonitorExtension.waitForLastKnownLocationExternalEvent.await(5, TimeUnit.SECONDS))
+        assertNotNull(MonitorExtension.capturedLastKnownLocationEvent)
     }
 
     @Test
@@ -365,6 +381,7 @@ class PlacesIntegrationTest {
         }, {})
 
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
         assertEquals("Cityview Plaza", getCurrentPOIName())
         assertEquals("Cityview Plaza", getLastEnteredPOIName())
         assertNull(getLastExitedPOI())
@@ -432,6 +449,10 @@ class PlacesIntegrationTest {
         }
 
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
+
+        // verify response event is dispatched for external listeners
+        Assert.assertTrue(MonitorExtension.waitForUserWithInPOIExternalEvent.await(5, TimeUnit.SECONDS))
+        assertNotNull(MonitorExtension.waitForUserWithInPOIExternalEvent)
     }
 
     @Test
@@ -469,6 +490,10 @@ class PlacesIntegrationTest {
         },{})
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
 
+        // wait
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
+
+        // verify
         assertEquals("Cityview Plaza", getCurrentPOIName())
         assertEquals("Cityview Plaza", getLastEnteredPOIName())
 
@@ -482,9 +507,15 @@ class PlacesIntegrationTest {
             .setRequestId("a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad")// for POI Meridian and SanCarlos
             .build()
 
+        // prepare
+        MonitorExtension.reset()
+
         // enter into a geofence
         Places.processGeofence(geofence, Geofence.GEOFENCE_TRANSITION_ENTER)
-        Thread.sleep(500)
+
+        // wait
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
+        MonitorExtension.waitForRegionEvent.await(3, TimeUnit.SECONDS)
 
         // verify the current and last entered POI
         assertEquals("Meridian & SanCarlos", getCurrentPOIName())
@@ -500,7 +531,7 @@ class PlacesIntegrationTest {
     @Test
     fun test_regionExitEvent() {
         // setup
-        val countDownLatch = CountDownLatch(1)
+        val callbackLatch = CountDownLatch(1)
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         setupConfiguration()
@@ -508,10 +539,14 @@ class PlacesIntegrationTest {
 
         // test
         Places.getNearbyPointsOfInterest(mockLocation(),20,{
-            countDownLatch.countDown()
+            callbackLatch.countDown()
         },{})
-        Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
 
+        // wait
+        Assert.assertTrue(callbackLatch.await(3, TimeUnit.SECONDS))
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
+
+        // verify
         assertEquals("Cityview Plaza", getCurrentPOIName())
         assertEquals("Cityview Plaza", getLastEnteredPOIName())
 
@@ -525,16 +560,22 @@ class PlacesIntegrationTest {
             .setRequestId("d74cb328-d2f3-4ea9-9af8-7dc8c3393280")// exit Cityview Plaza
             .build()
 
+        // prepare
+        MonitorExtension.reset()
+
         // enter into a geofence
         Places.processGeofence(geofence, Geofence.GEOFENCE_TRANSITION_EXIT)
-        Thread.sleep(500)
+
+        // wait
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
+        MonitorExtension.waitForRegionEvent.await(3, TimeUnit.SECONDS)
 
         // verify the current, last entered and last exited POIs
         assertNull(getCurrentPOIName())
         assertEquals("Cityview Plaza", getLastEnteredPOIName())
         assertEquals("Cityview Plaza", getLastExitedPOI())
 
-        // verify the region entry event dispatched
+        // verify the region exit event dispatched
         assertNotNull(MonitorExtension.latestRegionEvent)
         assertEquals("exit",getLastRegionEventType())
         assertEquals("Cityview Plaza",getLastRegionEventPOIName())

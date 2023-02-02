@@ -1,18 +1,43 @@
 package com.adobe.marketing.mobile.places
 
 import com.adobe.marketing.mobile.*
+import java.util.concurrent.CountDownLatch
 
 internal typealias ConfigurationMonitor = (firstValidConfiguration: Map<String, Any>) -> Unit
 
 class MonitorExtension : Extension {
     val PLACES_MODULE_NAME = "com.adobe.module.places"
+    val CURRENTPOI = "currentpoi"
+    val LASTENTEREDPOI = "lastenteredpoi"
+    val LASTEXITEDPOI = "lastexitedpoi"
 
     companion object {
         var placesSharedState: Map<String, Any>? = null
         var latestRegionEvent: Event? = null
+        var capturedNearByPOIEvent: Event? = null
+        var capturedLastKnownLocationEvent: Event? = null
+        var capturedUserWithinPlacesEvent: Event? = null
         private var configurationMonitor: ConfigurationMonitor? = null
+        var waitForNearByPOIExternalEvent = CountDownLatch(1)
+        var waitForLastKnownLocationExternalEvent = CountDownLatch(1)
+        var waitForUserWithInPOIExternalEvent = CountDownLatch(1)
+        var waitForSharedStateToSet = CountDownLatch(1)
+        var waitForRegionEvent = CountDownLatch(1)
         internal fun configurationAwareness(callback: ConfigurationMonitor) {
             configurationMonitor = callback
+        }
+
+        internal fun reset() {
+            placesSharedState = null
+            latestRegionEvent = null
+            capturedNearByPOIEvent = null
+            capturedLastKnownLocationEvent = null
+            capturedUserWithinPlacesEvent = null
+            waitForNearByPOIExternalEvent = CountDownLatch(1)
+            waitForLastKnownLocationExternalEvent = CountDownLatch(1)
+            waitForUserWithInPOIExternalEvent = CountDownLatch(1)
+            waitForSharedStateToSet = CountDownLatch(1)
+            waitForRegionEvent = CountDownLatch(1)
         }
     }
 
@@ -61,14 +86,34 @@ class MonitorExtension : Extension {
 
     fun handleStateChange(event: Event) {
         if (event.eventData["stateowner"] == PLACES_MODULE_NAME) {
-            placesSharedState =
-                api.getSharedState(PLACES_MODULE_NAME, null, false, SharedStateResolution.ANY)?.value
+            placesSharedState = api.getSharedState(PLACES_MODULE_NAME, null, false, SharedStateResolution.ANY)?.value
+            if(placesSharedState?.containsKey(CURRENTPOI) == true
+                || placesSharedState?.containsKey(LASTENTEREDPOI) == true
+                || placesSharedState?.containsKey(LASTEXITEDPOI) == true )  {
+                waitForSharedStateToSet.countDown()
+            }
         }
     }
 
     fun handlePlacesResponseContent(event: Event) {
         if(event.name == "responseprocessregionevent") {
             latestRegionEvent = event
+            waitForRegionEvent.countDown()
+        }
+
+        if(event.name == "responsegetlastknownlocation") {
+            capturedLastKnownLocationEvent = event
+            waitForLastKnownLocationExternalEvent.countDown()
+        }
+
+        if(event.name == "responsegetnearbyplaces") {
+            capturedNearByPOIEvent = event
+            waitForNearByPOIExternalEvent.countDown()
+        }
+
+        if(event.name == "responsegetuserwithinplaces") {
+            capturedUserWithinPlacesEvent = event
+            waitForUserWithInPOIExternalEvent.countDown()
         }
     }
 }
