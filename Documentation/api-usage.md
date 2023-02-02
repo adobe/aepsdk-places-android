@@ -118,9 +118,9 @@ Returns an ordered list of nearby POIs in a callback. An overloaded version of t
 
 ```java
 public static void getNearbyPointsOfInterest(@NonNull final Location location,
-											 final int limit,
-											 @NonNull final AdobeCallback<List<PlacesPOI>> successCallback,
-											 @NonNull final AdobeCallback<PlacesRequestError> errorCallback);
+    final int limit,
+    @NonNull final AdobeCallback<List<PlacesPOI>> successCallback,
+    @NonNull final AdobeCallback<PlacesRequestError> errorCallback);
 ```
 
 #### Java
