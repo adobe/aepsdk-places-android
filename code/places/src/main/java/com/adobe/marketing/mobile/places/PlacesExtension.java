@@ -190,7 +190,7 @@ public class PlacesExtension extends Extension {
 
         final List<PlacesPOI> userWithinPOIs = state.getUserWithInPOIs();
 
-        // dispatch userWithinPOIS for the awaiting one time listener
+        // dispatch userWithinPOIS for getUserWithinPOI API callback registered with awaiting one time listener.
         placesDispatcher.dispatchUserWithinPOIs(userWithinPOIs, event);
         // dispatch userWithinPOIS for all other listeners
         placesDispatcher.dispatchUserWithinPOIs(userWithinPOIs, null);
@@ -211,7 +211,7 @@ public class PlacesExtension extends Extension {
             return;
         }
 
-        // dispatch lastKnownLocation for all other listeners
+        // dispatch lastKnownLocation for the getLastKnownLocation API callback waiting with registered onetime listener
         placesDispatcher.dispatchLastKnownLocation(location.getLatitude(), location.getLongitude(),
                 event);
         // dispatch lastKnownLocation for all other listeners
@@ -328,7 +328,7 @@ public class PlacesExtension extends Extension {
             // update the places shared state
             extensionApi.createSharedState(state.getPlacesSharedState(), event);
 
-            // dispatch nearbyPOI list to the awaiting one-time listener
+            // dispatch nearbyPOI for the getNearbyPOI API callback waiting with registered onetime listener
             placesDispatcher.dispatchNearbyPlaces(response.getAllPOIs(), PlacesRequestError.OK,
                     event);
             // dispatch nearbyPOI list for other listeners

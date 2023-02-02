@@ -108,7 +108,7 @@ class PlacesQueryService {
                     return;
                 }
 
-                Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Got Response : %s", serverResponse);
+                Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "Received Places Query Response : %s", serverResponse);
                 final JSONObject responseJson = new JSONObject(serverResponse);
 
                 final JSONObject placesJson = responseJson.getJSONObject(PlacesConstants.QueryResponseJsonKeys.PLACES);
