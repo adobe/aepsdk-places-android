@@ -36,20 +36,28 @@ class PlacesDispatcher {
         final Map<String, Object> responseEventData = new HashMap<>();
         responseEventData.put(PlacesConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST, PlacesUtil.convertPOIListToMap(poiList));
         responseEventData.put(PlacesConstants.EventDataKeys.Places.RESULT_STATUS, resultStatus.getValue());
-        Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places event with %d POIs", poiList.size());
-        final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
-                EventSource.RESPONSE_CONTENT)
-                .setEventData(responseEventData)
-                .inResponseToEvent(event)
-                .build();
-        extensionApi.dispatch(responseEvent);
+        if (event != null) {
+            Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places response event for `getNearbyPointsOfInterest` API callback with %d POIs", poiList.size());
+            final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
+                    EventSource.RESPONSE_CONTENT)
+                    .setEventData(responseEventData)
+                    .inResponseToEvent(event)
+                    .build();
+            extensionApi.dispatch(responseEvent);
+        } else {
+            Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchNearbyPlaces - Dispatching nearby places response event for all other listeners with %d POIs", poiList.size());
+            final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETNEARBYPLACES, EventType.PLACES,
+                    EventSource.RESPONSE_CONTENT)
+                    .setEventData(responseEventData)
+                    .build();
+            extensionApi.dispatch(responseEvent);
+        }
     }
 
     void dispatchRegionEvent(final PlacesRegion region) {
         if (region == null) {
             return;
         }
-
         final Map<String, Object> regionData = region.getRegionEventData();
         final Event regionEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_PROCESSREGIONEVENT, EventType.PLACES,
                 EventSource.RESPONSE_CONTENT)
@@ -63,26 +71,46 @@ class PlacesDispatcher {
     void dispatchUserWithinPOIs(final List<PlacesPOI> poiList, final Event event) {
         final Map<String, Object> responseEventData = new HashMap<>();
         responseEventData.put(PlacesConstants.EventDataKeys.Places.USER_WITHIN_POIS, PlacesUtil.convertPOIListToMap(poiList));
-        Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event with %d POIs", poiList.size());
-        final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
-                EventSource.RESPONSE_CONTENT)
-                .setEventData(responseEventData)
-                .inResponseToEvent(event)
-                .build();
-        extensionApi.dispatch(responseEvent);
+        if (event != null) {
+            Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event for `getCurrentPointsOfInterest` API callback with %d POIs", poiList.size());
+            final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
+                    EventSource.RESPONSE_CONTENT)
+                    .setEventData(responseEventData)
+                    .inResponseToEvent(event)
+                    .build();
+            extensionApi.dispatch(responseEvent);
+        } else {
+            Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchUserWithinPOIs - Dispatching user within POIs event for other listeners with %d POIs", poiList.size());
+            final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETUSERWITHINPLACES, EventType.PLACES,
+                    EventSource.RESPONSE_CONTENT)
+                    .setEventData(responseEventData)
+                    .build();
+            extensionApi.dispatch(responseEvent);
+        }
     }
 
     void dispatchLastKnownLocation(final double latitude, final double longitude, final Event event) {
         final Map<String, Object> responseEventData = new HashMap<>();
         responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE, latitude);
         responseEventData.put(PlacesConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE, longitude);
-        Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchLastKnownLocation - Dispatching last known location event with latitude: %s and longitude: %s",
-                latitude, longitude);
-        final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
-                EventSource.RESPONSE_CONTENT)
-                .setEventData(responseEventData)
-                .inResponseToEvent(event)
-                .build();
-        extensionApi.dispatch(responseEvent);
+        if (event != null) {
+            Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchLastKnownLocation - Dispatching last known location event for `getLastKnownLocation` API callback with latitude: %s and longitude: %s",
+                    latitude, longitude);
+            final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
+                    EventSource.RESPONSE_CONTENT)
+                    .setEventData(responseEventData)
+                    .inResponseToEvent(event)
+                    .build();
+            extensionApi.dispatch(responseEvent);
+        } else {
+            Log.debug(PlacesConstants.LOG_TAG, CLASS_NAME, "dispatchLastKnownLocation - Dispatching last known location event for other listeners with latitude: %s and longitude: %s",
+                    latitude, longitude);
+            final Event responseEvent = new Event.Builder(PlacesConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, EventType.PLACES,
+                    EventSource.RESPONSE_CONTENT)
+                    .setEventData(responseEventData)
+                    .build();
+            extensionApi.dispatch(responseEvent);
+        }
+
     }
 }

@@ -67,12 +67,13 @@ public class PlacesDispatcherTests {
 	private ArgumentCaptor<Event> dispatchedEventCaptor = ArgumentCaptor.forClass(Event.class);
 
 	@Test
-	public void test_dispatchNearbyPlaces() throws Exception {
+	public void test_dispatchNearbyPlaces() {
 		List<PlacesPOI> pois = new ArrayList<>();
 		pois.add(new PlacesPOI("identifier", "name", 34.33, -121.55, 50, SAMPLE_LIBRARY, SAMPLE_WEIGHT, null));
 
 		// test
-		placesDispatcher.dispatchNearbyPlaces(pois, PlacesRequestError.OK, triggerEvent);
+		final Event triggeringEvent = triggerEvent;
+		placesDispatcher.dispatchNearbyPlaces(pois, PlacesRequestError.OK, triggeringEvent);
 
 		// verify
 		verify(extensionApi).dispatch(dispatchedEventCaptor.capture());
@@ -86,16 +87,41 @@ public class PlacesDispatcherTests {
 					   PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST));
 		assertEquals(PlacesRequestError.OK.getValue(), (int)dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS));
 		assertEquals(2, dispatchedEvent.getEventData().size());
+		assertEquals(triggeringEvent.getUniqueIdentifier(), dispatchedEvent.getResponseID());
 	}
 
 	@Test
-	public void test_dispatchUserWithinPOIs() throws Exception {
+	public void test_dispatchNearbyPlaces_withNullEvent() {
+		List<PlacesPOI> pois = new ArrayList<>();
+		pois.add(new PlacesPOI("identifier", "name", 34.33, -121.55, 50, SAMPLE_LIBRARY, SAMPLE_WEIGHT, null));
+
+		// test
+		placesDispatcher.dispatchNearbyPlaces(pois, PlacesRequestError.OK, null);
+
+		// verify
+		verify(extensionApi).dispatch(dispatchedEventCaptor.capture());
+		Event dispatchedEvent = dispatchedEventCaptor.getValue();
+
+		// verify dispatchedEvent
+		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETNEARBYPLACES, dispatchedEvent.getName());
+		assertEquals(EventType.PLACES, dispatchedEvent.getType());
+		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
+		assertTrue(dispatchedEvent.getEventData().containsKey(
+				PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST));
+		assertEquals(PlacesRequestError.OK.getValue(), (int)dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS));
+		assertEquals(2, dispatchedEvent.getEventData().size());
+		assertNull(dispatchedEvent.getResponseID());
+	}
+
+	@Test
+	public void test_dispatchUserWithinPOIs() {
 		List<PlacesPOI> pois = new ArrayList<PlacesPOI>();
 		pois.add(new PlacesPOI("identifier", "name", 34.33, -121.55, 50, SAMPLE_LIBRARY, SAMPLE_WEIGHT, null));
 		pois.add(new PlacesPOI("identifier2", "name", 34.33, -121.55, 50, SAMPLE_LIBRARY, SAMPLE_WEIGHT, null));
 
 		// test
-		placesDispatcher.dispatchUserWithinPOIs(pois, triggerEvent);
+		final Event triggeringEvent = triggerEvent;
+		placesDispatcher.dispatchUserWithinPOIs(pois, triggeringEvent);
 
 		// verify
 		verify(extensionApi).dispatch(dispatchedEventCaptor.capture());
@@ -110,6 +136,32 @@ public class PlacesDispatcherTests {
 					   PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS));
 		assertEquals(1, eventData.size());
 		assertEquals(2, ((Collection<?>) eventData.get(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size());
+		assertEquals(triggeringEvent.getUniqueIdentifier(), dispatchedEvent.getResponseID());
+	}
+
+	@Test
+	public void test_dispatchUserWithinPOIs_withNullEvent() {
+		List<PlacesPOI> pois = new ArrayList<PlacesPOI>();
+		pois.add(new PlacesPOI("identifier", "name", 34.33, -121.55, 50, SAMPLE_LIBRARY, SAMPLE_WEIGHT, null));
+		pois.add(new PlacesPOI("identifier2", "name", 34.33, -121.55, 50, SAMPLE_LIBRARY, SAMPLE_WEIGHT, null));
+
+		// test
+		placesDispatcher.dispatchUserWithinPOIs(pois, null);
+
+		// verify
+		verify(extensionApi).dispatch(dispatchedEventCaptor.capture());
+		Event dispatchedEvent = dispatchedEventCaptor.getValue();
+
+		// verify dispatchedEvent
+		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETUSERWITHINPLACES, dispatchedEvent.getName());
+		assertEquals(EventType.PLACES, dispatchedEvent.getType());
+		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
+		Map<String, Object> eventData = dispatchedEvent.getEventData();
+		assertTrue(eventData.containsKey(
+				PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS));
+		assertEquals(1, eventData.size());
+		assertEquals(2, ((Collection<?>) eventData.get(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size());
+		assertNull(dispatchedEvent.getResponseID());
 	}
 
 	@Test
@@ -155,7 +207,8 @@ public class PlacesDispatcherTests {
 	@Test
 	public void test_dispatchLastKnownLocation() {
 		// test
-		placesDispatcher.dispatchLastKnownLocation(31.33, -121.33, triggerEvent);
+		final Event triggeringEvent = triggerEvent;
+		placesDispatcher.dispatchLastKnownLocation(31.33, -121.33, triggeringEvent);
 
 		// verify
 		verify(extensionApi).dispatch(dispatchedEventCaptor.capture());
@@ -170,6 +223,28 @@ public class PlacesDispatcherTests {
 		// verify location details
 		assertEquals(31.33,(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE), 0);
 		assertEquals(-121.33, (double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE), 0);
+		assertEquals(triggeringEvent.getUniqueIdentifier(), dispatchedEvent.getResponseID());
+	}
+
+	@Test
+	public void test_dispatchLastKnownLocation_withNullEvent() {
+		// test
+		placesDispatcher.dispatchLastKnownLocation(31.33, -121.33, null);
+
+		// verify
+		verify(extensionApi).dispatch(dispatchedEventCaptor.capture());
+		Event dispatchedEvent = dispatchedEventCaptor.getValue();
+
+		// verify event details
+		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETLASTKNOWNLOCATION, dispatchedEvent.getName());
+		assertEquals(EventType.PLACES, dispatchedEvent.getType());
+		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
+		assertEquals(2, dispatchedEvent.getEventData().size());
+
+		// verify location details
+		assertEquals(31.33,(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE), 0);
+		assertEquals(-121.33, (double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE), 0);
+		assertNull(dispatchedEvent.getResponseID());
 	}
 
 }
