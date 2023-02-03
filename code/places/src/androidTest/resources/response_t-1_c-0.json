@@ -1,0 +1,25 @@
+{
+  "places": {
+    "userWithin": [],
+    "pois": [
+      {
+        "p": [
+          "poiIdentifier2",
+          "poiName2",
+          "23.33",
+          "-45.55",
+          300,
+          "Restaurants",
+          20
+        ],
+        "x": {
+          "country": "USA",
+          "city": "Chicago",
+          "street": "street2",
+          "brand": "Adobe"
+        }
+      }
+    ]
+  },
+  "input": null
+}
