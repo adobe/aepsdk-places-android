@@ -306,6 +306,9 @@ public class PlacesExtensionTests {
 
 		// verify the dispatched event
 		verify(placesDispatcher).dispatchRegionEvent(eq(region));
+
+		// verify the dispatched edge event
+		verify(placesDispatcher).dispatchExperienceEventToEdge(eq(region), any());
 	}
 
 	// ========================================================================================
