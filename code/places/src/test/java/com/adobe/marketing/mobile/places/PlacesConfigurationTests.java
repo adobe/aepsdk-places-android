@@ -149,6 +149,30 @@ public class PlacesConfigurationTests {
         assertEquals(PlacesTestConstants.DEFAULT_MEMBERSHIP_TTL, configuration.getMembershipTtl());
     }
 
+    @Test
+    public void testConfiguration_WhenExperienceEventDatasetIsPresent() {
+        // test
+        final Map<String, Object> configData = createConfigData(2, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
+        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_EXPERIENCE_EVENT_DATASET, "12345");
+
+        final PlacesConfiguration configuration = new PlacesConfiguration(configData);
+
+        // verify
+        assert(configuration.isValid());
+        assertEquals("12345", configuration.getExperienceEventDataset());
+    }
+
+    @Test
+    public void testConfiguration_WhenExperienceEventDatasetIsNotPresent() {
+        // test
+        final Map<String, Object> configData = createConfigData(2, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
+
+        final PlacesConfiguration configuration = new PlacesConfiguration(configData);
+
+        // verify
+        assert(configuration.isValid());
+        assertEquals("", configuration.getExperienceEventDataset());
+    }
 
     @Test
     public void testConfiguration_Happy() {

@@ -28,12 +28,14 @@ class MonitorExtension : Extension {
         var capturedNearByPOIEvent: Event? = null
         var capturedLastKnownLocationEvent: Event? = null
         var capturedUserWithinPlacesEvent: Event? = null
+        var latestEdgeEvent: Event? = null
         private var configurationMonitor: ConfigurationMonitor? = null
         var waitForNearByPOIExternalEvent = CountDownLatch(1)
         var waitForLastKnownLocationExternalEvent = CountDownLatch(1)
         var waitForUserWithInPOIExternalEvent = CountDownLatch(1)
         var waitForSharedStateToSet = CountDownLatch(1)
         var waitForRegionEvent = CountDownLatch(1)
+        var waitForExperienceEvent = CountDownLatch(1)
         internal fun configurationAwareness(callback: ConfigurationMonitor) {
             configurationMonitor = callback
         }
@@ -44,11 +46,13 @@ class MonitorExtension : Extension {
             capturedNearByPOIEvent = null
             capturedLastKnownLocationEvent = null
             capturedUserWithinPlacesEvent = null
+            latestEdgeEvent = null
             waitForNearByPOIExternalEvent = CountDownLatch(1)
             waitForLastKnownLocationExternalEvent = CountDownLatch(1)
             waitForUserWithInPOIExternalEvent = CountDownLatch(1)
             waitForSharedStateToSet = CountDownLatch(1)
             waitForRegionEvent = CountDownLatch(1)
+            waitForExperienceEvent = CountDownLatch(1)
         }
     }
 
@@ -76,6 +80,9 @@ class MonitorExtension : Extension {
         }
         api.registerEventListener(EventType.PLACES, EventSource.RESPONSE_CONTENT) {
             handlePlacesResponseContent(it)
+        }
+        api.registerEventListener(EventType.EDGE, EventSource.REQUEST_CONTENT) {
+            handleEdgeRequestContent(it)
         }
         api.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) { event ->
             val result = api.getSharedState(
@@ -125,6 +132,13 @@ class MonitorExtension : Extension {
         if(event.name == "responsegetuserwithinplaces") {
             capturedUserWithinPlacesEvent = event
             waitForUserWithInPOIExternalEvent.countDown()
+        }
+    }
+
+    fun handleEdgeRequestContent(event: Event) {
+        if(event.name == "Location Tracking Event") {
+            latestEdgeEvent = event
+            waitForExperienceEvent.countDown()
         }
     }
 }
