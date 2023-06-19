@@ -27,7 +27,6 @@ class PlacesConfiguration {
 	private String endpoint;
 	private long membershipTtl;
 	private boolean isValid;
-	private String experienceEventDataset;
 
 	PlacesConfiguration(final Map<String, Object> configData) {
 		this();
@@ -81,8 +80,6 @@ class PlacesConfiguration {
 		membershipTtl = DataReader.optLong(configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
 				PlacesConstants.DEFAULT_MEMBERSHIP_TTL);
 		isValid = true;
-
-		experienceEventDataset = DataReader.optString(configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_EXPERIENCE_EVENT_DATASET, "");
 	}
 
 	String getLibrariesQueryString() {
@@ -106,10 +103,6 @@ class PlacesConfiguration {
 
 	long getMembershipTtl() {
 		return membershipTtl;
-	}
-
-	String getExperienceEventDataset() {
-		return experienceEventDataset;
 	}
 
 	// hiding the default constructor

@@ -18,7 +18,6 @@ import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +27,8 @@ import java.util.Map;
 class PlacesDispatcher {
 
     private static final String CLASS_NAME = "PlacesDispatcher";
+    private static final String MASK_EVENT_TYPE_PATH = "xdm.eventType";
+    private static final String MASK_POI_ID_PATH = "xdm.placeContext.POIinteraction.poiDetail.poiID";
     private final ExtensionApi extensionApi;
 
     PlacesDispatcher(final ExtensionApi extensionApi) {
@@ -118,32 +119,25 @@ class PlacesDispatcher {
 
     }
 
-    void dispatchExperienceEventToEdge(@NonNull final PlacesRegion regionEvent,
-                                       @NonNull final PlacesConfiguration placesConfig) {
-        final String datasetId = placesConfig.getExperienceEventDataset();
-        if (!placesConfig.isValid() || StringUtils.isNullOrEmpty(datasetId)) {
-            Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME,"Unable to record location event - AJO Push Tracking Experience Event dataset not found in configuration");
-            return;
-        }
+    /**
+     * Sends an experience event to the edge server for the specified geofence entry/exit location event.
+     *
+     * @param regionEvent The region event representing geofence entry/exit.
+     */
+    void dispatchExperienceEventToEdge(@NonNull final PlacesRegion regionEvent) {
 
         final String placesEventType = regionEvent.getPlaceEventType();
         if (!placesEventType.equals(PlacesRegion.PLACE_EVENT_ENTRY) &&
                 !placesEventType.equals(PlacesRegion.PLACE_EVENT_EXIT)) {
-            Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unknown region type : %s, Ignoring to process geofence event", placesEventType);
+            Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unknown region type : %s, Ignoring to send places experience edge event.", placesEventType);
             return;
         }
 
-        final PlacesPOI matchedPOI = regionEvent.getPoi();
+        final PlacesPOI poi = regionEvent.getPoi();
 
         final Map<String, Object> poiInteraction = new HashMap<String, Object>() {{
-            put(PlacesConstants.XDM.Key.POI_DETAIL, createXDMPOIDetail(matchedPOI));
+            put(PlacesConstants.XDM.Key.POI_DETAIL, createXDMPOIDetail(poi));
         }};
-
-        if (placesEventType.equals(PlacesRegion.PLACE_EVENT_ENTRY)) {
-            poiInteraction.put(PlacesConstants.XDM.Key.POIENTRIES, createPOIEntriesExits(matchedPOI));
-        } else {
-            poiInteraction.put(PlacesConstants.XDM.Key.POIEXITS, createPOIEntriesExits(matchedPOI));
-        }
 
         final Map<String, Object> xdmMap = new HashMap<String, Object>() {{
             put(PlacesConstants.XDM.Key.EVENT_TYPE, regionEvent.getExperienceEventType());
@@ -154,14 +148,9 @@ class PlacesDispatcher {
 
         final Map<String, Object> xdmEventData = new HashMap<String, Object>() {{
             put(PlacesConstants.XDM.Key.XDM, xdmMap);
-            put(PlacesConstants.XDM.Key.META, new HashMap<String, Object>() {{
-                put(PlacesConstants.XDM.Key.COLLECT, new HashMap<String, Object>() {{
-                    put(PlacesConstants.XDM.Key.DATASET_ID, datasetId);
-                }});
-            }});
         }};
 
-        final String[] mask = { "xdm.eventType" };
+        final String[] mask = { MASK_EVENT_TYPE_PATH, MASK_POI_ID_PATH };
         final Event experienceEvent = new Event.Builder(PlacesConstants.EventName.LOCATION_TRACKING,
                 EventType.EDGE,
                 EventSource.REQUEST_CONTENT,
@@ -170,42 +159,26 @@ class PlacesDispatcher {
         extensionApi.dispatch(experienceEvent);
     }
 
+    /**
+     * Creates an XDM (Experience Data Model) representation of a Point of Interest (POI) detail based on the provided POI object.
+     *
+     * @param poi The {@link PlacesPOI} object for which the XDM POI detail needs to be created.
+     */
     private Map<String, Object> createXDMPOIDetail(final PlacesPOI poi) {
-        final Map<String, Object> coordinates = new HashMap<String, Object>() {{
-            put(PlacesConstants.XDM.Key.SCHEMA, new HashMap<String, Object>() {{
-                put(PlacesConstants.XDM.Key.LATITUDE, poi.getLatitude());
-                put(PlacesConstants.XDM.Key.LONGITUDE, poi.getLongitude());
-            }});
-        }};
-
-        final Map<String, Object> circle = new HashMap<String, Object>() {{
-            put(PlacesConstants.XDM.Key.SCHEMA, new HashMap<String, Object>() {{
-                put(PlacesConstants.XDM.Key.RADIUS, poi.getRadius());
-                put(PlacesConstants.XDM.Key.COORDINATES, coordinates);
-            }});
-        }};
-
-        final Map<String, Object> geoShape = new HashMap<String, Object>() {{
-            put(PlacesConstants.XDM.Key.SCHEMA, new HashMap<String, Object>() {{
-                put(PlacesConstants.XDM.Key.CIRCLE, circle);
-            }});
-        }};
 
         final Map<String, Object> poiDetail = new HashMap<String, Object>() {{
             put(PlacesConstants.XDM.Key.POI_ID, poi.getIdentifier());
             put(PlacesConstants.XDM.Key.NAME, poi.getName());
-            put(PlacesConstants.XDM.Key.GEO_INTERACTION_DETAILS, geoShape);
             put(PlacesConstants.XDM.Key.METADATA, createPOIMetadata(poi));
         }};
-
-        final Object category = poi.getMetadata().get(PlacesConstants.XDM.Key.CATEGORY);
-        if (category != null) {
-            poiDetail.put(PlacesConstants.XDM.Key.CATEGORY, category);
-        }
-
         return poiDetail;
     }
-
+    
+    /**
+     * Creates metadata for a Point of Interest (POI) based on the provided POI object.
+     *
+     * @param poi The {@link PlacesPOI} object for which the metadata needs to be created.
+     */
     private Map<String, Object> createPOIMetadata(final PlacesPOI poi) {
         List<Map<String, Object>> metadataList = new ArrayList<>();
         for (final Map.Entry<String, String> entry: poi.getMetadata().entrySet()) {
@@ -221,10 +194,4 @@ class PlacesDispatcher {
         }};
     }
 
-    private Map<String, Object> createPOIEntriesExits(final PlacesPOI poi) {
-        return new HashMap<String, Object>() {{
-            put(PlacesConstants.XDM.Key.ID, poi.getIdentifier());
-            put(PlacesConstants.XDM.Key.VALUE, 1);
-        }};
-    }
 }

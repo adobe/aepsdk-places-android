@@ -188,33 +188,12 @@ final class PlacesConstants {
             static final String PLACE_CONTEXT = "placeContext";
             static final String POI_INTERACTION = "POIinteraction";
             static final String POI_DETAIL = "poiDetail";
-            static final String GEO_INTERACTION_DETAILS = "geoInteractionDetails";
-            static final String GEO_SHAPE = "geoShape";
-            static final String SCHEMA = "_schema";
-            static final String GEO = "geo";
-            static final String CIRCLE = "circle";
-            static final String COORDINATES = "coordinates";
-
             static final String POI_ID = "poiID";
             static final String NAME = "name";
-            static final String LATITUDE = "latitude";
-            static final String LONGITUDE = "longitude";
-            static final String RADIUS = "radius";
-
-            static final String COUNTRY_CODE = "countryCode";
-            static final String CITY = "city";
-            static final String POSTAL_CODE = "postalCode";
-            static final String STATE_PROVINCE = "stateProvince";
-            static final String CATEGORY = "category";
-
             static final String METADATA = "metadata";
             static final String LIST = "list";
             static final String KEY = "key";
             static final String VALUE = "value";
-
-            static final String POIENTRIES = "poiEntries";
-            static final String POIEXITS = "poiExits";
-            static final String ID = "id";
         }
 
         static final class Location {

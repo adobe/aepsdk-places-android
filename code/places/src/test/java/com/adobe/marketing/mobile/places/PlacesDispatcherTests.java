@@ -250,63 +250,15 @@ public class PlacesDispatcherTests {
 	}
 
 	@Test
-	public void test_sendExperienceEventToEdge_withInvalidConfiguration() {
-		// setup
-		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT
-				, SAMPLE_METADATA);
-		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
-
-		// test
-		placesDispatcher.dispatchExperienceEventToEdge(region, new PlacesConfiguration(null));
-
-		// verify
-		verifyNoInteractions(extensionApi);
-	}
-
-	@Test
-	public void test_sendExperienceEventToEdge_withNullDatasetId() {
-		// setup
-		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT
-				, SAMPLE_METADATA);
-		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
-		PlacesConfiguration placesConfig = createPlacesConfig(null);
-
-		// test
-		placesDispatcher.dispatchExperienceEventToEdge(region, placesConfig);
-
-		// verify
-		verifyNoInteractions(extensionApi);
-	}
-
-	@Test
-	public void test_sendExperienceEventToEdge_withEmptyDatasetId() {
-		// setup
-		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT
-				, SAMPLE_METADATA);
-		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
-		final PlacesConfiguration placesConfig = createPlacesConfig("");
-
-		// test
-		placesDispatcher.dispatchExperienceEventToEdge(region, placesConfig);
-
-		// verify
-		verifyNoInteractions(extensionApi);
-	}
-
-	@Test
 	public void test_sendExperienceEventToEdge_withInvalidEventType() {
 		// setup
 		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
 				SAMPLE_LIBRARY, SAMPLE_WEIGHT
 				, SAMPLE_METADATA);
 		final PlacesRegion region =  new PlacesRegion(poi, "randomType", 777777777);
-		final PlacesConfiguration placesConfig = createPlacesConfig(SAMPLE_DATASET_ID);
 
 		// test
-		placesDispatcher.dispatchExperienceEventToEdge(region, placesConfig);
+		placesDispatcher.dispatchExperienceEventToEdge(region);
 
 		// verify
 		verifyNoInteractions(extensionApi);
@@ -319,10 +271,9 @@ public class PlacesDispatcherTests {
 				SAMPLE_LIBRARY, SAMPLE_WEIGHT
 				, SAMPLE_METADATA);
 		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
-		final PlacesConfiguration placesConfig = createPlacesConfig(SAMPLE_DATASET_ID);
 
 		// test
-		placesDispatcher.dispatchExperienceEventToEdge(region, placesConfig);
+		placesDispatcher.dispatchExperienceEventToEdge(region);
 
 		// verify
 		verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture());
@@ -348,26 +299,8 @@ public class PlacesDispatcherTests {
 			assertTrue(metadataList.contains(metadata));
 		}
 
-		final Map<String, Object> geoInteractionDetails = (Map<String, Object>) poiDetail.get(PlacesTestConstants.XDM.Key.GEO_INTERACTION_DETAILS);
-		final Map<String, Object> geoShape = (Map<String, Object>)geoInteractionDetails.get(PlacesTestConstants.XDM.Key.SCHEMA);
-		final Map<String, Object> circle = (Map<String, Object>)geoShape.get(PlacesTestConstants.XDM.Key.CIRCLE);
-		final Map<String, Object> circleSchema = (Map<String, Object>)circle.get(PlacesTestConstants.XDM.Key.SCHEMA);
-		assertEquals(SAMPLE_RADIUS, circleSchema.get(PlacesTestConstants.XDM.Key.RADIUS));
-
-		final Map<String, Object> coordinates = (Map<String, Object>)circleSchema.get(PlacesTestConstants.XDM.Key.COORDINATES);
-		final Map<String, Object> coordinatesSchema = (Map<String, Object>)coordinates.get(PlacesTestConstants.XDM.Key.SCHEMA);
-		assertEquals(SAMPLE_LATITUDE, coordinatesSchema.get(PlacesTestConstants.XDM.Key.LATITUDE));
-		assertEquals(SAMPLE_LONGITUDE, coordinatesSchema.get(PlacesTestConstants.XDM.Key.LONGITUDE));
-
-		final Map<String, Object> poiEntries = (Map<String, Object>)poiInteraction.get(PlacesTestConstants.XDM.Key.POIENTRIES);
-		assertEquals(SAMPLE_IDENTIFIER, poiEntries.get(PlacesTestConstants.XDM.Key.ID));
-		assertEquals(1, poiEntries.get(PlacesTestConstants.XDM.Key.VALUE));
-
-		assertEquals(SAMPLE_DATASET_ID,((Map<String, Object>) ((Map<String, Object>) dispatchedEvent.getEventData()
-				.get(PlacesTestConstants.XDM.Key.META)).get(PlacesTestConstants.XDM.Key.COLLECT))
-				.get(PlacesTestConstants.XDM.Key.DATASET_ID));
-
 		assertEquals("xdm.eventType", dispatchedEvent.getMask()[0]);
+		assertEquals("xdm.placeContext.POIinteraction.poiDetail.poiID", dispatchedEvent.getMask()[1]);
 	}
 
 	@Test
@@ -377,10 +310,9 @@ public class PlacesDispatcherTests {
 				SAMPLE_LIBRARY, SAMPLE_WEIGHT
 				, SAMPLE_METADATA);
 		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_EXIT, 777777777);
-		final PlacesConfiguration placesConfig = createPlacesConfig(SAMPLE_DATASET_ID);
 
 		// test
-		placesDispatcher.dispatchExperienceEventToEdge(region, placesConfig);
+		placesDispatcher.dispatchExperienceEventToEdge(region);
 
 		// verify
 		verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture());
@@ -406,29 +338,11 @@ public class PlacesDispatcherTests {
 			assertTrue(metadataList.contains(metadata));
 		}
 
-		final Map<String, Object> geoInteractionDetails = (Map<String, Object>) poiDetail.get(PlacesTestConstants.XDM.Key.GEO_INTERACTION_DETAILS);
-		final Map<String, Object> geoShape = (Map<String, Object>)geoInteractionDetails.get(PlacesTestConstants.XDM.Key.SCHEMA);
-		final Map<String, Object> circle = (Map<String, Object>)geoShape.get(PlacesTestConstants.XDM.Key.CIRCLE);
-		final Map<String, Object> circleSchema = (Map<String, Object>)circle.get(PlacesTestConstants.XDM.Key.SCHEMA);
-		assertEquals(SAMPLE_RADIUS, circleSchema.get(PlacesTestConstants.XDM.Key.RADIUS));
-
-		final Map<String, Object> coordinates = (Map<String, Object>)circleSchema.get(PlacesTestConstants.XDM.Key.COORDINATES);
-		final Map<String, Object> coordinatesSchema = (Map<String, Object>)coordinates.get(PlacesTestConstants.XDM.Key.SCHEMA);
-		assertEquals(SAMPLE_LATITUDE, coordinatesSchema.get(PlacesTestConstants.XDM.Key.LATITUDE));
-		assertEquals(SAMPLE_LONGITUDE, coordinatesSchema.get(PlacesTestConstants.XDM.Key.LONGITUDE));
-
-		final Map<String, Object> poiEntries = (Map<String, Object>)poiInteraction.get(PlacesTestConstants.XDM.Key.POIEXITS);
-		assertEquals(SAMPLE_IDENTIFIER, poiEntries.get(PlacesTestConstants.XDM.Key.ID));
-		assertEquals(1, poiEntries.get(PlacesTestConstants.XDM.Key.VALUE));
-
-		assertEquals(SAMPLE_DATASET_ID,((Map<String, Object>) ((Map<String, Object>) dispatchedEvent.getEventData()
-				.get(PlacesTestConstants.XDM.Key.META)).get(PlacesTestConstants.XDM.Key.COLLECT))
-				.get(PlacesTestConstants.XDM.Key.DATASET_ID));
-
 		assertEquals("xdm.eventType", dispatchedEvent.getMask()[0]);
+		assertEquals("xdm.placeContext.POIinteraction.poiDetail.poiID", dispatchedEvent.getMask()[1]);
 	}
 
-	private PlacesConfiguration createPlacesConfig(final String experienceEventDatasetId) {
+	private PlacesConfiguration createPlacesConfig() {
 
 		List<Map<String, String>> libraries = new ArrayList<>();
 
@@ -442,7 +356,6 @@ public class PlacesDispatcherTests {
 		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
 		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, "serverEndpoint");
 		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL, 200);
-		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_EXPERIENCE_EVENT_DATASET, experienceEventDatasetId);
 		return new PlacesConfiguration(configData);
 	}
 }

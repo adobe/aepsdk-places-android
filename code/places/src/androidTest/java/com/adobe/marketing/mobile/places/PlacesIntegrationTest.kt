@@ -557,7 +557,7 @@ class PlacesIntegrationTest {
         assertNotNull(MonitorExtension.latestEdgeEvent)
         assertEquals("location.entry", getEdgeEventType())
         assertEquals("Meridian & SanCarlos", getEdgeEventPOIName())
-        assertEquals("a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad", getEdgeEventPoiEntriesId())
+        assertEquals("a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad", getEdgeEventPoiId())
     }
 
 
@@ -621,7 +621,7 @@ class PlacesIntegrationTest {
         assertNotNull(MonitorExtension.latestEdgeEvent)
         assertEquals("location.exit", getEdgeEventType())
         assertEquals("Cityview Plaza", getEdgeEventPOIName())
-        assertEquals("d74cb328-d2f3-4ea9-9af8-7dc8c3393280", getEdgeEventPoiExitsId())
+        assertEquals("d74cb328-d2f3-4ea9-9af8-7dc8c3393280", getEdgeEventPoiId())
     }
 
     //---------------------------------------------------------------------------------------------
@@ -704,18 +704,11 @@ class PlacesIntegrationTest {
         return poiDetail?.get("name") as String?
     }
 
-    private fun getEdgeEventPoiEntriesId() : String? {
+    private fun getEdgeEventPoiId() : String? {
         val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
         val poiEntries = ((xdm?.get("placeContext") as Map<*, *>?)
-            ?.get("POIinteraction") as Map<*, *>?)?.get("poiEntries") as Map<*, *>?
-        return poiEntries?.get("id") as String?
-    }
-
-    private fun getEdgeEventPoiExitsId() : String? {
-        val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
-        val poiExits = ((xdm?.get("placeContext") as Map<*, *>?)
-            ?.get("POIinteraction") as Map<*, *>?)?.get("poiExits") as Map<*, *>?
-        return poiExits?.get("id") as String?
+            ?.get("POIinteraction") as Map<*, *>?)?.get("poiDetail") as Map<*, *>?
+        return poiEntries?.get("poiID") as String?
     }
 }
 
