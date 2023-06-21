@@ -166,6 +166,14 @@ final class PlacesConstants {
 
     }
 
+    static final class EventMask {
+        static final String EVENT_TYPE = "xdm.eventType";
+        static final String POI_ID = "xdm.placeContext.POIinteraction.poiDetail.poiID";
+
+        private EventMask() {
+        }
+    }
+
     static final class XDM {
 
         private XDM() {

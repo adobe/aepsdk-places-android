@@ -18,6 +18,7 @@ import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,8 +28,6 @@ import java.util.Map;
 class PlacesDispatcher {
 
     private static final String CLASS_NAME = "PlacesDispatcher";
-    private static final String MASK_EVENT_TYPE_PATH = "xdm.eventType";
-    private static final String MASK_POI_ID_PATH = "xdm.placeContext.POIinteraction.poiDetail.poiID";
     private final ExtensionApi extensionApi;
 
     PlacesDispatcher(final ExtensionApi extensionApi) {
@@ -126,10 +125,9 @@ class PlacesDispatcher {
      */
     void dispatchExperienceEventToEdge(@NonNull final PlacesRegion regionEvent) {
 
-        final String placesEventType = regionEvent.getPlaceEventType();
-        if (!placesEventType.equals(PlacesRegion.PLACE_EVENT_ENTRY) &&
-                !placesEventType.equals(PlacesRegion.PLACE_EVENT_EXIT)) {
-            Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unknown region type : %s, Ignoring to send places experience edge event.", placesEventType);
+        final String experienceEventType = regionEvent.getExperienceEventType();
+        if(StringUtils.isNullOrEmpty(experienceEventType)) {
+            Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Invalid region type : %s, Ignoring to send places experience edge event.", regionEvent.getPlaceEventType());
             return;
         }
 
@@ -140,7 +138,7 @@ class PlacesDispatcher {
         }};
 
         final Map<String, Object> xdmMap = new HashMap<String, Object>() {{
-            put(PlacesConstants.XDM.Key.EVENT_TYPE, regionEvent.getExperienceEventType());
+            put(PlacesConstants.XDM.Key.EVENT_TYPE, experienceEventType);
             put(PlacesConstants.XDM.Key.PLACE_CONTEXT, new HashMap<String, Object>() {{
                 put(PlacesConstants.XDM.Key.POI_INTERACTION, poiInteraction);
             }});
@@ -150,7 +148,7 @@ class PlacesDispatcher {
             put(PlacesConstants.XDM.Key.XDM, xdmMap);
         }};
 
-        final String[] mask = { MASK_EVENT_TYPE_PATH, MASK_POI_ID_PATH };
+        final String[] mask = { PlacesConstants.EventMask.EVENT_TYPE  ,PlacesConstants.EventMask.POI_ID };
         final Event experienceEvent = new Event.Builder(PlacesConstants.EventName.LOCATION_TRACKING,
                 EventType.EDGE,
                 EventSource.REQUEST_CONTENT,
@@ -166,12 +164,11 @@ class PlacesDispatcher {
      */
     private Map<String, Object> createXDMPOIDetail(final PlacesPOI poi) {
 
-        final Map<String, Object> poiDetail = new HashMap<String, Object>() {{
+        return new HashMap<String, Object>() {{
             put(PlacesConstants.XDM.Key.POI_ID, poi.getIdentifier());
             put(PlacesConstants.XDM.Key.NAME, poi.getName());
             put(PlacesConstants.XDM.Key.METADATA, createPOIMetadata(poi));
         }};
-        return poiDetail;
     }
     
     /**
@@ -180,7 +177,7 @@ class PlacesDispatcher {
      * @param poi The {@link PlacesPOI} object for which the metadata needs to be created.
      */
     private Map<String, Object> createPOIMetadata(final PlacesPOI poi) {
-        List<Map<String, Object>> metadataList = new ArrayList<>();
+        final List<Map<String, Object>> metadataList = new ArrayList<>();
         for (final Map.Entry<String, String> entry: poi.getMetadata().entrySet()) {
             final Map<String, Object> metadataMap = new HashMap<String, Object>() {{
                 put(PlacesConstants.XDM.Key.KEY, entry.getKey());
