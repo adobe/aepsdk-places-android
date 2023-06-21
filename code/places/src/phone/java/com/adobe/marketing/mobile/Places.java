@@ -35,7 +35,7 @@ public class Places {
 
 	public static final Class<? extends Extension> EXTENSION = PlacesExtension.class;
 
-	private final static String EXTENSION_VERSION = "2.0.0";
+	private final static String EXTENSION_VERSION = "2.1.0";
 	private static final String CLASS_NAME = "Places";
 	private static final long EVENT_RESPONSE_TIMEOUT = 5000L;
 

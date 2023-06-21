@@ -77,7 +77,7 @@ public class PlacesExtensionTests {
 
 	@Test
 	public void test_getVersion() {
-		assertEquals("2.0.0", extension.getVersion());
+		assertEquals("2.1.0", extension.getVersion());
 	}
 
 	@Test
