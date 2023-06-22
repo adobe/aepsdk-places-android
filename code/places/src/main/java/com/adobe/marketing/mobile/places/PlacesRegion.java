@@ -47,9 +47,22 @@ final class PlacesRegion extends PlacesPOI {
         this.timestamp = timestamp;
     }
 
+    PlacesPOI getPoi() {
+        return poi;
+    }
 
     String getPlaceEventType() {
         return placeEventType;
+    }
+
+    String getExperienceEventType() {
+        switch (placeEventType) {
+            case PLACE_EVENT_ENTRY:
+                return PlacesConstants.XDM.Location.EventType.ENTRY;
+            case PLACE_EVENT_EXIT:
+                return PlacesConstants.XDM.Location.EventType.EXIT;
+        }
+        return "";
     }
 }
 

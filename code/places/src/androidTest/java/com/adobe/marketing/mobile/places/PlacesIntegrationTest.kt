@@ -91,7 +91,7 @@ class PlacesIntegrationTest {
 
     @Test
     fun test_extensionVersion() {
-        assertEquals( "2.0.0", Places.extensionVersion())
+        assertEquals( "2.1.0", Places.extensionVersion())
     }
 
     //---------------------------------------------------------------------------------------------
@@ -537,7 +537,7 @@ class PlacesIntegrationTest {
         // enter into a geofence
         Places.processGeofence(geofence, Geofence.GEOFENCE_TRANSITION_ENTER)
 
-        // wait
+        // wait for response process region event
         MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
         MonitorExtension.waitForRegionEvent.await(3, TimeUnit.SECONDS)
 
@@ -549,6 +549,15 @@ class PlacesIntegrationTest {
         assertNotNull(MonitorExtension.latestRegionEvent)
         assertEquals("entry",getLastRegionEventType())
         assertEquals("Meridian & SanCarlos",getLastRegionEventPOIName())
+
+        // wait for experience event
+        assertTrue(MonitorExtension.waitForExperienceEvent.await(3, TimeUnit.SECONDS))
+
+        // verify the edge event dispatched
+        assertNotNull(MonitorExtension.latestEdgeEvent)
+        assertEquals("location.entry", getEdgeEventType())
+        assertEquals("Meridian & SanCarlos", getEdgeEventPOIName())
+        assertEquals("a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad", getEdgeEventPoiId())
     }
 
 
@@ -603,6 +612,16 @@ class PlacesIntegrationTest {
         assertNotNull(MonitorExtension.latestRegionEvent)
         assertEquals("exit",getLastRegionEventType())
         assertEquals("Cityview Plaza",getLastRegionEventPOIName())
+
+
+        // wait for experience event
+        assertTrue(MonitorExtension.waitForExperienceEvent.await(3, TimeUnit.SECONDS))
+
+        // verify the edge event dispatched
+        assertNotNull(MonitorExtension.latestEdgeEvent)
+        assertEquals("location.exit", getEdgeEventType())
+        assertEquals("Cityview Plaza", getEdgeEventPOIName())
+        assertEquals("d74cb328-d2f3-4ea9-9af8-7dc8c3393280", getEdgeEventPoiId())
     }
 
     //---------------------------------------------------------------------------------------------
@@ -612,7 +631,8 @@ class PlacesIntegrationTest {
     private fun setupConfiguration(libraries: List<String>? = listOf<String>("library1"),
                                    endpoint: String? = "placesendpoint",
                                    privacyStatus: String? = MobilePrivacyStatus.OPT_IN.value,
-                                   membershipTtl: Long? = 20) {
+                                   membershipTtl: Long? = 20,
+                                   datasetId: String = "1234") {
         val libraryConfig : MutableList<Map<String,String>> = ArrayList()
         if (libraries != null) {
             for (library in libraries) {
@@ -625,7 +645,8 @@ class PlacesIntegrationTest {
             PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT to endpoint,
             PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL to membershipTtl,
             PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY to privacyStatus,
-            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES to libraryConfig
+            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES to libraryConfig,
+            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_EXPERIENCE_EVENT_DATASET to datasetId
         ))
     }
 
@@ -666,11 +687,29 @@ class PlacesIntegrationTest {
         return MonitorExtension.latestRegionEvent?.eventData?.get("regioneventtype") as String?
     }
 
-    private fun getLastRegionEventPOIName() : String ? {
+    private fun getLastRegionEventPOIName() : String? {
         val triggeringRegion = MonitorExtension.latestRegionEvent?.eventData?.get("triggeringregion") as Map<*, *>?
         return triggeringRegion?.get("regionname") as String?
     }
 
+    private fun getEdgeEventType() : String? {
+        val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
+        return xdm?.get("eventType") as String?
+    }
+
+    private fun getEdgeEventPOIName() : String? {
+        val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
+        val poiDetail = ((xdm?.get("placeContext") as Map<*, *>?)
+            ?.get("POIinteraction") as Map<*, *>?)?.get("poiDetail") as Map<*, *>?
+        return poiDetail?.get("name") as String?
+    }
+
+    private fun getEdgeEventPoiId() : String? {
+        val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
+        val poiEntries = ((xdm?.get("placeContext") as Map<*, *>?)
+            ?.get("POIinteraction") as Map<*, *>?)?.get("poiDetail") as Map<*, *>?
+        return poiEntries?.get("poiID") as String?
+    }
 }
 
 private fun configurationAwareness(callback: ConfigurationMonitor) {
