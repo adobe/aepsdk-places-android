@@ -347,6 +347,7 @@ public class PlacesStateTests {
         assertNotNull(returnedRegion);
         assertEquals("highWeightPOI", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_ENTRY, returnedRegion.getPlaceEventType());
+        assertEquals(PlacesTestConstants.XDM.Location.EventType.ENTRY, returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("highWeightPOI", placesState.currentPOI.getIdentifier());
@@ -391,6 +392,7 @@ public class PlacesStateTests {
         assertNotNull(returnedRegion);
         assertEquals("lowWeightPOI", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_ENTRY, returnedRegion.getPlaceEventType());
+        assertEquals(PlacesTestConstants.XDM.Location.EventType.ENTRY, returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("highWeightPOI", placesState.currentPOI.getIdentifier());
@@ -435,6 +437,7 @@ public class PlacesStateTests {
         assertNotNull(returnedRegion);
         assertEquals("poi1", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion.getPlaceEventType());
+        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertNull(placesState.currentPOI);
@@ -524,6 +527,7 @@ public class PlacesStateTests {
         assertNotNull(returnedRegion);
         assertEquals("poi1", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion.getPlaceEventType());
+        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertNull(placesState.currentPOI);
@@ -568,6 +572,7 @@ public class PlacesStateTests {
         assertNotNull(returnedRegion);
         assertEquals("mediumWeight", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion.getPlaceEventType());
+        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("highWeight", placesState.currentPOI.getIdentifier());
@@ -585,6 +590,7 @@ public class PlacesStateTests {
         assertNotNull(returnedRegion2);
         assertEquals("highWeight", returnedRegion2.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion2.getPlaceEventType());
+        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("lowWeight", placesState.currentPOI.getIdentifier());

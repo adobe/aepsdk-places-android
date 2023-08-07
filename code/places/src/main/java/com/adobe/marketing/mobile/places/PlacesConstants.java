@@ -97,6 +97,7 @@ final class PlacesConstants {
         static final String RESPONSE_PROCESSREGIONEVENT = "responseprocessregionevent";
         static final String RESPONSE_GETUSERWITHINPLACES = "responsegetuserwithinplaces";
         static final String RESPONSE_GETLASTKNOWNLOCATION = "responsegetlastknownlocation";
+        static final String LOCATION_TRACKING = "Location Tracking Event";
 
         private EventName() {
         }
@@ -157,10 +158,67 @@ final class PlacesConstants {
             static final String CONFIG_KEY_LIBRARY_ID = "id";
             static final String CONFIG_KEY_PLACES_ENDPOINT = "places.endpoint";
             static final String CONFIG_KEY_PLACES_MEMBERSHIP_TTL = "places.membershipttl";
+            static final String CONFIG_KEY_EXPERIENCE_EVENT_DATASET = "messaging.eventDataset";
 
             private Configuration() {
             }
         }
 
+    }
+
+    static final class EventMask {
+        static final String EVENT_TYPE = "xdm.eventType";
+        static final String POI_ID = "xdm.placeContext.POIinteraction.poiDetail.poiID";
+
+        private EventMask() {
+        }
+    }
+
+    static final class XDM {
+
+        private XDM() {
+
+        }
+
+        static final class Key {
+
+            private Key() {
+
+            }
+
+            static final String EVENT_TYPE = "eventType";
+            static final String XDM = "xdm";
+
+            static final String META = "meta";
+            static final String COLLECT = "collect";
+            static final String DATASET_ID = "datasetId";
+
+            static final String PLACE_CONTEXT = "placeContext";
+            static final String POI_INTERACTION = "POIinteraction";
+            static final String POI_DETAIL = "poiDetail";
+            static final String POI_ID = "poiID";
+            static final String NAME = "name";
+            static final String METADATA = "metadata";
+            static final String LIST = "list";
+            static final String KEY = "key";
+            static final String VALUE = "value";
+        }
+
+        static final class Location {
+
+            private Location() {
+
+            }
+
+            static final class EventType {
+
+                private EventType() {
+
+                }
+
+                static final String ENTRY = "location.entry";
+                static final String EXIT = "location.exit";
+            }
+        }
     }
 }

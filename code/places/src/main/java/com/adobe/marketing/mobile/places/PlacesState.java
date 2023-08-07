@@ -171,7 +171,7 @@ class PlacesState {
             persistPOIs();
             return new PlacesRegion(matchedPOI, PlacesRegion.PLACE_EVENT_EXIT, event.getTimestamp());
         } else {
-            Log.warning(PlacesConstants.LOG_TAG, "Unknown region type : %s, Ignoring to process geofence event", regionType);
+            Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Unknown region type : %s, Ignoring process geofence event", regionType);
             return null;
         }
     }
