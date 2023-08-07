@@ -77,7 +77,7 @@ public class PlacesExtensionTests {
 
 	@Test
 	public void test_getVersion() {
-		assertEquals("2.0.0", extension.getVersion());
+		assertEquals("2.1.0", extension.getVersion());
 	}
 
 	@Test
@@ -306,6 +306,9 @@ public class PlacesExtensionTests {
 
 		// verify the dispatched event
 		verify(placesDispatcher).dispatchRegionEvent(eq(region));
+
+		// verify the dispatched edge event
+		verify(placesDispatcher).dispatchExperienceEventToEdge(eq(region));
 	}
 
 	// ========================================================================================

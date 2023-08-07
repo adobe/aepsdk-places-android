@@ -359,6 +359,9 @@ public class PlacesExtension extends Extension {
 
         // dispatch the processed region event
         placesDispatcher.dispatchRegionEvent(regionEvent);
+
+        // dispatch experience event to Edge
+        placesDispatcher.dispatchExperienceEventToEdge(regionEvent);
     }
 
 

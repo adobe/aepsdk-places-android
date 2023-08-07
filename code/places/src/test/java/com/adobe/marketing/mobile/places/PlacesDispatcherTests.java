@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -61,6 +62,7 @@ public class PlacesDispatcherTests {
 			put("state", "ate");
 		}
 	};
+	private static String SAMPLE_DATASET_ID = "1234";
 	private static Event triggerEvent = new Event.Builder("Test event", EventType.PLACES,
 			EventSource.REQUEST_CONTENT).setEventData(null).build();
 
@@ -176,10 +178,10 @@ public class PlacesDispatcherTests {
 	@Test
 	public void test_dispatchRegionEvent() {
 		// setup
-		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
+		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
 									  SAMPLE_LIBRARY, SAMPLE_WEIGHT
 									  , SAMPLE_METADATA);
-		PlacesRegion region = new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777) ;
+		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777) ;
 
 		// test
 		placesDispatcher.dispatchRegionEvent(region);
@@ -247,4 +249,113 @@ public class PlacesDispatcherTests {
 		assertNull(dispatchedEvent.getResponseID());
 	}
 
+	@Test
+	public void test_sendExperienceEventToEdge_withInvalidEventType() {
+		// setup
+		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
+				SAMPLE_LIBRARY, SAMPLE_WEIGHT
+				, SAMPLE_METADATA);
+		final PlacesRegion region =  new PlacesRegion(poi, "randomType", 777777777);
+
+		// test
+		placesDispatcher.dispatchExperienceEventToEdge(region);
+
+		// verify
+		verifyNoInteractions(extensionApi);
+	}
+
+	@Test
+	public void test_sendExperienceEventToEdge_WithValidEntryEvent() {
+		// setup
+		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
+				SAMPLE_LIBRARY, SAMPLE_WEIGHT
+				, SAMPLE_METADATA);
+		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
+
+		// test
+		placesDispatcher.dispatchExperienceEventToEdge(region);
+
+		// verify
+		verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture());
+		final Event dispatchedEvent = dispatchedEventCaptor.getValue();
+
+		final Map<String, Object> xdm = (Map<String, Object>) dispatchedEvent.getEventData().get(PlacesTestConstants.XDM.Key.XDM);
+		assertEquals(PlacesTestConstants.XDM.Location.EventType.ENTRY, xdm.get(PlacesTestConstants.XDM.Key.EVENT_TYPE));
+
+		final Map<String, Object> placesContext = (Map<String, Object>) xdm.get(PlacesTestConstants.XDM.Key.PLACE_CONTEXT);
+		final Map<String, Object> poiInteraction = (Map<String, Object>) placesContext.get(PlacesTestConstants.XDM.Key.POI_INTERACTION);
+
+		final Map<String, Object> poiDetail = (Map<String, Object>) poiInteraction.get(PlacesTestConstants.XDM.Key.POI_DETAIL);
+		assertEquals(SAMPLE_IDENTIFIER, poiDetail.get(PlacesTestConstants.XDM.Key.POI_ID));
+		assertEquals(SAMPLE_NAME, poiDetail.get(PlacesTestConstants.XDM.Key.NAME));
+
+		final List<Map<String, Object>> metadataList = (List<Map<String, Object>>)
+				((Map<String,Object>)poiDetail.get(PlacesTestConstants.XDM.Key.METADATA)).get(PlacesTestConstants.XDM.Key.LIST);
+		for (final Map.Entry<String, String> entry: SAMPLE_METADATA.entrySet()) {
+			final Map<String, Object> metadata = new HashMap<String, Object>() {{
+				put(PlacesConstants.XDM.Key.KEY, entry.getKey());
+				put(PlacesConstants.XDM.Key.VALUE, entry.getValue());
+			}};
+			assertTrue(metadataList.contains(metadata));
+		}
+
+		assertEquals("xdm.eventType", dispatchedEvent.getMask()[0]);
+		assertEquals("xdm.placeContext.POIinteraction.poiDetail.poiID", dispatchedEvent.getMask()[1]);
+	}
+
+	@Test
+	public void test_sendExperienceEventToEdge_WithValidExitEvent() {
+		// setup
+		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
+				SAMPLE_LIBRARY, SAMPLE_WEIGHT
+				, SAMPLE_METADATA);
+		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_EXIT, 777777777);
+
+		// test
+		placesDispatcher.dispatchExperienceEventToEdge(region);
+
+		// verify
+		verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture());
+		final Event dispatchedEvent = dispatchedEventCaptor.getValue();
+
+		final Map<String, Object> xdm = (Map<String, Object>) dispatchedEvent.getEventData().get(PlacesTestConstants.XDM.Key.XDM);
+		assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, xdm.get(PlacesTestConstants.XDM.Key.EVENT_TYPE));
+
+		final Map<String, Object> placesContext = (Map<String, Object>) xdm.get(PlacesTestConstants.XDM.Key.PLACE_CONTEXT);
+		final Map<String, Object> poiInteraction = (Map<String, Object>) placesContext.get(PlacesTestConstants.XDM.Key.POI_INTERACTION);
+
+		final Map<String, Object> poiDetail = (Map<String, Object>) poiInteraction.get(PlacesTestConstants.XDM.Key.POI_DETAIL);
+		assertEquals(SAMPLE_IDENTIFIER, poiDetail.get(PlacesTestConstants.XDM.Key.POI_ID));
+		assertEquals(SAMPLE_NAME, poiDetail.get(PlacesTestConstants.XDM.Key.NAME));
+
+		final List<Map<String, Object>> metadataList = (List<Map<String, Object>>)
+				((Map<String,Object>)poiDetail.get(PlacesTestConstants.XDM.Key.METADATA)).get(PlacesTestConstants.XDM.Key.LIST);
+		for (final Map.Entry<String, String> entry: SAMPLE_METADATA.entrySet()) {
+			final Map<String, Object> metadata = new HashMap<String, Object>() {{
+				put(PlacesConstants.XDM.Key.KEY, entry.getKey());
+				put(PlacesConstants.XDM.Key.VALUE, entry.getValue());
+			}};
+			assertTrue(metadataList.contains(metadata));
+		}
+
+		assertEquals("xdm.eventType", dispatchedEvent.getMask()[0]);
+		assertEquals("xdm.placeContext.POIinteraction.poiDetail.poiID", dispatchedEvent.getMask()[1]);
+	}
+
+	private PlacesConfiguration createPlacesConfig() {
+
+		List<Map<String, String>> libraries = new ArrayList<>();
+
+		for (int i = 0; i < 2; i++) {
+			Map<String, String> library = new HashMap<>();
+			library.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib" + (i + 1));
+			libraries.add(library);
+		}
+
+		final Map<String, Object> configData = new HashMap<>();
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, "serverEndpoint");
+		configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL, 200);
+		return new PlacesConfiguration(configData);
+	}
 }

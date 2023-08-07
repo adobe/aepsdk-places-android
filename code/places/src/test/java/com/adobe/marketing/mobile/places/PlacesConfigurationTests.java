@@ -149,7 +149,6 @@ public class PlacesConfigurationTests {
         assertEquals(PlacesTestConstants.DEFAULT_MEMBERSHIP_TTL, configuration.getMembershipTtl());
     }
 
-
     @Test
     public void testConfiguration_Happy() {
         // setup
