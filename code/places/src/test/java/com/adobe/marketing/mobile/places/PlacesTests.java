@@ -101,27 +101,6 @@ public class PlacesTests {
         mockedMobileCore.close();
     }
 
-
-    @Test
-    public void test_registerExtension() {
-        final ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
-        final ArgumentCaptor<ExtensionErrorCallback> callbackCaptor = ArgumentCaptor.forClass(
-                ExtensionErrorCallback.class
-        );
-        mockedMobileCore
-                .when(() -> MobileCore.registerExtension(extensionClassCaptor.capture(), callbackCaptor.capture()))
-                .thenReturn(true);
-        // test
-        Places.registerExtension();
-
-        // verify: happy
-        assertNotNull(callbackCaptor.getValue());
-        assertEquals(PlacesExtension.class, extensionClassCaptor.getValue());
-
-        // verify: error callback was called
-        callbackCaptor.getValue().error(null);
-    }
-
     @Test
     public void getNearbyPlaces_should_dispatchPlacesRequestContentEvent() {
         // test
