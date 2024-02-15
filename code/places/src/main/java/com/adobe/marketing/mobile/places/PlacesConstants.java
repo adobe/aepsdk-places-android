@@ -16,7 +16,7 @@ final class PlacesConstants {
     static final String LOG_TAG = "Places";
     static final String FRIENDLY_NAME = "Places";
     static final String MODULE_NAME = "com.adobe.module.places";
-
+    final static String EXTENSION_VERSION = "3.0.0";
     static final int DEFAULT_NETWORK_TIMEOUT = 2;
     static final int DEFAULT_NEARBYPOI_COUNT = 20;
     static final long DEFAULT_MEMBERSHIP_TTL = 60 * 60;  // 1 hour in seconds

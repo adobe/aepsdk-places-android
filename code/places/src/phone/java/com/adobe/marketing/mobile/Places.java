@@ -34,9 +34,10 @@ import java.util.Map;
 public class Places {
 
 	public static final Class<? extends Extension> EXTENSION = PlacesExtension.class;
-	private final static String EXTENSION_VERSION = "2.1.0";
 	private static final String CLASS_NAME = "Places";
 	private static final long EVENT_RESPONSE_TIMEOUT = 5000L;
+
+	private static final String EXTENSION_VERSION = "3.0.0";
 
 	// Constants
 	static final String LOG_TAG = "Places";
