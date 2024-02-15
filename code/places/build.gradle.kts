@@ -8,7 +8,7 @@ val mavenPlacesVersion: String by project
 aepLibrary {
     namespace = "com.adobe.marketing.mobile"
     enableSpotlessPrettierForJava = true
-    enableCheckStyle = true
+    enableSpotless = true
  
     publishing {
         gitRepoName = "aepsdk-places-android"
