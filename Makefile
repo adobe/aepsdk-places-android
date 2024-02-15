@@ -1,4 +1,5 @@
 EXTENSION-LIBRARY-FOLDER-NAME = places
+TEST-APP-FOLDER-NAME = testapp
 
 init:
 	git config core.hooksPath .githooks
@@ -43,7 +44,7 @@ assemble-phone-release:
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) assemblePhoneRelease)
 
 assemble-app:
-	(./code/gradlew -p code/testapp  assemble)
+	(./code/gradlew -p code/$(TEST-APP-FOLDER-NAME)  assemble)
 
 ci-publish-maven-local-jitpack:
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) publishReleasePublicationToMavenLocal -Pjitpack  -x signReleasePublication)
