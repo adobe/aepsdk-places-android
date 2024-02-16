@@ -9,6 +9,7 @@ clean:
 
 format:
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) spotlessApply)
+	(./code/gradlew -p code/$(TEST-APP-FOLDER-NAME) spotlessApply)
 		
 format-license:
 	(./code/gradlew -p code licenseFormat)
@@ -39,6 +40,9 @@ javadoc:
 
 assemble-phone:
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) assemblePhone)
+
+assemble-phone-debug:
+	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME)  assemblePhoneDebug)
 		
 assemble-phone-release:
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) assemblePhoneRelease)
@@ -46,11 +50,11 @@ assemble-phone-release:
 assemble-app:
 	(./code/gradlew -p code/$(TEST-APP-FOLDER-NAME)  assemble)
 
-ci-publish-maven-local-jitpack:
+ci-publish-maven-local-jitpack: assemblePhoneRelease
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) publishReleasePublicationToMavenLocal -Pjitpack  -x signReleasePublication)
 
-ci-publish-staging:
+ci-publish-staging: assemblePhoneRelease
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) publishReleasePublicationToSonatypeRepository --stacktrace)
 
-ci-publish-main:
+ci-publish: assemblePhoneRelease
 	(./code/gradlew -p code/$(EXTENSION-LIBRARY-FOLDER-NAME) publishReleasePublicationToSonatypeRepository -Prelease)

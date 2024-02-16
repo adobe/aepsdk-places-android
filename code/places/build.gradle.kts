@@ -3,7 +3,6 @@ plugins {
 }
 
 val mavenCoreVersion: String by project
-val mavenPlacesVersion: String by project
 
 aepLibrary {
     namespace = "com.adobe.marketing.mobile"
@@ -23,10 +22,6 @@ dependencies {
     // testImplementation dependencies provided by aep-library:
     // MOCKITO_CORE, MOCKITO_INLINE, JSON
 
-    testImplementation ("com.fasterxml.jackson.core:jackson-databind:2.12.7")
-
     // androidTestImplementation dependencies provided by aep-library:
     // ANDROIDX_TEST_EXT_JUNIT, ESPRESSO_CORE
-
-    androidTestImplementation ("com.fasterxml.jackson.core:jackson-databind:2.12.7")
 }

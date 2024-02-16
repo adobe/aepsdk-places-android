@@ -10,10 +10,6 @@ on:
         description: '[Optional] Update Core dependency in pom.xml. Example: 3.0.0'
         required: false
 
-       edge-dependency:
-        description: '[Optional] Update Places dependency in pom.xml. Example: 3.0.0'
-        required: false
-
 jobs:
   update-version:
     runs-on: ubuntu-latest
