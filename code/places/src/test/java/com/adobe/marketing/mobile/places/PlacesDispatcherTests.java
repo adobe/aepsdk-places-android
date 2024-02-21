@@ -7,22 +7,9 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.reset;
@@ -34,6 +21,17 @@ import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesDispatcherTests {
@@ -63,8 +61,9 @@ public class PlacesDispatcherTests {
 		}
 	};
 	private static String SAMPLE_DATASET_ID = "1234";
-	private static Event triggerEvent = new Event.Builder("Test event", EventType.PLACES,
-			EventSource.REQUEST_CONTENT).setEventData(null).build();
+	private static Event triggerEvent = new Event.Builder("Test event", EventType.PLACES, EventSource.REQUEST_CONTENT)
+		.setEventData(null)
+		.build();
 
 	private ArgumentCaptor<Event> dispatchedEventCaptor = ArgumentCaptor.forClass(Event.class);
 
@@ -85,9 +84,13 @@ public class PlacesDispatcherTests {
 		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETNEARBYPLACES, dispatchedEvent.getName());
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
-		assertTrue(dispatchedEvent.getEventData().containsKey(
-					   PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST));
-		assertEquals(PlacesRequestError.OK.getValue(), (int)dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS));
+		assertTrue(
+			dispatchedEvent.getEventData().containsKey(PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST)
+		);
+		assertEquals(
+			PlacesRequestError.OK.getValue(),
+			(int) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS)
+		);
 		assertEquals(2, dispatchedEvent.getEventData().size());
 		assertEquals(triggeringEvent.getUniqueIdentifier(), dispatchedEvent.getResponseID());
 	}
@@ -108,9 +111,13 @@ public class PlacesDispatcherTests {
 		assertEquals(PlacesTestConstants.EventName.RESPONSE_GETNEARBYPLACES, dispatchedEvent.getName());
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
-		assertTrue(dispatchedEvent.getEventData().containsKey(
-				PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST));
-		assertEquals(PlacesRequestError.OK.getValue(), (int)dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS));
+		assertTrue(
+			dispatchedEvent.getEventData().containsKey(PlacesTestConstants.EventDataKeys.Places.NEAR_BY_PLACES_LIST)
+		);
+		assertEquals(
+			PlacesRequestError.OK.getValue(),
+			(int) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.RESULT_STATUS)
+		);
 		assertEquals(2, dispatchedEvent.getEventData().size());
 		assertNull(dispatchedEvent.getResponseID());
 	}
@@ -134,10 +141,12 @@ public class PlacesDispatcherTests {
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		Map<String, Object> eventData = dispatchedEvent.getEventData();
-		assertTrue(eventData.containsKey(
-					   PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS));
+		assertTrue(eventData.containsKey(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS));
 		assertEquals(1, eventData.size());
-		assertEquals(2, ((Collection<?>) eventData.get(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size());
+		assertEquals(
+			2,
+			((Collection<?>) eventData.get(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size()
+		);
 		assertEquals(triggeringEvent.getUniqueIdentifier(), dispatchedEvent.getResponseID());
 	}
 
@@ -159,10 +168,12 @@ public class PlacesDispatcherTests {
 		assertEquals(EventType.PLACES, dispatchedEvent.getType());
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		Map<String, Object> eventData = dispatchedEvent.getEventData();
-		assertTrue(eventData.containsKey(
-				PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS));
+		assertTrue(eventData.containsKey(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS));
 		assertEquals(1, eventData.size());
-		assertEquals(2, ((Collection<?>) eventData.get(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size());
+		assertEquals(
+			2,
+			((Collection<?>) eventData.get(PlacesTestConstants.EventDataKeys.Places.USER_WITHIN_POIS)).size()
+		);
 		assertNull(dispatchedEvent.getResponseID());
 	}
 
@@ -178,10 +189,17 @@ public class PlacesDispatcherTests {
 	@Test
 	public void test_dispatchRegionEvent() {
 		// setup
-		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-									  SAMPLE_LIBRARY, SAMPLE_WEIGHT
-									  , SAMPLE_METADATA);
-		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777) ;
+		final PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		final PlacesRegion region = new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
 
 		// test
 		placesDispatcher.dispatchRegionEvent(region);
@@ -196,14 +214,19 @@ public class PlacesDispatcherTests {
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getSource());
 		assertEquals(3, dispatchedEvent.getEventData().size());
 
-
 		// verify region details
-		final Map poiMap = (Map)dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.TRIGGERING_REGION);
+		final Map poiMap = (Map) dispatchedEvent
+			.getEventData()
+			.get(PlacesTestConstants.EventDataKeys.Places.TRIGGERING_REGION);
 		assertTrue(poi.getName().equals(poiMap.get(PlacesTestConstants.POIKeys.NAME)));
-		assertEquals(dispatchedEvent.getEventData().get(
-						 PlacesTestConstants.EventDataKeys.Places.REGION_EVENT_TYPE), PlacesRegion.PLACE_EVENT_ENTRY);
-		assertEquals(dispatchedEvent.getEventData().get(
-						 PlacesTestConstants.EventDataKeys.Places.REGION_TIMESTAMP), Long.valueOf(777777777));
+		assertEquals(
+			dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.REGION_EVENT_TYPE),
+			PlacesRegion.PLACE_EVENT_ENTRY
+		);
+		assertEquals(
+			dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.REGION_TIMESTAMP),
+			Long.valueOf(777777777)
+		);
 	}
 
 	@Test
@@ -223,8 +246,16 @@ public class PlacesDispatcherTests {
 		assertEquals(2, dispatchedEvent.getEventData().size());
 
 		// verify location details
-		assertEquals(31.33,(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE), 0);
-		assertEquals(-121.33, (double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE), 0);
+		assertEquals(
+			31.33,
+			(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE),
+			0
+		);
+		assertEquals(
+			-121.33,
+			(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE),
+			0
+		);
 		assertEquals(triggeringEvent.getUniqueIdentifier(), dispatchedEvent.getResponseID());
 	}
 
@@ -244,18 +275,33 @@ public class PlacesDispatcherTests {
 		assertEquals(2, dispatchedEvent.getEventData().size());
 
 		// verify location details
-		assertEquals(31.33,(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE), 0);
-		assertEquals(-121.33, (double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE), 0);
+		assertEquals(
+			31.33,
+			(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LATITUDE),
+			0
+		);
+		assertEquals(
+			-121.33,
+			(double) dispatchedEvent.getEventData().get(PlacesTestConstants.EventDataKeys.Places.LAST_KNOWN_LONGITUDE),
+			0
+		);
 		assertNull(dispatchedEvent.getResponseID());
 	}
 
 	@Test
 	public void test_sendExperienceEventToEdge_withInvalidEventType() {
 		// setup
-		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT
-				, SAMPLE_METADATA);
-		final PlacesRegion region =  new PlacesRegion(poi, "randomType", 777777777);
+		final PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		final PlacesRegion region = new PlacesRegion(poi, "randomType", 777777777);
 
 		// test
 		placesDispatcher.dispatchExperienceEventToEdge(region);
@@ -267,10 +313,17 @@ public class PlacesDispatcherTests {
 	@Test
 	public void test_sendExperienceEventToEdge_WithValidEntryEvent() {
 		// setup
-		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT
-				, SAMPLE_METADATA);
-		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
+		final PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		final PlacesRegion region = new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_ENTRY, 777777777);
 
 		// test
 		placesDispatcher.dispatchExperienceEventToEdge(region);
@@ -279,23 +332,34 @@ public class PlacesDispatcherTests {
 		verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture());
 		final Event dispatchedEvent = dispatchedEventCaptor.getValue();
 
-		final Map<String, Object> xdm = (Map<String, Object>) dispatchedEvent.getEventData().get(PlacesTestConstants.XDM.Key.XDM);
+		final Map<String, Object> xdm = (Map<String, Object>) dispatchedEvent
+			.getEventData()
+			.get(PlacesTestConstants.XDM.Key.XDM);
 		assertEquals(PlacesTestConstants.XDM.Location.EventType.ENTRY, xdm.get(PlacesTestConstants.XDM.Key.EVENT_TYPE));
 
-		final Map<String, Object> placesContext = (Map<String, Object>) xdm.get(PlacesTestConstants.XDM.Key.PLACE_CONTEXT);
-		final Map<String, Object> poiInteraction = (Map<String, Object>) placesContext.get(PlacesTestConstants.XDM.Key.POI_INTERACTION);
+		final Map<String, Object> placesContext = (Map<String, Object>) xdm.get(
+			PlacesTestConstants.XDM.Key.PLACE_CONTEXT
+		);
+		final Map<String, Object> poiInteraction = (Map<String, Object>) placesContext.get(
+			PlacesTestConstants.XDM.Key.POI_INTERACTION
+		);
 
-		final Map<String, Object> poiDetail = (Map<String, Object>) poiInteraction.get(PlacesTestConstants.XDM.Key.POI_DETAIL);
+		final Map<String, Object> poiDetail = (Map<String, Object>) poiInteraction.get(
+			PlacesTestConstants.XDM.Key.POI_DETAIL
+		);
 		assertEquals(SAMPLE_IDENTIFIER, poiDetail.get(PlacesTestConstants.XDM.Key.POI_ID));
 		assertEquals(SAMPLE_NAME, poiDetail.get(PlacesTestConstants.XDM.Key.NAME));
 
-		final List<Map<String, Object>> metadataList = (List<Map<String, Object>>)
-				((Map<String,Object>)poiDetail.get(PlacesTestConstants.XDM.Key.METADATA)).get(PlacesTestConstants.XDM.Key.LIST);
-		for (final Map.Entry<String, String> entry: SAMPLE_METADATA.entrySet()) {
-			final Map<String, Object> metadata = new HashMap<String, Object>() {{
-				put(PlacesConstants.XDM.Key.KEY, entry.getKey());
-				put(PlacesConstants.XDM.Key.VALUE, entry.getValue());
-			}};
+		final List<Map<String, Object>> metadataList = (List<Map<String, Object>>) (
+			(Map<String, Object>) poiDetail.get(PlacesTestConstants.XDM.Key.METADATA)
+		).get(PlacesTestConstants.XDM.Key.LIST);
+		for (final Map.Entry<String, String> entry : SAMPLE_METADATA.entrySet()) {
+			final Map<String, Object> metadata = new HashMap<String, Object>() {
+				{
+					put(PlacesConstants.XDM.Key.KEY, entry.getKey());
+					put(PlacesConstants.XDM.Key.VALUE, entry.getValue());
+				}
+			};
 			assertTrue(metadataList.contains(metadata));
 		}
 
@@ -306,10 +370,17 @@ public class PlacesDispatcherTests {
 	@Test
 	public void test_sendExperienceEventToEdge_WithValidExitEvent() {
 		// setup
-		final PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT
-				, SAMPLE_METADATA);
-		final PlacesRegion region =  new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_EXIT, 777777777);
+		final PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		final PlacesRegion region = new PlacesRegion(poi, PlacesRegion.PLACE_EVENT_EXIT, 777777777);
 
 		// test
 		placesDispatcher.dispatchExperienceEventToEdge(region);
@@ -318,23 +389,34 @@ public class PlacesDispatcherTests {
 		verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture());
 		final Event dispatchedEvent = dispatchedEventCaptor.getValue();
 
-		final Map<String, Object> xdm = (Map<String, Object>) dispatchedEvent.getEventData().get(PlacesTestConstants.XDM.Key.XDM);
+		final Map<String, Object> xdm = (Map<String, Object>) dispatchedEvent
+			.getEventData()
+			.get(PlacesTestConstants.XDM.Key.XDM);
 		assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, xdm.get(PlacesTestConstants.XDM.Key.EVENT_TYPE));
 
-		final Map<String, Object> placesContext = (Map<String, Object>) xdm.get(PlacesTestConstants.XDM.Key.PLACE_CONTEXT);
-		final Map<String, Object> poiInteraction = (Map<String, Object>) placesContext.get(PlacesTestConstants.XDM.Key.POI_INTERACTION);
+		final Map<String, Object> placesContext = (Map<String, Object>) xdm.get(
+			PlacesTestConstants.XDM.Key.PLACE_CONTEXT
+		);
+		final Map<String, Object> poiInteraction = (Map<String, Object>) placesContext.get(
+			PlacesTestConstants.XDM.Key.POI_INTERACTION
+		);
 
-		final Map<String, Object> poiDetail = (Map<String, Object>) poiInteraction.get(PlacesTestConstants.XDM.Key.POI_DETAIL);
+		final Map<String, Object> poiDetail = (Map<String, Object>) poiInteraction.get(
+			PlacesTestConstants.XDM.Key.POI_DETAIL
+		);
 		assertEquals(SAMPLE_IDENTIFIER, poiDetail.get(PlacesTestConstants.XDM.Key.POI_ID));
 		assertEquals(SAMPLE_NAME, poiDetail.get(PlacesTestConstants.XDM.Key.NAME));
 
-		final List<Map<String, Object>> metadataList = (List<Map<String, Object>>)
-				((Map<String,Object>)poiDetail.get(PlacesTestConstants.XDM.Key.METADATA)).get(PlacesTestConstants.XDM.Key.LIST);
-		for (final Map.Entry<String, String> entry: SAMPLE_METADATA.entrySet()) {
-			final Map<String, Object> metadata = new HashMap<String, Object>() {{
-				put(PlacesConstants.XDM.Key.KEY, entry.getKey());
-				put(PlacesConstants.XDM.Key.VALUE, entry.getValue());
-			}};
+		final List<Map<String, Object>> metadataList = (List<Map<String, Object>>) (
+			(Map<String, Object>) poiDetail.get(PlacesTestConstants.XDM.Key.METADATA)
+		).get(PlacesTestConstants.XDM.Key.LIST);
+		for (final Map.Entry<String, String> entry : SAMPLE_METADATA.entrySet()) {
+			final Map<String, Object> metadata = new HashMap<String, Object>() {
+				{
+					put(PlacesConstants.XDM.Key.KEY, entry.getKey());
+					put(PlacesConstants.XDM.Key.VALUE, entry.getValue());
+				}
+			};
 			assertTrue(metadataList.contains(metadata));
 		}
 
@@ -343,7 +425,6 @@ public class PlacesDispatcherTests {
 	}
 
 	private PlacesConfiguration createPlacesConfig() {
-
 		List<Map<String, String>> libraries = new ArrayList<>();
 
 		for (int i = 0; i < 2; i++) {
