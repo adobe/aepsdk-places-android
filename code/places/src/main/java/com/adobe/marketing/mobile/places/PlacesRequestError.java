@@ -68,6 +68,9 @@ public enum PlacesRequestError {
 		this.value = value;
 	}
 
+	/**
+	 * Returns the {@code int} value of the enum.
+	 */
 	public int getValue() {
 		return value;
 	}

@@ -31,6 +31,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Places {
 
+	// Extension Class
 	public static final Class<? extends Extension> EXTENSION = PlacesExtension.class;
 	private static final String CLASS_NAME = "Places";
 	private static final long EVENT_RESPONSE_TIMEOUT = 5000L;

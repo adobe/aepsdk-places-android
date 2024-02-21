@@ -16,6 +16,9 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * This class represents a Point of Interest (POI) in the Places extension.
+ */
 public class PlacesPOI {
 
 	private String identifier;
@@ -28,42 +31,92 @@ public class PlacesPOI {
 	private int weight;
 	private Map<String, String> metadata;
 
+	/**
+	 * Returns the identifier of the POI.
+	 *
+	 * @return the identifier of the POI
+	 */
 	public String getIdentifier() {
 		return identifier;
 	}
 
+	/**
+	 * Returns the name of the POI.
+	 *
+	 * @return the name of the POI
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Returns whether the user is within the POI.
+	 *
+	 * @return true if the user is within the POI, false otherwise
+	 */
 	public boolean containsUser() {
 		return userIsWithin;
 	}
 
+	/**
+	 * Sets whether the user is within the POI.
+	 *
+	 * @param userIsWithin true if the user is within the POI, false otherwise
+	 */
 	public void setUserIsWithin(final boolean userIsWithin) {
 		this.userIsWithin = userIsWithin;
 	}
 
+	/**
+	 * Returns the latitude of the POI.
+	 *
+	 * @return the latitude of the POI
+	 */
 	public double getLatitude() {
 		return latitude;
 	}
 
+	/**
+	 * Returns the longitude of the POI.
+	 *
+	 * @return the longitude of the POI
+	 */
 	public double getLongitude() {
 		return longitude;
 	}
 
+	/**
+	 * Returns the radius of the POI.
+	 *
+	 * @return the radius of the POI
+	 */
 	public int getRadius() {
 		return radius;
 	}
 
+	/**
+	 * Returns the metadata of the POI.
+	 *
+	 * @return the metadata of the POI
+	 */
 	public Map<String, String> getMetadata() {
 		return this.metadata;
 	}
 
+	/**
+	 * Returns the weight of the POI.
+	 *
+	 * @return the weight of the POI
+	 */
 	public int getWeight() {
 		return weight;
 	}
 
+	/**
+	 * Returns the library of the POI.
+	 *
+	 * @return the library of the POI
+	 */
 	public String getLibrary() {
 		return library;
 	}

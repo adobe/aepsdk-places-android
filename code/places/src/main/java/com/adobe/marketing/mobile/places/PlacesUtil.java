@@ -22,6 +22,9 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Utility class for Places extension.
+ */
 public class PlacesUtil {
 
 	private static final double MAX_LAT = 90d;
