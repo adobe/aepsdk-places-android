@@ -7,14 +7,13 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
 
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +29,13 @@ class PlacesConfiguration {
 
 	PlacesConfiguration(final Map<String, Object> configData) {
 		this();
-
 		if (configData == null) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : Configuration eventData is null");
+			Log.warning(
+				PlacesConstants.LOG_TAG,
+				CLASS_NAME,
+				"Constructor - Places Configuration : Configuration eventData is null"
+			);
 			return;
 		}
 
@@ -41,18 +43,31 @@ class PlacesConfiguration {
 		libraries = new ArrayList<>();
 
 		// read the libraries from the configuration
-		final List<Map> libraryList = DataReader.optTypedList(Map.class, configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, null);
+		final List<Map> libraryList = DataReader.optTypedList(
+			Map.class,
+			configData,
+			PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES,
+			null
+		);
 
 		// bail out if there is no places libraries
 		if (libraryList == null) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - No places libraries found in configuration");
+			Log.warning(
+				PlacesConstants.LOG_TAG,
+				CLASS_NAME,
+				"Constructor - No places libraries found in configuration"
+			);
 			return;
 		}
 
 		for (final Map eachLibrary : libraryList) {
 			if (eachLibrary != null && !eachLibrary.isEmpty()) {
-				final String libraryId = DataReader.optString(eachLibrary, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "");
+				final String libraryId = DataReader.optString(
+					eachLibrary,
+					PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID,
+					""
+				);
 				if (!StringUtils.isNullOrEmpty(libraryId)) {
 					// create new library and add them to the library list
 					libraries.add(new PlacesLibrary(libraryId));
@@ -65,20 +80,37 @@ class PlacesConfiguration {
 		// bail out if there is no valid places libraries after parsing the json
 		if (libraries.isEmpty()) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : No valid libraries found in configuration");
+			Log.warning(
+				PlacesConstants.LOG_TAG,
+				CLASS_NAME,
+				"Constructor - Places Configuration : No valid libraries found in configuration"
+			);
 			return;
 		}
 
-		endpoint = DataReader.optString(configData,PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, "");
+		endpoint =
+			DataReader.optString(
+				configData,
+				PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT,
+				""
+			);
 
 		if (StringUtils.isNullOrEmpty(endpoint)) {
 			isValid = false;
-			Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Places Configuration : No valid endpoint found in configuration");
+			Log.warning(
+				PlacesConstants.LOG_TAG,
+				CLASS_NAME,
+				"Constructor - Places Configuration : No valid endpoint found in configuration"
+			);
 			return;
 		}
 
-		membershipTtl = DataReader.optLong(configData, PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
-				PlacesConstants.DEFAULT_MEMBERSHIP_TTL);
+		membershipTtl =
+			DataReader.optLong(
+				configData,
+				PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
+				PlacesConstants.DEFAULT_MEMBERSHIP_TTL
+			);
 		isValid = true;
 	}
 
@@ -106,5 +138,5 @@ class PlacesConfiguration {
 	}
 
 	// hiding the default constructor
-	private PlacesConfiguration() { }
+	private PlacesConfiguration() {}
 }

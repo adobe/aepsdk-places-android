@@ -7,14 +7,15 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
 
+import static org.junit.Assert.*;
+
+import java.util.*;
 import org.json.JSONException;
 import org.junit.Test;
-import java.util.*;
-import static org.junit.Assert.*;
 
 public class PlacesPOITests {
 
@@ -32,25 +33,40 @@ public class PlacesPOITests {
 		}
 	};
 
-	private static String VALID_POI_JSON = "{\n" +
-			"   \"regionid\": \""+ SAMPLE_IDENTIFIER +"\",\n" +
-			"   \"useriswithin\":true,\n" +
-			"   \"latitude\": "+ SAMPLE_LATITUDE +",\n" +
-			"   \"libraryid\": \""+ SAMPLE_LIBRARY +"\",\n" +
-			"   \"regionname\":\""+ SAMPLE_NAME +"\",\n" +
-			"   \"weight\":"+ SAMPLE_WEIGHT +" \n," +
-			"   \"regionmetadata\":{\n" +
-			"      \"country\":\"US\",\n" +
-			"      \"ownership\":\"CO\",\n" +
-			"      \"city\":\"San Jose\",\n" +
-			"      \"street\":\"540 Newhall Drive, 20\",\n" +
-			"      \"state\":\"CA\",\n" +
-			"      \"category\":\"\",\n" +
-			"      \"brand\":\"Starbucks\"\n" +
-			"   },\n" +
-			"   \"radius\":"+ SAMPLE_RADIUS +",\n" +
-			"   \"longitude\":"+ SAMPLE_LONGITUDE +"\n" +
-			"}";
+	private static String VALID_POI_JSON =
+		"{\n" +
+		"   \"regionid\": \"" +
+		SAMPLE_IDENTIFIER +
+		"\",\n" +
+		"   \"useriswithin\":true,\n" +
+		"   \"latitude\": " +
+		SAMPLE_LATITUDE +
+		",\n" +
+		"   \"libraryid\": \"" +
+		SAMPLE_LIBRARY +
+		"\",\n" +
+		"   \"regionname\":\"" +
+		SAMPLE_NAME +
+		"\",\n" +
+		"   \"weight\":" +
+		SAMPLE_WEIGHT +
+		" \n," +
+		"   \"regionmetadata\":{\n" +
+		"      \"country\":\"US\",\n" +
+		"      \"ownership\":\"CO\",\n" +
+		"      \"city\":\"San Jose\",\n" +
+		"      \"street\":\"540 Newhall Drive, 20\",\n" +
+		"      \"state\":\"CA\",\n" +
+		"      \"category\":\"\",\n" +
+		"      \"brand\":\"Starbucks\"\n" +
+		"   },\n" +
+		"   \"radius\":" +
+		SAMPLE_RADIUS +
+		",\n" +
+		"   \"longitude\":" +
+		SAMPLE_LONGITUDE +
+		"\n" +
+		"}";
 
 	@Test(expected = JSONException.class)
 	public void test_Constructor_JSONStringEmpty() throws Exception {
@@ -63,7 +79,7 @@ public class PlacesPOITests {
 	}
 
 	@Test
-	public void test_Constructor_withJSONString() throws Exception{
+	public void test_Constructor_withJSONString() throws Exception {
 		PlacesPOI poi = new PlacesPOI(VALID_POI_JSON);
 		assertEquals(SAMPLE_IDENTIFIER, poi.getIdentifier());
 		assertEquals(SAMPLE_NAME, poi.getName());
@@ -79,8 +95,16 @@ public class PlacesPOITests {
 	@Test
 	public void test_Getters() {
 		// setup
-		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
+		PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
 		poi.setUserIsWithin(true);
 
 		// verify
@@ -99,7 +123,6 @@ public class PlacesPOITests {
 	public void test_Setters() {
 		// setup
 		PlacesPOI poi = new PlacesPOI("id2", "", 0, 0, 0, "", 0, null);
-
 
 		// verify
 		assertEquals("id2", poi.getIdentifier());
@@ -133,29 +156,106 @@ public class PlacesPOITests {
 	@Test
 	public void test_Equals() {
 		// setup
-		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
-		PlacesPOI poiSame = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
-		PlacesPOI poiIDChange = new PlacesPOI("idChange", SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
-		PlacesPOI poiNameChange = new PlacesPOI(SAMPLE_IDENTIFIER, "name", SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
-		PlacesPOI poiLatChange = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, 32.44, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
-		PlacesPOI poiLongChange = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, 50.44, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
-		PlacesPOI poiRadiusChange = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, 600,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
-		PlacesPOI poiMetadataChange = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE,
-				SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, null);
-		PlacesPOI poiWeightChange = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE,
-				SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, 2222, SAMPLE_METADATA);
-		PlacesPOI poiLibraryChange = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE,
-				SAMPLE_RADIUS,
-				"librarycbahge", SAMPLE_WEIGHT, SAMPLE_METADATA);
+		PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiSame = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiIDChange = new PlacesPOI(
+			"idChange",
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiNameChange = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			"name",
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiLatChange = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			32.44,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiLongChange = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			50.44,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiRadiusChange = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			600,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiMetadataChange = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			null
+		);
+		PlacesPOI poiWeightChange = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			2222,
+			SAMPLE_METADATA
+		);
+		PlacesPOI poiLibraryChange = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			"librarycbahge",
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
 
 		PlacesPOI poiDitto = new PlacesPOI(poi);
 
@@ -177,32 +277,120 @@ public class PlacesPOITests {
 	@Test
 	public void test_EqualsWithoutMetaData() {
 		// setup
-		PlacesPOI poi1 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
+		PlacesPOI poi1 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
 		poi1.setUserIsWithin(true);
-		PlacesPOI poi2 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, null);
+		PlacesPOI poi2 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			null
+		);
 		poi2.setUserIsWithin(true);
-		PlacesPOI poi3 = new PlacesPOI("idChange", SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, null);
-		PlacesPOI poi4 = new PlacesPOI(SAMPLE_IDENTIFIER, "name", SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, null);
-		PlacesPOI poi5 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, 32.44, SAMPLE_LONGITUDE, SAMPLE_RADIUS, SAMPLE_LIBRARY,
-				SAMPLE_WEIGHT, null);
-		PlacesPOI poi6 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, 50.44, SAMPLE_RADIUS, SAMPLE_LIBRARY,
-				SAMPLE_WEIGHT, null);
-		PlacesPOI poi7 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, 600, SAMPLE_LIBRARY,
-				SAMPLE_WEIGHT, null);
-		PlacesPOI poi8 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				"libChange", SAMPLE_WEIGHT, null);
-		PlacesPOI poi9 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, 300, null);
-		PlacesPOI poi10 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, 300, null);
+		PlacesPOI poi3 = new PlacesPOI(
+			"idChange",
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			null
+		);
+		PlacesPOI poi4 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			"name",
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			null
+		);
+		PlacesPOI poi5 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			32.44,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			null
+		);
+		PlacesPOI poi6 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			50.44,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			null
+		);
+		PlacesPOI poi7 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			600,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			null
+		);
+		PlacesPOI poi8 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			"libChange",
+			SAMPLE_WEIGHT,
+			null
+		);
+		PlacesPOI poi9 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			300,
+			null
+		);
+		PlacesPOI poi10 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			300,
+			null
+		);
 		poi10.setUserIsWithin(false);
 
-		PlacesPOI poi11 = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, 300, null);
+		PlacesPOI poi11 = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			300,
+			null
+		);
 		poi11.setWeight(3);
 
 		// verify
@@ -221,8 +409,15 @@ public class PlacesPOITests {
 
 	@Test
 	public void test_HashCode() {
-		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT);
+		PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT
+		);
 		assertNotNull(poi.hashCode());
 		assertEquals(poi.hashCode(), poi.hashCode());
 	}
@@ -235,7 +430,7 @@ public class PlacesPOITests {
 	public void test_comparePriority_when_differentWeight() {
 		// setup
 		PlacesPOI highPriorityPOI = new PlacesPOI("id2", "", 0, 0, 0, "", 22, null);
-		PlacesPOI lowPriorityPOI  = new PlacesPOI("id2", "", 0, 0, 0, "", 33, null);
+		PlacesPOI lowPriorityPOI = new PlacesPOI("id2", "", 0, 0, 0, "", 33, null);
 
 		// test
 		assertTrue(highPriorityPOI.comparePriority(lowPriorityPOI));
@@ -276,32 +471,38 @@ public class PlacesPOITests {
 	@Test
 	public void test_toMap() {
 		// setup
-		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, SAMPLE_LATITUDE, SAMPLE_LONGITUDE, SAMPLE_RADIUS,
-				SAMPLE_LIBRARY, SAMPLE_WEIGHT, SAMPLE_METADATA);
+		PlacesPOI poi = new PlacesPOI(
+			SAMPLE_IDENTIFIER,
+			SAMPLE_NAME,
+			SAMPLE_LATITUDE,
+			SAMPLE_LONGITUDE,
+			SAMPLE_RADIUS,
+			SAMPLE_LIBRARY,
+			SAMPLE_WEIGHT,
+			SAMPLE_METADATA
+		);
 
 		// test
-		assertEquals(SAMPLE_IDENTIFIER ,poi.toMap().get(PlacesTestConstants.POIKeys.IDENTIFIER));
-		assertEquals(SAMPLE_NAME ,poi.toMap().get(PlacesTestConstants.POIKeys.NAME));
-		assertEquals(SAMPLE_LATITUDE ,poi.toMap().get(PlacesTestConstants.POIKeys.LATITUDE));
-		assertEquals(SAMPLE_LONGITUDE ,poi.toMap().get(PlacesTestConstants.POIKeys.LONGITUDE));
-		assertEquals(SAMPLE_RADIUS ,poi.toMap().get(PlacesTestConstants.POIKeys.RADIUS));
-		assertEquals(SAMPLE_LIBRARY ,poi.toMap().get(PlacesTestConstants.POIKeys.LIBRARY));
-		assertEquals(SAMPLE_WEIGHT ,poi.toMap().get(PlacesTestConstants.POIKeys.WEIGHT));
-		assertEquals(SAMPLE_METADATA ,poi.toMap().get(PlacesTestConstants.POIKeys.METADATA));
+		assertEquals(SAMPLE_IDENTIFIER, poi.toMap().get(PlacesTestConstants.POIKeys.IDENTIFIER));
+		assertEquals(SAMPLE_NAME, poi.toMap().get(PlacesTestConstants.POIKeys.NAME));
+		assertEquals(SAMPLE_LATITUDE, poi.toMap().get(PlacesTestConstants.POIKeys.LATITUDE));
+		assertEquals(SAMPLE_LONGITUDE, poi.toMap().get(PlacesTestConstants.POIKeys.LONGITUDE));
+		assertEquals(SAMPLE_RADIUS, poi.toMap().get(PlacesTestConstants.POIKeys.RADIUS));
+		assertEquals(SAMPLE_LIBRARY, poi.toMap().get(PlacesTestConstants.POIKeys.LIBRARY));
+		assertEquals(SAMPLE_WEIGHT, poi.toMap().get(PlacesTestConstants.POIKeys.WEIGHT));
+		assertEquals(SAMPLE_METADATA, poi.toMap().get(PlacesTestConstants.POIKeys.METADATA));
 	}
 
 	@Test
 	public void test_toMap_nullMetaData() {
 		// setup
-		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, 0.00, 999.999, 0,
-				null, SAMPLE_WEIGHT, null);
+		PlacesPOI poi = new PlacesPOI(SAMPLE_IDENTIFIER, SAMPLE_NAME, 0.00, 999.999, 0, null, SAMPLE_WEIGHT, null);
 
 		// test
-		assertEquals(0.00 ,poi.toMap().get(PlacesTestConstants.POIKeys.LATITUDE));
-		assertEquals(999.999 ,poi.toMap().get(PlacesTestConstants.POIKeys.LONGITUDE));
-		assertEquals(0 ,poi.toMap().get(PlacesTestConstants.POIKeys.RADIUS));
+		assertEquals(0.00, poi.toMap().get(PlacesTestConstants.POIKeys.LATITUDE));
+		assertEquals(999.999, poi.toMap().get(PlacesTestConstants.POIKeys.LONGITUDE));
+		assertEquals(0, poi.toMap().get(PlacesTestConstants.POIKeys.RADIUS));
 		assertNull(poi.toMap().get(PlacesTestConstants.POIKeys.LIBRARY));
 		assertNull(poi.toMap().get(PlacesTestConstants.POIKeys.METADATA));
 	}
-
 }

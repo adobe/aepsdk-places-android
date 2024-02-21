@@ -7,11 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places
 
-import com.adobe.marketing.mobile.*
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
+import com.adobe.marketing.mobile.Extension
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.SharedStateResolution
 import java.util.concurrent.CountDownLatch
 
 internal typealias ConfigurationMonitor = (firstValidConfiguration: Map<String, Any>) -> Unit
@@ -105,38 +110,39 @@ class MonitorExtension : Extension {
     fun handleStateChange(event: Event) {
         if (event.eventData["stateowner"] == PLACES_MODULE_NAME) {
             placesSharedState = api.getSharedState(PLACES_MODULE_NAME, null, false, SharedStateResolution.ANY)?.value
-            if(placesSharedState?.containsKey(CURRENTPOI) == true
-                || placesSharedState?.containsKey(LASTENTEREDPOI) == true
-                || placesSharedState?.containsKey(LASTEXITEDPOI) == true )  {
+            if (placesSharedState?.containsKey(CURRENTPOI) == true ||
+                placesSharedState?.containsKey(LASTENTEREDPOI) == true ||
+                placesSharedState?.containsKey(LASTEXITEDPOI) == true
+            ) {
                 waitForSharedStateToSet.countDown()
             }
         }
     }
 
     fun handlePlacesResponseContent(event: Event) {
-        if(event.name == "responseprocessregionevent") {
+        if (event.name == "responseprocessregionevent") {
             latestRegionEvent = event
             waitForRegionEvent.countDown()
         }
 
-        if(event.name == "responsegetlastknownlocation") {
+        if (event.name == "responsegetlastknownlocation") {
             capturedLastKnownLocationEvent = event
             waitForLastKnownLocationExternalEvent.countDown()
         }
 
-        if(event.name == "responsegetnearbyplaces") {
+        if (event.name == "responsegetnearbyplaces") {
             capturedNearByPOIEvent = event
             waitForNearByPOIExternalEvent.countDown()
         }
 
-        if(event.name == "responsegetuserwithinplaces") {
+        if (event.name == "responsegetuserwithinplaces") {
             capturedUserWithinPlacesEvent = event
             waitForUserWithInPOIExternalEvent.countDown()
         }
     }
 
     fun handleEdgeRequestContent(event: Event) {
-        if(event.name == "Location Tracking Event") {
+        if (event.name == "Location Tracking Event") {
             latestEdgeEvent = event
             waitForExperienceEvent.countDown()
         }
