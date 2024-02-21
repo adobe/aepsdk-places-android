@@ -47,7 +47,6 @@ import com.adobe.marketing.mobile.AdobeError;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
-import com.adobe.marketing.mobile.ExtensionErrorCallback;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.Places;
 import com.google.android.gms.location.Geofence;
@@ -99,27 +98,6 @@ public class PlacesTests {
     @After
     public void clean() {
         mockedMobileCore.close();
-    }
-
-
-    @Test
-    public void test_registerExtension() {
-        final ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
-        final ArgumentCaptor<ExtensionErrorCallback> callbackCaptor = ArgumentCaptor.forClass(
-                ExtensionErrorCallback.class
-        );
-        mockedMobileCore
-                .when(() -> MobileCore.registerExtension(extensionClassCaptor.capture(), callbackCaptor.capture()))
-                .thenReturn(true);
-        // test
-        Places.registerExtension();
-
-        // verify: happy
-        assertNotNull(callbackCaptor.getValue());
-        assertEquals(PlacesExtension.class, extensionClassCaptor.getValue());
-
-        // verify: error callback was called
-        callbackCaptor.getValue().error(null);
     }
 
     @Test

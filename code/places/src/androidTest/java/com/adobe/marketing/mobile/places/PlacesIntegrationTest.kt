@@ -91,7 +91,7 @@ class PlacesIntegrationTest {
 
     @Test
     fun test_extensionVersion() {
-        assertEquals( "2.1.0", Places.extensionVersion())
+        assertEquals( "3.0.0", Places.extensionVersion())
     }
 
     //---------------------------------------------------------------------------------------------

@@ -34,10 +34,10 @@ import java.util.Map;
 public class Places {
 
 	public static final Class<? extends Extension> EXTENSION = PlacesExtension.class;
-
-	private final static String EXTENSION_VERSION = "2.1.0";
 	private static final String CLASS_NAME = "Places";
 	private static final long EVENT_RESPONSE_TIMEOUT = 5000L;
+
+	private static final String EXTENSION_VERSION = "3.0.0";
 
 	// Constants
 	static final String LOG_TAG = "Places";
@@ -47,23 +47,6 @@ public class Places {
 	// =======================================================================
 	// Places Public API
 	// =======================================================================
-
-	/**
-	 * Registers the Places extension with the {@code MobileCore}
-	 * <p>
-	 * This will allow the extension to send and receive events to and from the MobileCore.
-	 */
-	@Deprecated
-	public static void registerExtension(){
-		MobileCore.registerExtension(PlacesExtension.class, extensionError -> {
-			if (extensionError == null) {
-				return;
-			}
-			Log.error(LOG_TAG, CLASS_NAME, "There was an error when registering the Places extension: %s",
-					extensionError.getErrorName());
-		});
-	}
-
 	/**
 	 * Returns the version of the {@link Places} Extension
 	 *
