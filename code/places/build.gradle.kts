@@ -19,7 +19,8 @@ aepLibrary {
     namespace = "com.adobe.marketing.mobile"
     enableSpotlessPrettierForJava = true
     enableSpotless = true
- 
+    enableCheckStyle = true
+
     publishing {
         gitRepoName = "aepsdk-places-android"
         addCoreDependency(mavenCoreVersion)
