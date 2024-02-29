@@ -33,7 +33,7 @@ jobs:
     executor:
       name: android/android-docker
       resource-class: medium
-      tag: 2024.01.1-node
+      tag: 2024.01.1
 
     steps:
       - checkout
@@ -54,14 +54,13 @@ jobs:
 
       - android/save-build-cache
 
-      # Store Lint report
       - store_artifacts:
           path: code/places/build/reports     
   build-and-unit-test:
     executor:
       name: android/android-docker
       resource-class: medium
-      tag: 2024.01.1-node
+      tag: 2024.01.1
  
     steps:
       - checkout

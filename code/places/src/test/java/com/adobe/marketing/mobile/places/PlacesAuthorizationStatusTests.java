@@ -19,72 +19,74 @@ import org.junit.Test;
 
 public class PlacesAuthorizationStatusTests {
 
-	@Test
-	public void test_always() {
-		// test get
-		assertEquals(PlacesAuthorizationStatus.ALWAYS, PlacesAuthorizationStatus.get("always"));
+    @Test
+    public void test_always() {
+        // test get
+        assertEquals(PlacesAuthorizationStatus.ALWAYS, PlacesAuthorizationStatus.get("always"));
 
-		// test isValid
-		assertTrue(PlacesAuthorizationStatus.isValidStatus("always"));
+        // test isValid
+        assertTrue(PlacesAuthorizationStatus.isValidStatus("always"));
 
-		// test toString
-		assertEquals("always", PlacesAuthorizationStatus.ALWAYS.stringValue());
-	}
+        // test toString
+        assertEquals("always", PlacesAuthorizationStatus.ALWAYS.stringValue());
+    }
 
-	@Test
-	public void test_whenInUse() {
-		// test get
-		assertEquals(PlacesAuthorizationStatus.WHEN_IN_USE, PlacesAuthorizationStatus.get("wheninuse"));
+    @Test
+    public void test_whenInUse() {
+        // test get
+        assertEquals(
+                PlacesAuthorizationStatus.WHEN_IN_USE, PlacesAuthorizationStatus.get("wheninuse"));
 
-		// test isValid
-		assertTrue(PlacesAuthorizationStatus.isValidStatus("wheninuse"));
+        // test isValid
+        assertTrue(PlacesAuthorizationStatus.isValidStatus("wheninuse"));
 
-		// test toString
-		assertEquals("wheninuse", PlacesAuthorizationStatus.WHEN_IN_USE.stringValue());
-	}
+        // test toString
+        assertEquals("wheninuse", PlacesAuthorizationStatus.WHEN_IN_USE.stringValue());
+    }
 
-	@Test
-	public void test_denied() {
-		// test get
-		assertEquals(PlacesAuthorizationStatus.DENIED, PlacesAuthorizationStatus.get("denied"));
+    @Test
+    public void test_denied() {
+        // test get
+        assertEquals(PlacesAuthorizationStatus.DENIED, PlacesAuthorizationStatus.get("denied"));
 
-		// test isValid
-		assertTrue(PlacesAuthorizationStatus.isValidStatus("denied"));
+        // test isValid
+        assertTrue(PlacesAuthorizationStatus.isValidStatus("denied"));
 
-		// test toString
-		assertEquals("denied", PlacesAuthorizationStatus.DENIED.stringValue());
-	}
+        // test toString
+        assertEquals("denied", PlacesAuthorizationStatus.DENIED.stringValue());
+    }
 
-	@Test
-	public void test_unknown() {
-		// test get
-		assertEquals(PlacesAuthorizationStatus.UNKNOWN, PlacesAuthorizationStatus.get("unknown"));
+    @Test
+    public void test_unknown() {
+        // test get
+        assertEquals(PlacesAuthorizationStatus.UNKNOWN, PlacesAuthorizationStatus.get("unknown"));
 
-		// test isValid
-		assertTrue(PlacesAuthorizationStatus.isValidStatus("unknown"));
+        // test isValid
+        assertTrue(PlacesAuthorizationStatus.isValidStatus("unknown"));
 
-		// test toString
-		assertEquals("unknown", PlacesAuthorizationStatus.UNKNOWN.stringValue());
-	}
+        // test toString
+        assertEquals("unknown", PlacesAuthorizationStatus.UNKNOWN.stringValue());
+    }
 
-	@Test
-	public void test_restricted() {
-		// test get
-		assertEquals(PlacesAuthorizationStatus.RESTRICTED, PlacesAuthorizationStatus.get("restricted"));
+    @Test
+    public void test_restricted() {
+        // test get
+        assertEquals(
+                PlacesAuthorizationStatus.RESTRICTED, PlacesAuthorizationStatus.get("restricted"));
 
-		// test isValid
-		assertTrue(PlacesAuthorizationStatus.isValidStatus("restricted"));
+        // test isValid
+        assertTrue(PlacesAuthorizationStatus.isValidStatus("restricted"));
 
-		// test toString
-		assertEquals("restricted", PlacesAuthorizationStatus.RESTRICTED.stringValue());
-	}
+        // test toString
+        assertEquals("restricted", PlacesAuthorizationStatus.RESTRICTED.stringValue());
+    }
 
-	@Test
-	public void test_invalidString() {
-		// test get
-		assertEquals(null, PlacesAuthorizationStatus.get("invalidString"));
+    @Test
+    public void test_invalidString() {
+        // test get
+        assertEquals(null, PlacesAuthorizationStatus.get("invalidString"));
 
-		// test isValid
-		assertFalse(PlacesAuthorizationStatus.isValidStatus("invalidString"));
-	}
+        // test isValid
+        assertFalse(PlacesAuthorizationStatus.isValidStatus("invalidString"));
+    }
 }

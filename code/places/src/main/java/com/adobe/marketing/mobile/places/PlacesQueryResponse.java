@@ -16,30 +16,30 @@ import java.util.List;
 
 final class PlacesQueryResponse {
 
-	String errorMessage;
-	boolean isSuccess;
-	List<PlacesPOI> containsUserPOIs;
-	List<PlacesPOI> nearByPOIs;
-	PlacesRequestError resultStatus;
+    String errorMessage;
+    boolean isSuccess;
+    List<PlacesPOI> containsUserPOIs;
+    List<PlacesPOI> nearByPOIs;
+    PlacesRequestError resultStatus;
 
-	void fetchFailed(final String message, final PlacesRequestError placesStatus) {
-		this.errorMessage = message;
-		this.isSuccess = false;
-		this.resultStatus = placesStatus;
-	}
+    void fetchFailed(final String message, final PlacesRequestError placesStatus) {
+        this.errorMessage = message;
+        this.isSuccess = false;
+        this.resultStatus = placesStatus;
+    }
 
-	List<PlacesPOI> getContainsUserPOIs() {
-		return containsUserPOIs;
-	}
+    List<PlacesPOI> getContainsUserPOIs() {
+        return containsUserPOIs;
+    }
 
-	List<PlacesPOI> getNearByPOIs() {
-		return nearByPOIs;
-	}
+    List<PlacesPOI> getNearByPOIs() {
+        return nearByPOIs;
+    }
 
-	List<PlacesPOI> getAllPOIs() {
-		ArrayList<PlacesPOI> allPOIs = new ArrayList<>();
-		allPOIs.addAll(containsUserPOIs);
-		allPOIs.addAll(nearByPOIs);
-		return allPOIs;
-	}
+    List<PlacesPOI> getAllPOIs() {
+        ArrayList<PlacesPOI> allPOIs = new ArrayList<>();
+        allPOIs.addAll(containsUserPOIs);
+        allPOIs.addAll(nearByPOIs);
+        return allPOIs;
+    }
 }

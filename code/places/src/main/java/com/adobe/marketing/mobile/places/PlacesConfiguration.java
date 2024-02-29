@@ -20,123 +20,123 @@ import java.util.Map;
 
 class PlacesConfiguration {
 
-	private static final String CLASS_NAME = "PlacesConfiguration";
+    private static final String CLASS_NAME = "PlacesConfiguration";
 
-	private List<PlacesLibrary> libraries;
-	private String endpoint;
-	private long membershipTtl;
-	private boolean isValid;
+    private List<PlacesLibrary> libraries;
+    private String endpoint;
+    private long membershipTtl;
+    private boolean isValid;
 
-	PlacesConfiguration(final Map<String, Object> configData) {
-		this();
-		if (configData == null) {
-			isValid = false;
-			Log.warning(
-				PlacesConstants.LOG_TAG,
-				CLASS_NAME,
-				"Constructor - Places Configuration : Configuration eventData is null"
-			);
-			return;
-		}
+    PlacesConfiguration(final Map<String, Object> configData) {
+        this();
+        if (configData == null) {
+            isValid = false;
+            Log.warning(
+                    PlacesConstants.LOG_TAG,
+                    CLASS_NAME,
+                    "Constructor - Places Configuration : Configuration eventData is null");
+            return;
+        }
 
-		// initiate the libraries list
-		libraries = new ArrayList<>();
+        // initiate the libraries list
+        libraries = new ArrayList<>();
 
-		// read the libraries from the configuration
-		final List<Map> libraryList = DataReader.optTypedList(
-			Map.class,
-			configData,
-			PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES,
-			null
-		);
+        // read the libraries from the configuration
+        final List<Map> libraryList =
+                DataReader.optTypedList(
+                        Map.class,
+                        configData,
+                        PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES,
+                        null);
 
-		// bail out if there is no places libraries
-		if (libraryList == null) {
-			isValid = false;
-			Log.warning(
-				PlacesConstants.LOG_TAG,
-				CLASS_NAME,
-				"Constructor - No places libraries found in configuration"
-			);
-			return;
-		}
+        // bail out if there is no places libraries
+        if (libraryList == null) {
+            isValid = false;
+            Log.warning(
+                    PlacesConstants.LOG_TAG,
+                    CLASS_NAME,
+                    "Constructor - No places libraries found in configuration");
+            return;
+        }
 
-		for (final Map eachLibrary : libraryList) {
-			if (eachLibrary != null && !eachLibrary.isEmpty()) {
-				final String libraryId = DataReader.optString(
-					eachLibrary,
-					PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID,
-					""
-				);
-				if (!StringUtils.isNullOrEmpty(libraryId)) {
-					// create new library and add them to the library list
-					libraries.add(new PlacesLibrary(libraryId));
-				} else {
-					Log.warning(PlacesConstants.LOG_TAG, CLASS_NAME, "Constructor - Invalid places library Id.");
-				}
-			}
-		}
+        for (final Map eachLibrary : libraryList) {
+            if (eachLibrary != null && !eachLibrary.isEmpty()) {
+                final String libraryId =
+                        DataReader.optString(
+                                eachLibrary,
+                                PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID,
+                                "");
+                if (!StringUtils.isNullOrEmpty(libraryId)) {
+                    // create new library and add them to the library list
+                    libraries.add(new PlacesLibrary(libraryId));
+                } else {
+                    Log.warning(
+                            PlacesConstants.LOG_TAG,
+                            CLASS_NAME,
+                            "Constructor - Invalid places library Id.");
+                }
+            }
+        }
 
-		// bail out if there is no valid places libraries after parsing the json
-		if (libraries.isEmpty()) {
-			isValid = false;
-			Log.warning(
-				PlacesConstants.LOG_TAG,
-				CLASS_NAME,
-				"Constructor - Places Configuration : No valid libraries found in configuration"
-			);
-			return;
-		}
+        // bail out if there is no valid places libraries after parsing the json
+        if (libraries.isEmpty()) {
+            isValid = false;
+            Log.warning(
+                    PlacesConstants.LOG_TAG,
+                    CLASS_NAME,
+                    "Constructor - Places Configuration : No valid libraries found in"
+                            + " configuration");
+            return;
+        }
 
-		endpoint =
-			DataReader.optString(
-				configData,
-				PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT,
-				""
-			);
+        endpoint =
+                DataReader.optString(
+                        configData,
+                        PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT,
+                        "");
 
-		if (StringUtils.isNullOrEmpty(endpoint)) {
-			isValid = false;
-			Log.warning(
-				PlacesConstants.LOG_TAG,
-				CLASS_NAME,
-				"Constructor - Places Configuration : No valid endpoint found in configuration"
-			);
-			return;
-		}
+        if (StringUtils.isNullOrEmpty(endpoint)) {
+            isValid = false;
+            Log.warning(
+                    PlacesConstants.LOG_TAG,
+                    CLASS_NAME,
+                    "Constructor - Places Configuration : No valid endpoint found in"
+                            + " configuration");
+            return;
+        }
 
-		membershipTtl =
-			DataReader.optLong(
-				configData,
-				PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
-				PlacesConstants.DEFAULT_MEMBERSHIP_TTL
-			);
-		isValid = true;
-	}
+        membershipTtl =
+                DataReader.optLong(
+                        configData,
+                        PlacesConstants.EventDataKeys.Configuration
+                                .CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
+                        PlacesConstants.DEFAULT_MEMBERSHIP_TTL);
+        isValid = true;
+    }
 
-	String getLibrariesQueryString() {
-		final StringBuilder builder = new StringBuilder();
+    String getLibrariesQueryString() {
+        final StringBuilder builder = new StringBuilder();
 
-		for (final PlacesLibrary library : libraries) {
-			builder.append("&library=");
-			builder.append(library.getLibraryId());
-		}
+        for (final PlacesLibrary library : libraries) {
+            builder.append("&library=");
+            builder.append(library.getLibraryId());
+        }
 
-		return builder.toString();
-	}
+        return builder.toString();
+    }
 
-	String getEndpoint() {
-		return endpoint;
-	}
+    String getEndpoint() {
+        return endpoint;
+    }
 
-	boolean isValid() {
-		return isValid;
-	}
+    boolean isValid() {
+        return isValid;
+    }
 
-	long getMembershipTtl() {
-		return membershipTtl;
-	}
+    long getMembershipTtl() {
+        return membershipTtl;
+    }
 
-	// hiding the default constructor
-	private PlacesConfiguration() {}
+    // hiding the default constructor
+    private PlacesConfiguration() {}
 }

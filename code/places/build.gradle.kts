@@ -17,7 +17,6 @@ val mavenCoreVersion: String by project
 
 aepLibrary {
     namespace = "com.adobe.marketing.mobile"
-    enableSpotlessPrettierForJava = true
     enableSpotless = true
     enableCheckStyle = true
 
