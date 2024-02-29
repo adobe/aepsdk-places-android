@@ -28,11 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unused")
+/** Public class containing APIs for the Places extension. */
 public class Places {
 
-    // Extension Class
+    /** Places extension Class */
     public static final Class<? extends Extension> EXTENSION = PlacesExtension.class;
+
     private static final String CLASS_NAME = "Places";
     private static final long EVENT_RESPONSE_TIMEOUT = 5000L;
 
