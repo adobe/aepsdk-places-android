@@ -12,5 +12,5 @@
 package com.adobe.marketing.mobile.places;
 
 interface PlacesQueryResponseCallback {
-	void call(PlacesQueryResponse response);
+    void call(PlacesQueryResponse response);
 }

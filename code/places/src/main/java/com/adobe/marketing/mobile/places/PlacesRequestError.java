@@ -11,85 +11,76 @@
 
 package com.adobe.marketing.mobile.places;
 
-/**
- * Represents the status of places query service response.
- */
+/** Represents the status of places query service response. */
 public enum PlacesRequestError {
-	/**
-	 * OK - when fetching the nearByPointsOfInterest is a success
-	 */
-	OK(0),
+    /** OK - when fetching the nearByPointsOfInterest is a success */
+    OK(0),
 
-	/**
-	 * CONNECTIVITY_ERROR - when the connection object is null (i.e) There is no network connectivity on the device
-	 */
-	CONNECTIVITY_ERROR(1),
+    /**
+     * CONNECTIVITY_ERROR - when the connection object is null (i.e) There is no network
+     * connectivity on the device
+     */
+    CONNECTIVITY_ERROR(1),
 
-	/**
-	 * SERVER_RESPONSE_ERROR - occurs during the following scenarios
-	 * <p>
-	 * 1. When the connection is not 200OK
-	 * 2. When the server responds with empty JSON response
-	 * 3. When the server responds with Invalid JSON response
-	 */
-	SERVER_RESPONSE_ERROR(2),
+    /**
+     * SERVER_RESPONSE_ERROR - occurs during the following scenarios
+     *
+     * <p>1. When the connection is not 200OK 2. When the server responds with empty JSON response
+     * 3. When the server responds with Invalid JSON response
+     */
+    SERVER_RESPONSE_ERROR(2),
 
-	/**
-	 * INVALID_LATLONG_ERROR - when an invalid latitude or longitude is passed to the getNearByPointsOfInterest API
-	 */
-	INVALID_LATLONG_ERROR(3),
+    /**
+     * INVALID_LATLONG_ERROR - when an invalid latitude or longitude is passed to the
+     * getNearByPointsOfInterest API
+     */
+    INVALID_LATLONG_ERROR(3),
 
-	/**
-	 * CONFIGURATION_ERROR - occurs when
-	 * <p>
-	 * 1.Places configuration is not available
-	 * 2.The privacy on the SDK is opted-out
-	 */
-	CONFIGURATION_ERROR(4),
+    /**
+     * CONFIGURATION_ERROR - occurs when
+     *
+     * <p>1.Places configuration is not available 2.The privacy on the SDK is opted-out
+     */
+    CONFIGURATION_ERROR(4),
 
-	/**
-	 * QUERY_SERVICE_UNAVAILABLE - occurs when the network/Json service from the MobileCore is not available
-	 */
-	QUERY_SERVICE_UNAVAILABLE(5),
+    /**
+     * QUERY_SERVICE_UNAVAILABLE - occurs when the network/Json service from the MobileCore is not
+     * available
+     */
+    QUERY_SERVICE_UNAVAILABLE(5),
 
-	/**
-	 * PRIVACY_OPTED_OUT - occurs when the privacy on the SDK is opted-out
-	 */
-	PRIVACY_OPTED_OUT(6),
+    /** PRIVACY_OPTED_OUT - occurs when the privacy on the SDK is opted-out */
+    PRIVACY_OPTED_OUT(6),
 
-	/**
-	 * UNKNOWN_ERROR - for any other unknown error
-	 */
-	UNKNOWN_ERROR(6);
+    /** UNKNOWN_ERROR - for any other unknown error */
+    UNKNOWN_ERROR(6);
 
-	private final int value;
+    private final int value;
 
-	PlacesRequestError(final int value) {
-		this.value = value;
-	}
+    PlacesRequestError(final int value) {
+        this.value = value;
+    }
 
-	/**
-	 * Returns the {@code int} value of the enum.
-	 */
-	public int getValue() {
-		return value;
-	}
+    /** Returns the {@code int} value of the enum. */
+    public int getValue() {
+        return value;
+    }
 
-	/**
-	 * Returns a {@link PlacesRequestError} object based on the provided {@code int} value.
-	 * <p>
-	 * If the value provided is not valid, {@link #UNKNOWN_ERROR} will be returned.
-	 *
-	 * @param value {@code int} to be converted to a {@code PlacesRequestError} object
-	 * @return {@code PlacesRequestError} object equivalent to the provided int
-	 */
-	public static PlacesRequestError fromInt(final int value) {
-		for (PlacesRequestError b : PlacesRequestError.values()) {
-			if (b.value == (value)) {
-				return b;
-			}
-		}
+    /**
+     * Returns a {@link PlacesRequestError} object based on the provided {@code int} value.
+     *
+     * <p>If the value provided is not valid, {@link #UNKNOWN_ERROR} will be returned.
+     *
+     * @param value {@code int} to be converted to a {@code PlacesRequestError} object
+     * @return {@code PlacesRequestError} object equivalent to the provided int
+     */
+    public static PlacesRequestError fromInt(final int value) {
+        for (PlacesRequestError b : PlacesRequestError.values()) {
+            if (b.value == (value)) {
+                return b;
+            }
+        }
 
-		return UNKNOWN_ERROR;
-	}
+        return UNKNOWN_ERROR;
+    }
 }

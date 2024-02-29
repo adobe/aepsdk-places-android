@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile;
 
 public class SDKHelper {
 
-	public static void resetSDK() {
-		MobileCore.resetSDK();
-	}
+    public static void resetSDK() {
+        MobileCore.resetSDK();
+    }
 }

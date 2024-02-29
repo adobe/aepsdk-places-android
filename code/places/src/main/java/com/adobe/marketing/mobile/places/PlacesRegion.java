@@ -17,48 +17,51 @@ import java.util.Map;
 
 final class PlacesRegion extends PlacesPOI {
 
-	private final String placeEventType;
-	private final long timestamp;
-	private final PlacesPOI poi;
+    private final String placeEventType;
+    private final long timestamp;
+    private final PlacesPOI poi;
 
-	static final String PLACE_EVENT_NONE = "none";
-	static final String PLACE_EVENT_ENTRY = "entry";
-	static final String PLACE_EVENT_EXIT = "exit";
+    static final String PLACE_EVENT_NONE = "none";
+    static final String PLACE_EVENT_ENTRY = "entry";
+    static final String PLACE_EVENT_EXIT = "exit";
 
-	long getTimestamp() {
-		return timestamp;
-	}
+    long getTimestamp() {
+        return timestamp;
+    }
 
-	Map<String, Object> getRegionEventData() {
-		Map<String, Object> data = new HashMap<>();
-		data.put(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION, poi.toMap());
-		data.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, getPlaceEventType());
-		data.put(PlacesConstants.EventDataKeys.Places.REGION_TIMESTAMP, getTimestamp());
-		return data;
-	}
+    Map<String, Object> getRegionEventData() {
+        Map<String, Object> data = new HashMap<>();
+        data.put(PlacesConstants.EventDataKeys.Places.TRIGGERING_REGION, poi.toMap());
+        data.put(PlacesConstants.EventDataKeys.Places.REGION_EVENT_TYPE, getPlaceEventType());
+        data.put(PlacesConstants.EventDataKeys.Places.REGION_TIMESTAMP, getTimestamp());
+        return data;
+    }
 
-	PlacesRegion(@NonNull final PlacesPOI placesPOI, @NonNull final String placeEventType, final long timestamp) {
-		super(placesPOI);
-		this.poi = placesPOI;
-		this.placeEventType = placeEventType;
-		this.timestamp = timestamp;
-	}
+    PlacesRegion(
+            @NonNull final PlacesPOI placesPOI,
+            @NonNull final String placeEventType,
+            final long timestamp) {
+        super(placesPOI);
+        this.poi = placesPOI;
+        this.placeEventType = placeEventType;
+        this.timestamp = timestamp;
+    }
 
-	PlacesPOI getPoi() {
-		return poi;
-	}
+    PlacesPOI getPoi() {
+        return poi;
+    }
 
-	String getPlaceEventType() {
-		return placeEventType;
-	}
+    String getPlaceEventType() {
+        return placeEventType;
+    }
 
-	String getExperienceEventType() {
-		switch (placeEventType) {
-			case PLACE_EVENT_ENTRY:
-				return PlacesConstants.XDM.Location.EventType.ENTRY;
-			case PLACE_EVENT_EXIT:
-				return PlacesConstants.XDM.Location.EventType.EXIT;
-		}
-		return "";
-	}
+    String getExperienceEventType() {
+        switch (placeEventType) {
+            case PLACE_EVENT_ENTRY:
+                return PlacesConstants.XDM.Location.EventType.ENTRY;
+            case PLACE_EVENT_EXIT:
+                return PlacesConstants.XDM.Location.EventType.EXIT;
+        }
+        return "";
+    }
 }
