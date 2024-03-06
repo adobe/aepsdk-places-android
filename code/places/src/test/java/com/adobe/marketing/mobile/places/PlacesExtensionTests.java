@@ -27,6 +27,7 @@ import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
+import com.adobe.marketing.mobile.Places;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class PlacesExtensionTests {
 
     @Test
     public void test_getVersion() {
-        assertEquals("3.0.0", extension.getVersion());
+        assertEquals(Places.EXTENSION_VERSION, extension.getVersion());
     }
 
     @Test
