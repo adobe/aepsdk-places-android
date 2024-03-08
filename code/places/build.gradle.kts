@@ -27,8 +27,8 @@ aepLibrary {
 }
 
 dependencies {
-    implementation("com.adobe.marketing.mobile:core:$mavenCoreVersion-SNAPSHOT")
-    implementation ("com.google.android.gms:play-services-location:21.1.0")
+    implementation("com.adobe.marketing.mobile:core:$mavenCoreVersion")
+    implementation ("com.google.android.gms:play-services-location:21.2.0")
 
     // testImplementation dependencies provided by aep-library:
     // MOCKITO_CORE, MOCKITO_INLINE, JSON
