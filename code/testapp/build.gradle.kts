@@ -15,6 +15,8 @@ plugins {
     id("com.android.application")
 }
 
+val mavenCoreVersion: String by project
+
 android {
       namespace = "com.adobe.placestestapp"
 
@@ -36,13 +38,16 @@ android {
 
 dependencies {
     implementation(project(":places"))
-    implementation("com.adobe.marketing.mobile:core:2.+")
-    implementation("com.adobe.marketing.mobile:assurance:2.+")
-    implementation("com.adobe.marketing.mobile:edge:2.+")
+    implementation("com.adobe.marketing.mobile:core:3.0.0-beta.1-SNAPSHOT")
+    implementation("com.adobe.marketing.mobile:assurance:3.0.0-beta.1-SNAPSHOT")
+    implementation("com.adobe.marketing.mobile:edge:3.0.0-SNAPSHOT") {
+        exclude(group = "com.adobe.marketing.mobile", module = "core")
+        exclude(group = "com.adobe.marketing.mobile", module = "edgeidentity")
+    }
 
-    implementation("com.google.android.gms:play-services-location:21.1.0")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
 
-    implementation("androidx.appcompat:appcompat:1.5.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 }
