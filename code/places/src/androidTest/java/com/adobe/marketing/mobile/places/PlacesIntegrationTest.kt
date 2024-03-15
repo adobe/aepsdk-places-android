@@ -1,5 +1,5 @@
 /*
-  Copyright 2023 Adobe. All rights reserved.
+  Copyright 2022 Adobe. All rights reserved.
   This file is licensed to you under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License. You may obtain a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places
 
@@ -15,11 +15,26 @@ import android.app.Application
 import android.location.Location
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.adobe.marketing.mobile.*
-import com.adobe.marketing.mobile.services.*
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.MobilePrivacyStatus
+import com.adobe.marketing.mobile.Places
+import com.adobe.marketing.mobile.SDKHelper
+import com.adobe.marketing.mobile.services.HttpConnecting
+import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.NamedCollection
+import com.adobe.marketing.mobile.services.NetworkRequest
+import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.google.android.gms.location.Geofence
-import junit.framework.Assert.*
-import org.junit.*
+import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertNotNull
+import junit.framework.Assert.assertNull
+import junit.framework.Assert.assertTrue
+import org.junit.After
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
@@ -38,7 +53,6 @@ class PlacesIntegrationTest {
         var networkResponseCode = 200
         var networkResponseData = readFile("response_t-1_c-0.json")
 
-
         private fun setupNetwork() {
             ServiceProvider.getInstance().networkService = Networking { request, callback ->
                 var connection: HttpConnecting? = MockedHttpConnecting(networkResponseCode, networkResponseData)
@@ -53,7 +67,7 @@ class PlacesIntegrationTest {
             }
         }
 
-        private fun readFile(fileName : String) : String {
+        private fun readFile(fileName: String): String {
             return PlacesIntegrationTest::class.java.getResource("/$fileName")?.readText() ?: ""
         }
     }
@@ -91,12 +105,12 @@ class PlacesIntegrationTest {
 
     @Test
     fun test_extensionVersion() {
-        assertEquals( "2.1.0", Places.extensionVersion())
+        assertEquals(Places.EXTENSION_VERSION, Places.extensionVersion())
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // GetNearByPOI tests
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     @Test
     fun test_getNearByPOIs_verify_networkRequest() {
         // setup
@@ -106,15 +120,16 @@ class PlacesIntegrationTest {
         setupConfiguration()
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, {
             countDownLatch.countDown()
         }, {})
 
         // verify
         networkMonitor = { request ->
             // verify network request url
-            assertEquals("https://placesendpoint/placesedgequery?latitude=22.22&longitude=33.33&limit=20&library=library1",  request.url)
-            assertEquals(HttpMethod.GET,  request.method)
+
+            assertEquals("https://placesendpoint/placesedgequery?latitude=22.22&longitude=33.33&limit=20&library=library1", request.url)
+            assertEquals(HttpMethod.GET, request.method)
             assertNull(request.body)
             countDownLatch.countDown()
         }
@@ -131,7 +146,7 @@ class PlacesIntegrationTest {
         setupConfiguration()
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{ pois ->
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, { pois ->
             assertEquals(10, pois.size)
             countDownLatch.countDown()
         }, { error ->
@@ -164,8 +179,8 @@ class PlacesIntegrationTest {
         val invalidLocation = Location("invalid")
         invalidLocation.latitude = -1111.2222
         invalidLocation.longitude = 400.00
-        Places.getNearbyPointsOfInterest(invalidLocation, 20,{}, {
-                error ->
+        Places.getNearbyPointsOfInterest(invalidLocation, 20, {}, {
+            error ->
             assertEquals(PlacesRequestError.INVALID_LATLONG_ERROR, error)
             countDownLatch.countDown()
         })
@@ -188,7 +203,7 @@ class PlacesIntegrationTest {
         networkResponseData = readFile("invalid.json")
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{ pois ->
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, { pois ->
         }, { error ->
             assertEquals(PlacesRequestError.SERVER_RESPONSE_ERROR, error)
             countDownLatch.countDown()
@@ -211,8 +226,8 @@ class PlacesIntegrationTest {
         networkResponseData = readFile("invalidkeys.json")
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{ pois ->
-            assertEquals(0,pois.size)
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, { pois ->
+            assertEquals(0, pois.size)
             countDownLatch.countDown()
         }, {})
 
@@ -233,14 +248,14 @@ class PlacesIntegrationTest {
         networkResponseData = readFile("invalidPOIsValue.json")
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{ pois ->
-            assertEquals(1 , pois.size)
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, { pois ->
+            assertEquals(1, pois.size)
             countDownLatch.countDown()
         }, {})
 
         // wait
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
-        MonitorExtension.waitForSharedStateToSet.await(3,TimeUnit.SECONDS)
+        MonitorExtension.waitForSharedStateToSet.await(3, TimeUnit.SECONDS)
 
         // verify
         assertEquals("poiName1", getCurrentPOIName())
@@ -256,7 +271,7 @@ class PlacesIntegrationTest {
         setupConfiguration(privacyStatus = MobilePrivacyStatus.OPT_OUT.value)
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{}, { error ->
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, {}, { error ->
             assertEquals(PlacesRequestError.PRIVACY_OPTED_OUT, error)
             countDownLatch.countDown()
         })
@@ -274,11 +289,11 @@ class PlacesIntegrationTest {
         setupConfiguration(privacyStatus = MobilePrivacyStatus.UNKNOWN.value)
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{}, {})
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, {}, {})
 
         networkMonitor = { request ->
             // verify network request made
-            assertEquals("https://placesendpoint/placesedgequery?latitude=22.22&longitude=33.33&limit=20&library=library1",  request.url)
+            assertEquals("https://placesendpoint/placesedgequery?latitude=22.22&longitude=33.33&limit=20&library=library1", request.url)
             countDownLatch.countDown()
         }
 
@@ -301,7 +316,7 @@ class PlacesIntegrationTest {
         }
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, {
             countDownLatch.countDown()
         }, {})
 
@@ -316,9 +331,8 @@ class PlacesIntegrationTest {
         configurationAwareness { configurationLatch.countDown() }
         setupConfiguration(libraries = listOf(), endpoint = "")
 
-
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{}, { error ->
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, {}, { error ->
             assertEquals(PlacesRequestError.CONFIGURATION_ERROR, error)
             countDownLatch.countDown()
         })
@@ -327,9 +341,9 @@ class PlacesIntegrationTest {
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // Get Last Known Location Tests
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     @Test
     fun test_getLastKnownLocation() {
@@ -376,9 +390,9 @@ class PlacesIntegrationTest {
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // Reset
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     @Test
     fun test_placesClear() {
         // setup
@@ -389,7 +403,7 @@ class PlacesIntegrationTest {
         setupConfiguration()
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(), 20,{ pois ->
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, { pois ->
             countDownLatch.countDown()
         }, {})
 
@@ -427,9 +441,9 @@ class PlacesIntegrationTest {
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // SetAuthorizationStatus
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     @Test
     fun test_setAuthorizationStatus() {
         // setup
@@ -442,19 +456,19 @@ class PlacesIntegrationTest {
         Thread.sleep(1000)
 
         // verify
-        assertEquals("wheninuse",getAuthStatus())
+        assertEquals("wheninuse", getAuthStatus())
 
         // now upgrades to always
         Places.setAuthorizationStatus(PlacesAuthorizationStatus.ALWAYS)
         Thread.sleep(1000)
 
         // verify
-        assertEquals("always",getAuthStatus())
+        assertEquals("always", getAuthStatus())
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // GetCurrentPOITests
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     @Test
     fun test_getCurrentPOI() {
@@ -468,7 +482,7 @@ class PlacesIntegrationTest {
         // test
         Places.getNearbyPointsOfInterest(mockLocation(), 20, {}, {})
         Places.getCurrentPointsOfInterest() { pois ->
-            assertEquals(1 , pois.size)
+            assertEquals(1, pois.size)
             countDownLatch.countDown()
         }
 
@@ -489,16 +503,16 @@ class PlacesIntegrationTest {
 
         // test
         Places.getCurrentPointsOfInterest() { pois ->
-            assertEquals(0 , pois.size)
+            assertEquals(0, pois.size)
             countDownLatch.countDown()
         }
 
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // Process Region Entry Exit
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     @Test
     fun test_regionEntryEvent() {
         // setup
@@ -509,9 +523,9 @@ class PlacesIntegrationTest {
         setNetworkResponse(fileName = "validQuery.json")
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(),20,{
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, {
             countDownLatch.countDown()
-        },{})
+        }, {})
         Assert.assertTrue(countDownLatch.await(3, TimeUnit.SECONDS))
 
         // wait
@@ -524,11 +538,12 @@ class PlacesIntegrationTest {
         val geofence = Geofence.Builder().setCircularRegion(
             22.22,
             33.33,
-            200.0f)
+            200.0f
+        )
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
             .setNotificationResponsiveness(0)
-            .setRequestId("a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad")// for POI Meridian and SanCarlos
+            .setRequestId("a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad") // for POI Meridian and SanCarlos
             .build()
 
         // prepare
@@ -547,8 +562,8 @@ class PlacesIntegrationTest {
 
         // verify the region entry event dispatched
         assertNotNull(MonitorExtension.latestRegionEvent)
-        assertEquals("entry",getLastRegionEventType())
-        assertEquals("Meridian & SanCarlos",getLastRegionEventPOIName())
+        assertEquals("entry", getLastRegionEventType())
+        assertEquals("Meridian & SanCarlos", getLastRegionEventPOIName())
 
         // wait for experience event
         assertTrue(MonitorExtension.waitForExperienceEvent.await(3, TimeUnit.SECONDS))
@@ -560,7 +575,6 @@ class PlacesIntegrationTest {
         assertEquals("a5f6cd21-3acb-4c76-90d3-52bfea5aa1ad", getEdgeEventPoiId())
     }
 
-
     @Test
     fun test_regionExitEvent() {
         // setup
@@ -571,9 +585,9 @@ class PlacesIntegrationTest {
         setNetworkResponse(fileName = "validQuery.json")
 
         // test
-        Places.getNearbyPointsOfInterest(mockLocation(),20,{
+        Places.getNearbyPointsOfInterest(mockLocation(), 20, {
             callbackLatch.countDown()
-        },{})
+        }, {})
 
         // wait
         Assert.assertTrue(callbackLatch.await(3, TimeUnit.SECONDS))
@@ -586,11 +600,12 @@ class PlacesIntegrationTest {
         val geofence = Geofence.Builder().setCircularRegion(
             22.22,
             33.33,
-            200.0f)
+            200.0f
+        )
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT)
             .setNotificationResponsiveness(0)
-            .setRequestId("d74cb328-d2f3-4ea9-9af8-7dc8c3393280")// exit Cityview Plaza
+            .setRequestId("d74cb328-d2f3-4ea9-9af8-7dc8c3393280") // exit Cityview Plaza
             .build()
 
         // prepare
@@ -610,9 +625,8 @@ class PlacesIntegrationTest {
 
         // verify the region exit event dispatched
         assertNotNull(MonitorExtension.latestRegionEvent)
-        assertEquals("exit",getLastRegionEventType())
-        assertEquals("Cityview Plaza",getLastRegionEventPOIName())
-
+        assertEquals("exit", getLastRegionEventType())
+        assertEquals("Cityview Plaza", getLastRegionEventPOIName())
 
         // wait for experience event
         assertTrue(MonitorExtension.waitForExperienceEvent.await(3, TimeUnit.SECONDS))
@@ -624,90 +638,101 @@ class PlacesIntegrationTest {
         assertEquals("d74cb328-d2f3-4ea9-9af8-7dc8c3393280", getEdgeEventPoiId())
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // Private methods
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
-    private fun setupConfiguration(libraries: List<String>? = listOf<String>("library1"),
-                                   endpoint: String? = "placesendpoint",
-                                   privacyStatus: String? = MobilePrivacyStatus.OPT_IN.value,
-                                   membershipTtl: Long? = 20,
-                                   datasetId: String = "1234") {
-        val libraryConfig : MutableList<Map<String,String>> = ArrayList()
+    private fun setupConfiguration(
+        libraries: List<String>? = listOf<String>("library1"),
+        endpoint: String? = "placesendpoint",
+        privacyStatus: String? = MobilePrivacyStatus.OPT_IN.value,
+        membershipTtl: Long? = 20,
+        datasetId: String = "1234"
+    ) {
+        val libraryConfig: MutableList<Map<String, String>> = ArrayList()
         if (libraries != null) {
             for (library in libraries) {
-                libraryConfig.add(mapOf(
-                    PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID to library
-                ))
+                libraryConfig.add(
+                    mapOf(
+                        PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID to library
+                    )
+                )
             }
         }
-        MobileCore.updateConfiguration(mapOf(
-            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT to endpoint,
-            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL to membershipTtl,
-            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY to privacyStatus,
-            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES to libraryConfig,
-            PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_EXPERIENCE_EVENT_DATASET to datasetId
-        ))
+        MobileCore.updateConfiguration(
+            mapOf(
+                PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT to endpoint,
+                PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL to membershipTtl,
+                PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_GLOBAL_PRIVACY to privacyStatus,
+                PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES to libraryConfig,
+                PlacesConstants.EventDataKeys.Configuration.CONFIG_KEY_EXPERIENCE_EVENT_DATASET to datasetId
+            )
+        )
     }
 
-
-    private fun mockLocation() : Location {
+    private fun mockLocation(): Location {
         val location = Location("deviceLocation")
         location.latitude = 22.22
         location.longitude = 33.33
         return location
     }
 
-    private fun setNetworkResponse(code : Int = 200,
-                                   fileName: String = "noPOIResponse.json") {
+    private fun setNetworkResponse(
+        code: Int = 200,
+        fileName: String = "noPOIResponse.json"
+    ) {
         networkResponseData = readFile(fileName)
         networkResponseCode = code
     }
 
-    private fun getCurrentPOIName() : String? {
+    private fun getCurrentPOIName(): String? {
         val currentPoi = MonitorExtension.placesSharedState?.get("currentpoi") as Map<*, *>?
         return currentPoi?.get("regionname") as String?
     }
 
-    private fun getLastEnteredPOIName() : String? {
+    private fun getLastEnteredPOIName(): String? {
         val lastEnteredPOI = MonitorExtension.placesSharedState?.get("lastenteredpoi") as Map<*, *>?
         return lastEnteredPOI?.get("regionname") as String?
     }
 
-    private fun getLastExitedPOI() : String? {
+    private fun getLastExitedPOI(): String? {
         val lastExitedPOI = MonitorExtension.placesSharedState?.get("lastexitedpoi") as Map<*, *>?
         return lastExitedPOI?.get("regionname") as String?
     }
 
-    private fun getAuthStatus() : String? {
+    private fun getAuthStatus(): String? {
         return MonitorExtension.placesSharedState?.get("authstatus") as String?
     }
 
-    private fun getLastRegionEventType() : String? {
+    private fun getLastRegionEventType(): String? {
         return MonitorExtension.latestRegionEvent?.eventData?.get("regioneventtype") as String?
     }
 
-    private fun getLastRegionEventPOIName() : String? {
+    private fun getLastRegionEventPOIName(): String? {
         val triggeringRegion = MonitorExtension.latestRegionEvent?.eventData?.get("triggeringregion") as Map<*, *>?
         return triggeringRegion?.get("regionname") as String?
     }
 
-    private fun getEdgeEventType() : String? {
+    private fun getEdgeEventType(): String? {
         val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
         return xdm?.get("eventType") as String?
     }
 
-    private fun getEdgeEventPOIName() : String? {
+    private fun getEdgeEventPOIName(): String? {
         val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
-        val poiDetail = ((xdm?.get("placeContext") as Map<*, *>?)
-            ?.get("POIinteraction") as Map<*, *>?)?.get("poiDetail") as Map<*, *>?
+        val poiDetail = (
+            (xdm?.get("placeContext") as Map<*, *>?)
+                ?.get("POIinteraction") as Map<*, *>?
+            )?.get("poiDetail") as Map<*, *>?
         return poiDetail?.get("name") as String?
     }
 
-    private fun getEdgeEventPoiId() : String? {
+    private fun getEdgeEventPoiId(): String? {
         val xdm = MonitorExtension.latestEdgeEvent?.eventData?.get("xdm") as Map<*, *>?
-        val poiEntries = ((xdm?.get("placeContext") as Map<*, *>?)
-            ?.get("POIinteraction") as Map<*, *>?)?.get("poiDetail") as Map<*, *>?
+        val poiEntries = (
+            (xdm?.get("placeContext") as Map<*, *>?)
+                ?.get("POIinteraction") as Map<*, *>?
+            )?.get("poiDetail") as Map<*, *>?
         return poiEntries?.get("poiID") as String?
     }
 }
@@ -716,7 +741,7 @@ private fun configurationAwareness(callback: ConfigurationMonitor) {
     MonitorExtension.configurationAwareness(callback)
 }
 
-private class MockedHttpConnecting (val mockResponseCode: Int, val mockedResponse: String) : HttpConnecting {
+private class MockedHttpConnecting(val mockResponseCode: Int, val mockedResponse: String) : HttpConnecting {
 
     override fun getInputStream(): InputStream? {
         return mockedResponse.byteInputStream()
@@ -739,5 +764,4 @@ private class MockedHttpConnecting (val mockResponseCode: Int, val mockedRespons
     }
 
     override fun close() {}
-
 }

@@ -7,12 +7,11 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
 
 import androidx.annotation.NonNull;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,9 +37,10 @@ final class PlacesRegion extends PlacesPOI {
         return data;
     }
 
-    PlacesRegion(@NonNull final PlacesPOI placesPOI,
-                 @NonNull final String placeEventType,
-                 final long timestamp) {
+    PlacesRegion(
+            @NonNull final PlacesPOI placesPOI,
+            @NonNull final String placeEventType,
+            final long timestamp) {
         super(placesPOI);
         this.poi = placesPOI;
         this.placeEventType = placeEventType;
@@ -65,5 +65,3 @@ final class PlacesRegion extends PlacesPOI {
         return "";
     }
 }
-
-

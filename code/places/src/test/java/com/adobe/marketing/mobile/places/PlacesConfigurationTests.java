@@ -7,15 +7,14 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
-
-import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 import java.util.*;
+import org.junit.Test;
 
 public class PlacesConfigurationTests {
 
@@ -36,7 +35,9 @@ public class PlacesConfigurationTests {
     public void testConfiguration_NoLibraryKey() {
         // setup
         Map<String, Object> configData = new HashMap<>();
-        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, SAMPLE_ENDPOINT);
+        configData.put(
+                PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT,
+                SAMPLE_ENDPOINT);
 
         // test
         PlacesConfiguration configuration = new PlacesConfiguration(configData);
@@ -49,7 +50,8 @@ public class PlacesConfigurationTests {
     @Test
     public void testConfiguration_EmptyLibraries() {
         // setup
-        final Map<String, Object> eventData = createConfigData(0, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
+        final Map<String, Object> eventData =
+                createConfigData(0, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
 
         // test
         PlacesConfiguration configuration = new PlacesConfiguration(eventData);
@@ -59,11 +61,11 @@ public class PlacesConfigurationTests {
         assertNull(configuration.getEndpoint());
     }
 
-
     @Test
     public void testConfiguration_WithOneLibrary() {
         // setup
-        final Map<String, Object> eventData = createConfigData(1, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
+        final Map<String, Object> eventData =
+                createConfigData(1, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
 
         // test
         PlacesConfiguration configuration = new PlacesConfiguration(eventData);
@@ -77,7 +79,8 @@ public class PlacesConfigurationTests {
     @Test
     public void testConfiguration_WithFiveLibrary() {
         // setup
-        final Map<String, Object> eventData = createConfigData(5, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
+        final Map<String, Object> eventData =
+                createConfigData(5, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
 
         // test
         PlacesConfiguration configuration = new PlacesConfiguration(eventData);
@@ -85,10 +88,10 @@ public class PlacesConfigurationTests {
         // verify
         assertTrue(configuration.isValid());
         assertEquals(SAMPLE_ENDPOINT, configuration.getEndpoint());
-        assertEquals("&library=lib1&library=lib2&library=lib3&library=lib4&library=lib5",
+        assertEquals(
+                "&library=lib1&library=lib2&library=lib3&library=lib4&library=lib5",
                 configuration.getLibrariesQueryString());
     }
-
 
     @Test
     public void testConfiguration_When_EmptyEndpointValue() {
@@ -102,7 +105,6 @@ public class PlacesConfigurationTests {
         assertFalse(configuration.isValid());
         assertEquals("", configuration.getEndpoint());
     }
-
 
     @Test
     public void testConfiguration_WhenMembershipTtlIsNegative() {
@@ -130,7 +132,6 @@ public class PlacesConfigurationTests {
         assertEquals(0, configuration.getMembershipTtl());
     }
 
-
     @Test
     public void testConfiguration_WhenMembershipTtlNotPresent() {
         // test
@@ -139,8 +140,12 @@ public class PlacesConfigurationTests {
         library.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib1");
         List<Map<String, String>> libraries = new ArrayList<>();
         libraries.add(library);
-        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
-        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, SAMPLE_ENDPOINT);
+        configData.put(
+                PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES,
+                libraries);
+        configData.put(
+                PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT,
+                SAMPLE_ENDPOINT);
 
         PlacesConfiguration configuration = new PlacesConfiguration(configData);
 
@@ -152,7 +157,8 @@ public class PlacesConfigurationTests {
     @Test
     public void testConfiguration_Happy() {
         // setup
-        final Map<String, Object> eventData = createConfigData(2, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
+        final Map<String, Object> eventData =
+                createConfigData(2, SAMPLE_ENDPOINT, SAMPLE_MEMBERSHIP_TTL);
 
         // test
         PlacesConfiguration configuration = new PlacesConfiguration(eventData);
@@ -164,23 +170,28 @@ public class PlacesConfigurationTests {
         assertEquals("&library=lib1&library=lib2", configuration.getLibrariesQueryString());
     }
 
-
-    private Map<String, Object> createConfigData(final int noOfLibraries, final String endPoint, final long membershipTtl) {
-
+    private Map<String, Object> createConfigData(
+            final int noOfLibraries, final String endPoint, final long membershipTtl) {
         List<Map<String, String>> libraries = new ArrayList<>();
 
         for (int i = 0; i < noOfLibraries; i++) {
             Map<String, String> library = new HashMap<>();
-            library.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID, "lib" + (i + 1));
+            library.put(
+                    PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_LIBRARY_ID,
+                    "lib" + (i + 1));
             libraries.add(library);
         }
 
         final Map<String, Object> configData = new HashMap<>();
-        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES, libraries);
-        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT, endPoint);
-        configData.put(PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL, membershipTtl);
+        configData.put(
+                PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_LIBRARIES,
+                libraries);
+        configData.put(
+                PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_ENDPOINT,
+                endPoint);
+        configData.put(
+                PlacesTestConstants.EventDataKeys.Configuration.CONFIG_KEY_PLACES_MEMBERSHIP_TTL,
+                membershipTtl);
         return configData;
     }
-
-
 }

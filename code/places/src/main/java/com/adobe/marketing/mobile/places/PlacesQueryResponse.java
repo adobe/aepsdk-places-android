@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
 
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class PlacesQueryResponse {
+
     String errorMessage;
     boolean isSuccess;
     List<PlacesPOI> containsUserPOIs;
@@ -41,5 +42,4 @@ final class PlacesQueryResponse {
         allPOIs.addAll(nearByPOIs);
         return allPOIs;
     }
-
 }
