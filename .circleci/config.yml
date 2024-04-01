@@ -150,15 +150,15 @@ jobs:
     steps:
       - checkout
 
-      - android/restore-gradle-cache:
+      - android/restore-gradle-cache
 
-      - android/restore-build-cache:
+      - android/restore-build-cache
 
       - run:
           name: Assemble App
           command: make assemble-app
 
-      - android/save-gradle-cache:
+      - android/save-gradle-cache
           
-      - android/save-build-cache:
+      - android/save-build-cache
        
