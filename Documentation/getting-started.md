@@ -23,17 +23,12 @@ The Places extension depends on the Core extension:
 
 1. Installation via [Maven](https://maven.apache.org/) & [Gradle](https://gradle.org/) is the easiest and recommended way to get the Mobile SDK. Add the Mobile Core and Places extensions to your project using the app's Gradle file.
 
-```java
-implementation 'com.adobe.marketing.mobile:core:2.+'
-implementation 'com.adobe.marketing.mobile:places:2.+'
-```
 #### Kotlin
 
 ```kotlin
     implementation(platform("com.adobe.marketing.mobile:sdk-bom:3.+"))
     implementation("com.adobe.marketing.mobile:core")
     implementation("com.adobe.marketing.mobile:places")
-    implementation("com.adobe.marketing.mobile:analytics")
 ```
 
 #### Groovy
