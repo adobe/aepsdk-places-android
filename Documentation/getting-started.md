@@ -18,14 +18,32 @@ The SDK extension listens for events that contain GPS coordinates and geofence r
 
 ## Add the AEP Places extension to your app
 
-## Download and import the Places extension
+The Places extension depends on the Core extension:
+* [Mobile Core](https://github.com/adobe/aepsdk-core-android)
 
-1. Add the Mobile Core and Places extensions to your project using the app's Gradle file.
+1. Installation via [Maven](https://maven.apache.org/) & [Gradle](https://gradle.org/) is the easiest and recommended way to get the Mobile SDK. Add the Mobile Core and Places extensions to your project using the app's Gradle file.
 
 ```java
 implementation 'com.adobe.marketing.mobile:core:2.+'
 implementation 'com.adobe.marketing.mobile:places:2.+'
 ```
+#### Kotlin
+
+```kotlin
+    implementation(platform("com.adobe.marketing.mobile:sdk-bom:3.+"))
+    implementation("com.adobe.marketing.mobile:core")
+    implementation("com.adobe.marketing.mobile:places")
+    implementation("com.adobe.marketing.mobile:analytics")
+```
+
+#### Groovy
+    
+```groovy
+    implementation platform('com.adobe.marketing.mobile:sdk-bom:3.+')
+    implementation 'com.adobe.marketing.mobile:core'
+    implementation 'com.adobe.marketing.mobile:places'
+```
+
 
 > **Warning**
 > Using dynamic dependency versions is not recommended for production apps. Refer to [this page](https://github.com/adobe/aepsdk-core-android/blob/main/Documentation/MobileCore/gradle-dependencies.md) for managing gradle dependencies.
