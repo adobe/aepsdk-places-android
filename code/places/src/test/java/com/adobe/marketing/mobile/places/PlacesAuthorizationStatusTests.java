@@ -7,15 +7,15 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
-
-import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class PlacesAuthorizationStatusTests {
 
@@ -34,7 +34,8 @@ public class PlacesAuthorizationStatusTests {
     @Test
     public void test_whenInUse() {
         // test get
-        assertEquals(PlacesAuthorizationStatus.WHEN_IN_USE, PlacesAuthorizationStatus.get("wheninuse"));
+        assertEquals(
+                PlacesAuthorizationStatus.WHEN_IN_USE, PlacesAuthorizationStatus.get("wheninuse"));
 
         // test isValid
         assertTrue(PlacesAuthorizationStatus.isValidStatus("wheninuse"));
@@ -70,7 +71,8 @@ public class PlacesAuthorizationStatusTests {
     @Test
     public void test_restricted() {
         // test get
-        assertEquals(PlacesAuthorizationStatus.RESTRICTED, PlacesAuthorizationStatus.get("restricted"));
+        assertEquals(
+                PlacesAuthorizationStatus.RESTRICTED, PlacesAuthorizationStatus.get("restricted"));
 
         // test isValid
         assertTrue(PlacesAuthorizationStatus.isValidStatus("restricted"));
