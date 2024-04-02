@@ -13,7 +13,6 @@ Refer to the [Getting started guide](./getting-started.md)
 * [getNearbyPointsOfInterest](#getnearbypointsofinterest)
 * [processGeofence](#processgeofence)
 * [processGeofenceEvent](#processgeofenceevent)
-* [registerExtension](#registerextension)
 * [setAuthorizationStatus](#setauthorizationstatus)
 
 ------
@@ -240,25 +239,6 @@ fun onHandleIntent(intent: Intent) {
     // Call the Places API to process information
     Places.processGeofenceEvent(geofencingEvent)
 }
-```
-
-## registerExtension
-
-> **Warning**
-> Deprecated as of 2.0.0. Use the [MobileCore.registerExtensions API](https://github.com/adobe/aepsdk-core-android) instead.
-
-Registers the Places extension with the Mobile Core.
-
-#### Java
-
-```java
-Places.registerExtension();
-```
-
-#### Kotlin
-
-```kotlin
-Places.registerExtension()
 ```
 
 ## setAuthorizationStatus

@@ -7,16 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/** This class represents a Point of Interest (POI) in the Places extension. */
 public class PlacesPOI {
 
     private String identifier;
@@ -29,42 +29,92 @@ public class PlacesPOI {
     private int weight;
     private Map<String, String> metadata;
 
+    /**
+     * Returns the identifier of the POI.
+     *
+     * @return the identifier of the POI
+     */
     public String getIdentifier() {
         return identifier;
     }
 
+    /**
+     * Returns the name of the POI.
+     *
+     * @return the name of the POI
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns whether the user is within the POI.
+     *
+     * @return true if the user is within the POI, false otherwise
+     */
     public boolean containsUser() {
         return userIsWithin;
     }
 
+    /**
+     * Sets whether the user is within the POI.
+     *
+     * @param userIsWithin true if the user is within the POI, false otherwise
+     */
     public void setUserIsWithin(final boolean userIsWithin) {
         this.userIsWithin = userIsWithin;
     }
 
+    /**
+     * Returns the latitude of the POI.
+     *
+     * @return the latitude of the POI
+     */
     public double getLatitude() {
         return latitude;
     }
 
+    /**
+     * Returns the longitude of the POI.
+     *
+     * @return the longitude of the POI
+     */
     public double getLongitude() {
         return longitude;
     }
 
+    /**
+     * Returns the radius of the POI.
+     *
+     * @return the radius of the POI
+     */
     public int getRadius() {
         return radius;
     }
 
+    /**
+     * Returns the metadata of the POI.
+     *
+     * @return the metadata of the POI
+     */
     public Map<String, String> getMetadata() {
         return this.metadata;
     }
 
+    /**
+     * Returns the weight of the POI.
+     *
+     * @return the weight of the POI
+     */
     public int getWeight() {
         return weight;
     }
 
+    /**
+     * Returns the library of the POI.
+     *
+     * @return the library of the POI
+     */
     public String getLibrary() {
         return library;
     }
@@ -86,7 +136,6 @@ public class PlacesPOI {
         this.metadata = placesPOI.metadata;
     }
 
-
     protected PlacesPOI(final String jsonString) throws JSONException {
         final JSONObject poiJson = new JSONObject(jsonString);
 
@@ -96,7 +145,6 @@ public class PlacesPOI {
 
         jsonObjectToPlacesPOI(poiJson);
     }
-
 
     protected PlacesPOI(final JSONObject poiJson) throws JSONException {
         jsonObjectToPlacesPOI(poiJson);
@@ -118,15 +166,15 @@ public class PlacesPOI {
         }
     }
 
-
-    protected PlacesPOI(final String identifier,
-                        final String name,
-                        final double latitude,
-                        final double longitude,
-                        final int radius,
-                        final String library,
-                        final int weight,
-                        final Map<String, String> metadata) {
+    protected PlacesPOI(
+            final String identifier,
+            final String name,
+            final double latitude,
+            final double longitude,
+            final int radius,
+            final String library,
+            final int weight,
+            final Map<String, String> metadata) {
         this.identifier = identifier;
         this.name = name;
         this.latitude = latitude;
@@ -137,13 +185,14 @@ public class PlacesPOI {
         this.metadata = metadata;
     }
 
-    protected PlacesPOI(final String identifier,
-                        final String name,
-                        final double latitude,
-                        final double longitude,
-                        final int radius,
-                        final String library,
-                        final int weight) {
+    protected PlacesPOI(
+            final String identifier,
+            final String name,
+            final double latitude,
+            final double longitude,
+            final int radius,
+            final String library,
+            final int weight) {
         this(identifier, name, latitude, longitude, radius, library, weight, null);
     }
 
@@ -196,7 +245,6 @@ public class PlacesPOI {
         }
 
         return metadata != null ? metadata.equals(placesPOI.metadata) : placesPOI.metadata == null;
-
     }
 
     boolean equalsWithOutMetaData(final Object o) {
@@ -241,14 +289,12 @@ public class PlacesPOI {
         return userIsWithin == placesPOI.userIsWithin;
     }
 
-
     /**
      * Compares two POIs to determine which one has higher priority.
-     * <p>
-     * Calculation of priority based on:
-     * 1. Weight (lower number has higher priority)
-     * 2. Radius (smaller radius has higher priority)
-     * 3. Order (current object will have higher priority if weight and radius are same)
+     *
+     * <p>Calculation of priority based on: 1. Weight (lower number has higher priority) 2. Radius
+     * (smaller radius has higher priority) 3. Order (current object will have higher priority if
+     * weight and radius are same)
      *
      * @param otherPOI the PlacesDataObject to compare priority against this object's priority
      * @return true if the calling object has higher priority than the parameter passed in
@@ -301,5 +347,4 @@ public class PlacesPOI {
         final JSONObject jsonObject = new JSONObject(toMap());
         return jsonObject.toString();
     }
-
 }

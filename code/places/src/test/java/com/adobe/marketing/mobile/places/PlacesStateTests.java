@@ -7,27 +7,9 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.places;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockedConstruction;
-
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,15 +27,28 @@ import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.services.DataStoring;
 import com.adobe.marketing.mobile.services.NamedCollection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class PlacesStateTests {
 
-    @Mock
-    private DataStoring dataStoring;
+    @Mock private DataStoring dataStoring;
 
-    @Mock
-    private NamedCollection placesDataStore;
+    @Mock private NamedCollection placesDataStore;
 
     private static final String PLACES_DATA_STORE = "placesdatastore";
 
@@ -106,11 +101,11 @@ public class PlacesStateTests {
         assertNull(placesState.lastExitedPOI);
         assertEquals(4, placesState.cachedPOIs.size());
 
-
         // verify the persistence
         assertEquals("containsUserPOI 0", getPersistedCurrentPOI().getIdentifier());
         assertEquals("containsUserPOI 0", getPersistedLastEnteredPOI().getIdentifier());
-        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), any());
+        verify(placesDataStore, times(0))
+                .setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), any());
         assertEquals(4, getPersistedCachedPOI().size());
     }
 
@@ -132,14 +127,24 @@ public class PlacesStateTests {
         verifyNearbyPOINotPersisted();
     }
 
-
     @Test
     public void processNetworkResponse_When_poisInCache() throws Exception {
         // setup
         LinkedHashMap<String, PlacesPOI> sampleCachedPOIs = new LinkedHashMap<String, PlacesPOI>();
-        PlacesPOI poi1 = new PlacesPOI("containsUserPOI 0", "hidden", 34.33, -121.55, 150, "libraryName", 2, null);
+        PlacesPOI poi1 =
+                new PlacesPOI(
+                        "containsUserPOI 0", "hidden", 34.33, -121.55, 150, "libraryName", 2, null);
         poi1.setUserIsWithin(true);
-        PlacesPOI poi2 = new PlacesPOI("containsUserPOI 1", "treasure", 34.33, -121.55, 150, "libraryName", 2, null);
+        PlacesPOI poi2 =
+                new PlacesPOI(
+                        "containsUserPOI 1",
+                        "treasure",
+                        34.33,
+                        -121.55,
+                        150,
+                        "libraryName",
+                        2,
+                        null);
         poi2.setUserIsWithin(false);
         sampleCachedPOIs.put("containsUserPOI 0", poi1);
         sampleCachedPOIs.put("containsUserPOI 1", poi2);
@@ -161,9 +166,9 @@ public class PlacesStateTests {
         assertEquals(3, getPersistedCachedPOI().size());
     }
 
-
     @Test
-    public void processNetworkResponse_When_poisInCache_And_NoUserWithInPOIInResponse() throws Exception {
+    public void processNetworkResponse_When_poisInCache_And_NoUserWithInPOIInResponse()
+            throws Exception {
         // setup
         placesState.cachedPOIs = getSampleCachePOIs();
         placesState.currentPOI = sampleCurrentPOI;
@@ -201,7 +206,6 @@ public class PlacesStateTests {
         assertEquals(getUnixTimeInSeconds() + 500, getPersistedMembershipValidUntilTimestamp(), 1);
     }
 
-
     // ========================================================================================
     // processRegionEvent
     // ========================================================================================
@@ -209,7 +213,8 @@ public class PlacesStateTests {
     @Test
     public void processRegionEvent_when_nullRegionID() throws Exception {
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent(null, "entry"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent(null, "entry"));
 
         // verify
         assertNull(returnedRegion);
@@ -218,7 +223,8 @@ public class PlacesStateTests {
     @Test
     public void processRegionEvent_when_emptyRegionID() throws Exception {
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("", "entry"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("", "entry"));
 
         // verify
         assertNull(returnedRegion);
@@ -227,7 +233,8 @@ public class PlacesStateTests {
     @Test
     public void processRegionEvent_when_unknownRegionType() throws Exception {
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("regionId", "none"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("regionId", "none"));
 
         // verify
         assertNull(returnedRegion);
@@ -236,7 +243,8 @@ public class PlacesStateTests {
     @Test
     public void processRegionEvent_when_noRegionIDFoundInCache() throws Exception {
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("regionID", "entry"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("regionID", "entry"));
 
         // verify
         assertNull(returnedRegion);
@@ -250,18 +258,20 @@ public class PlacesStateTests {
         final PlacesPOI poi2 = createPOI("poi2", 1);
         poi2.setUserIsWithin(false);
 
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("poi1", poi1);
-                put("poi2", poi2);
-            }
-        };
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("poi1", poi1);
+                        put("poi2", poi2);
+                    }
+                };
         placesState.lastEnteredPOI = null;
         placesState.currentPOI = null;
         placesState.lastExitedPOI = null;
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("poi1", "entry"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("poi1", "entry"));
 
         // verify memory variables
         assertEquals("poi1", placesState.currentPOI.getIdentifier());
@@ -281,22 +291,30 @@ public class PlacesStateTests {
     }
 
     @Test
-    public void processRegionEvent_when_regionEntryEvent_updatesMembershipValidUntilTtl() throws Exception {
+    public void processRegionEvent_when_regionEntryEvent_updatesMembershipValidUntilTtl()
+            throws Exception {
         // setup in memory variables
         final PlacesPOI poi1 = createPOI("poi1", 1);
         placesState.membershipTtl = 500;
 
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("poi1", poi1);
-            }
-        };
-
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("poi1", poi1);
+                    }
+                };
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("poi1", "entry"));
-        assertEquals(getUnixTimeInSeconds() + 500, placesState.membershipValidUntil, 1); // verify memory variable
-        assertEquals(getUnixTimeInSeconds() + 500, getPersistedMembershipValidUntilTimestamp(), 1); // verify the persistence
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("poi1", "entry"));
+        assertEquals(
+                getUnixTimeInSeconds() + 500,
+                placesState.membershipValidUntil,
+                1); // verify memory variable
+        assertEquals(
+                getUnixTimeInSeconds() + 500,
+                getPersistedMembershipValidUntilTimestamp(),
+                1); // verify the persistence
     }
 
     @Test
@@ -305,7 +323,8 @@ public class PlacesStateTests {
         placesState.cachedPOIs = getSampleCachePOIs();
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("notInCache", "entry"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("notInCache", "entry"));
 
         // verify
         assertNull(returnedRegion);
@@ -330,24 +349,28 @@ public class PlacesStateTests {
         final PlacesPOI poi2 = createPOI("highWeightPOI", 1);
         poi2.setUserIsWithin(false);
 
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("lowWeightPOI", poi1);
-                put("highWeightPOI", poi2);
-            }
-        };
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("lowWeightPOI", poi1);
+                        put("highWeightPOI", poi2);
+                    }
+                };
         placesState.lastEnteredPOI = poi1;
         placesState.currentPOI = poi1;
         placesState.lastExitedPOI = sampleLastExitedPOI;
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("highWeightPOI", "entry"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("highWeightPOI", "entry"));
 
         // verify
         assertNotNull(returnedRegion);
         assertEquals("highWeightPOI", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_ENTRY, returnedRegion.getPlaceEventType());
-        assertEquals(PlacesTestConstants.XDM.Location.EventType.ENTRY, returnedRegion.getExperienceEventType());
+        assertEquals(
+                PlacesTestConstants.XDM.Location.EventType.ENTRY,
+                returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("highWeightPOI", placesState.currentPOI.getIdentifier());
@@ -366,7 +389,6 @@ public class PlacesStateTests {
         assertEquals(2, getPersistedCachedPOI().size());
     }
 
-
     @Test
     public void processRegionEvent_when_regionEntryEventOfLowerWeightPOI() throws Exception {
         // setup in memory variables
@@ -375,24 +397,28 @@ public class PlacesStateTests {
         final PlacesPOI poi2 = createPOI("highWeightPOI", 1);
         poi2.setUserIsWithin(true);
 
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("lowWeightPOI", poi1);
-                put("highWeightPOI", poi2);
-            }
-        };
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("lowWeightPOI", poi1);
+                        put("highWeightPOI", poi2);
+                    }
+                };
         placesState.lastEnteredPOI = poi2;
         placesState.currentPOI = poi2;
         placesState.lastExitedPOI = sampleLastExitedPOI;
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("lowWeightPOI", "entry"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("lowWeightPOI", "entry"));
 
         // verify
         assertNotNull(returnedRegion);
         assertEquals("lowWeightPOI", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_ENTRY, returnedRegion.getPlaceEventType());
-        assertEquals(PlacesTestConstants.XDM.Location.EventType.ENTRY, returnedRegion.getExperienceEventType());
+        assertEquals(
+                PlacesTestConstants.XDM.Location.EventType.ENTRY,
+                returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("highWeightPOI", placesState.currentPOI.getIdentifier());
@@ -411,7 +437,6 @@ public class PlacesStateTests {
         assertEquals(2, getPersistedCachedPOI().size());
     }
 
-
     @Test
     public void processRegionEvent_when_regionExitEvent() throws Exception {
         // setup in memory variables
@@ -420,24 +445,28 @@ public class PlacesStateTests {
         final PlacesPOI poi2 = createPOI("poi2", 1);
         poi2.setUserIsWithin(false);
 
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("poi1", poi1);
-                put("poi2", poi2);
-            }
-        };
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("poi1", poi1);
+                        put("poi2", poi2);
+                    }
+                };
         placesState.lastEnteredPOI = poi1;
         placesState.currentPOI = poi1;
         placesState.lastExitedPOI = null;
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
 
         // verify
         assertNotNull(returnedRegion);
         assertEquals("poi1", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion.getPlaceEventType());
-        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
+        assertEquals(
+                PlacesTestConstants.XDM.Location.EventType.EXIT,
+                returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertNull(placesState.currentPOI);
@@ -457,23 +486,31 @@ public class PlacesStateTests {
     }
 
     @Test
-    public void processRegionEvent_when_regionEntryExit_updatesMembershipValidUntilTtl() throws Exception {
+    public void processRegionEvent_when_regionEntryExit_updatesMembershipValidUntilTtl()
+            throws Exception {
         // setup in memory variables
         final PlacesPOI poi1 = createPOI("poi1", 1);
         poi1.setUserIsWithin(true);
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("poi1", poi1);
-            }
-        };
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("poi1", poi1);
+                    }
+                };
         placesState.membershipTtl = 500;
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
-        assertEquals(getUnixTimeInSeconds() + 500, placesState.membershipValidUntil, 1); // verify memory variable
-        assertEquals(getUnixTimeInSeconds() + 500, getPersistedMembershipValidUntilTimestamp(), 1); // verify memory variable
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
+        assertEquals(
+                getUnixTimeInSeconds() + 500,
+                placesState.membershipValidUntil,
+                1); // verify memory variable
+        assertEquals(
+                getUnixTimeInSeconds() + 500,
+                getPersistedMembershipValidUntilTimestamp(),
+                1); // verify memory variable
     }
-
 
     @Test
     public void processRegionEvent_when_regionExitEvent_noPoiInCache() throws Exception {
@@ -483,7 +520,8 @@ public class PlacesStateTests {
         placesState.lastExitedPOI = null;
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
 
         // verify
         assertNull(returnedRegion);
@@ -501,7 +539,6 @@ public class PlacesStateTests {
         verifyNearbyPOINotPersisted();
     }
 
-
     @Test
     public void processRegionEvent_when_regionExitEvent_pOIAlreadyExited() throws Exception {
         // setup in memory variables
@@ -510,24 +547,28 @@ public class PlacesStateTests {
         final PlacesPOI poi2 = createPOI("poi2", 1);
         poi2.setUserIsWithin(false);
 
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("poi1", poi1);
-                put("poi2", poi2);
-            }
-        };
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("poi1", poi1);
+                        put("poi2", poi2);
+                    }
+                };
         placesState.lastEnteredPOI = null;
         placesState.currentPOI = null;
         placesState.lastExitedPOI = poi1;
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("poi1", "exit"));
 
         // verify
         assertNotNull(returnedRegion);
         assertEquals("poi1", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion.getPlaceEventType());
-        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
+        assertEquals(
+                PlacesTestConstants.XDM.Location.EventType.EXIT,
+                returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertNull(placesState.currentPOI);
@@ -546,9 +587,9 @@ public class PlacesStateTests {
         assertEquals(2, getPersistedCachedPOI().size());
     }
 
-
     @Test
-    public void processRegionEvent_when_regionExitEvent_weightPreferenceForNextPOI() throws Exception {
+    public void processRegionEvent_when_regionExitEvent_weightPreferenceForNextPOI()
+            throws Exception {
         // setup in memory variables
         final PlacesPOI poi1 = createPOI("lowWeight", 3);
         poi1.setUserIsWithin(true);
@@ -557,22 +598,26 @@ public class PlacesStateTests {
         final PlacesPOI poi3 = createPOI("highWeight", 1);
         poi3.setUserIsWithin(true);
 
-        placesState.cachedPOIs = new LinkedHashMap<String, PlacesPOI>() {
-            {
-                put("lowWeight", poi1);
-                put("mediumWeight", poi2);
-                put("highWeight", poi3);
-            }
-        };
+        placesState.cachedPOIs =
+                new LinkedHashMap<String, PlacesPOI>() {
+                    {
+                        put("lowWeight", poi1);
+                        put("mediumWeight", poi2);
+                        put("highWeight", poi3);
+                    }
+                };
 
         // test
-        PlacesRegion returnedRegion = placesState.processRegionEvent(prepareRegionEvent("mediumWeight", "exit"));
+        PlacesRegion returnedRegion =
+                placesState.processRegionEvent(prepareRegionEvent("mediumWeight", "exit"));
 
         // verify region event
         assertNotNull(returnedRegion);
         assertEquals("mediumWeight", returnedRegion.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion.getPlaceEventType());
-        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
+        assertEquals(
+                PlacesTestConstants.XDM.Location.EventType.EXIT,
+                returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("highWeight", placesState.currentPOI.getIdentifier());
@@ -584,13 +629,16 @@ public class PlacesStateTests {
         assertTrue(placesState.cachedPOIs.get("highWeight").containsUser());
 
         // test another exit
-        PlacesRegion returnedRegion2 = placesState.processRegionEvent(prepareRegionEvent("highWeight", "exit"));
+        PlacesRegion returnedRegion2 =
+                placesState.processRegionEvent(prepareRegionEvent("highWeight", "exit"));
 
         // verify region event
         assertNotNull(returnedRegion2);
         assertEquals("highWeight", returnedRegion2.getIdentifier());
         assertEquals(PlacesRegion.PLACE_EVENT_EXIT, returnedRegion2.getPlaceEventType());
-        assertEquals(PlacesTestConstants.XDM.Location.EventType.EXIT, returnedRegion.getExperienceEventType());
+        assertEquals(
+                PlacesTestConstants.XDM.Location.EventType.EXIT,
+                returnedRegion.getExperienceEventType());
 
         // verify memory variables
         assertEquals("lowWeight", placesState.currentPOI.getIdentifier());
@@ -602,20 +650,19 @@ public class PlacesStateTests {
         assertFalse(placesState.cachedPOIs.get("highWeight").containsUser());
     }
 
-
     // ========================================================================================
     // getPlacesSharedState
     // ========================================================================================
 
     @Test
-    public void GetPlacesSharedState()  {
+    public void GetPlacesSharedState() {
         // setup
         placesState.cachedPOIs = getSampleCachePOIs();
         placesState.currentPOI = sampleCurrentPOI;
         placesState.lastEnteredPOI = sampleLastEnteredPOI;
         placesState.lastExitedPOI = sampleLastExitedPOI;
         placesState.authStatus = PlacesAuthorizationStatus.ALWAYS.stringValue();
-        placesState.membershipValidUntil = getUnixTimeInSeconds() + 20;  // 20 secs from now
+        placesState.membershipValidUntil = getUnixTimeInSeconds() + 20; // 20 secs from now
 
         // test
         Map<String, Object> data = placesState.getPlacesSharedState();
@@ -623,12 +670,28 @@ public class PlacesStateTests {
         // verify
         assertNotNull(data);
         assertEquals(6, data.size());
-        assertEquals("currentPOI", ((Map<?,?>)data.get(PlacesTestConstants.SharedStateKeys.CURRENT_POI)).get(PlacesTestConstants.POIKeys.IDENTIFIER));
-        assertEquals("lastEnteredPOI",((Map<?,?>)data.get(PlacesTestConstants.SharedStateKeys.LAST_ENTERED_POI)).get(PlacesTestConstants.POIKeys.IDENTIFIER));
-        assertEquals("lastExitedPOI", ((Map<?,?>)data.get(PlacesTestConstants.SharedStateKeys.LAST_EXITED_POI)).get(PlacesTestConstants.POIKeys.IDENTIFIER));
-        assertEquals(2, ((Collection<?>)data.get(PlacesTestConstants.SharedStateKeys.NEARBYPOIS)).size());
-        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesTestConstants.SharedStateKeys.AUTH_STATUS));
-        assertEquals(getUnixTimeInSeconds() + 20,(long)data.get(PlacesTestConstants.SharedStateKeys.VALID_UNTIL), 1);
+        assertEquals(
+                "currentPOI",
+                ((Map<?, ?>) data.get(PlacesTestConstants.SharedStateKeys.CURRENT_POI))
+                        .get(PlacesTestConstants.POIKeys.IDENTIFIER));
+        assertEquals(
+                "lastEnteredPOI",
+                ((Map<?, ?>) data.get(PlacesTestConstants.SharedStateKeys.LAST_ENTERED_POI))
+                        .get(PlacesTestConstants.POIKeys.IDENTIFIER));
+        assertEquals(
+                "lastExitedPOI",
+                ((Map<?, ?>) data.get(PlacesTestConstants.SharedStateKeys.LAST_EXITED_POI))
+                        .get(PlacesTestConstants.POIKeys.IDENTIFIER));
+        assertEquals(
+                2,
+                ((Collection<?>) data.get(PlacesTestConstants.SharedStateKeys.NEARBYPOIS)).size());
+        assertEquals(
+                PlacesAuthorizationStatus.ALWAYS.stringValue(),
+                data.get(PlacesTestConstants.SharedStateKeys.AUTH_STATUS));
+        assertEquals(
+                getUnixTimeInSeconds() + 20,
+                (long) data.get(PlacesTestConstants.SharedStateKeys.VALID_UNTIL),
+                1);
     }
 
     @Test
@@ -646,9 +709,8 @@ public class PlacesStateTests {
         // verify
         assertNotNull(data);
         assertEquals(1, data.size());
-        assertEquals(0, (long)(data.get(PlacesTestConstants.SharedStateKeys.VALID_UNTIL)));
+        assertEquals(0, (long) (data.get(PlacesTestConstants.SharedStateKeys.VALID_UNTIL)));
     }
-
 
     @Test
     public void getPlacesSharedState_clearsMembershipDataWhenInvalid() throws Exception {
@@ -671,9 +733,13 @@ public class PlacesStateTests {
         assertFalse(data.containsKey(PlacesTestConstants.SharedStateKeys.LAST_EXITED_POI));
 
         // nearby POIs values still persist
-        assertEquals(2, ((Collection<?>)data.get(PlacesTestConstants.SharedStateKeys.NEARBYPOIS)).size());
-        assertEquals(PlacesAuthorizationStatus.ALWAYS.stringValue(), data.get(PlacesTestConstants.SharedStateKeys.AUTH_STATUS));
-        assertEquals(0, (long) data.get( PlacesTestConstants.SharedStateKeys.VALID_UNTIL));
+        assertEquals(
+                2,
+                ((Collection<?>) data.get(PlacesTestConstants.SharedStateKeys.NEARBYPOIS)).size());
+        assertEquals(
+                PlacesAuthorizationStatus.ALWAYS.stringValue(),
+                data.get(PlacesTestConstants.SharedStateKeys.AUTH_STATUS));
+        assertEquals(0, (long) data.get(PlacesTestConstants.SharedStateKeys.VALID_UNTIL));
     }
 
     // ========================================================================================
@@ -688,8 +754,10 @@ public class PlacesStateTests {
         placesState.saveLastKnownLocation(34.2, 12.3);
 
         // verify
-        verify(placesDataStore, times(1)).setDouble(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE), eq(34.2));
-        verify(placesDataStore, times(1)).setDouble(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE), eq(12.3));
+        verify(placesDataStore, times(1))
+                .setDouble(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE), eq(34.2));
+        verify(placesDataStore, times(1))
+                .setDouble(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE), eq(12.3));
     }
 
     @Test
@@ -701,8 +769,10 @@ public class PlacesStateTests {
         placesState.saveLastKnownLocation(355.2, -6612.3);
 
         // verify
-        verify(placesDataStore, times(1)).remove(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE));
-        verify(placesDataStore, times(1)).remove(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE));
+        verify(placesDataStore, times(1))
+                .remove(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE));
+        verify(placesDataStore, times(1))
+                .remove(eq(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE));
     }
 
     @Test
@@ -727,15 +797,21 @@ public class PlacesStateTests {
 
         // Mock the construction of location.
         // A location object is constructed when loadLastKnownLocation method is called.
-        MockedConstruction<Location> mockedLocationConstruction = mockConstruction(Location.class, (mock, context) -> {
-            when(mock.getLatitude()).thenReturn(11.11);
-            when(mock.getLongitude()).thenReturn(-22.22);
-        });
-        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
-                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LATITUDE);
-        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
-                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(SAMPLE_LONGITUDE);
-
+        MockedConstruction<Location> mockedLocationConstruction =
+                mockConstruction(
+                        Location.class,
+                        (mock, context) -> {
+                            when(mock.getLatitude()).thenReturn(11.11);
+                            when(mock.getLongitude()).thenReturn(-22.22);
+                        });
+        when(placesDataStore.getDouble(
+                        PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
+                        PlacesTestConstants.INVALID_LAT_LON))
+                .thenReturn(SAMPLE_LATITUDE);
+        when(placesDataStore.getDouble(
+                        PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
+                        PlacesTestConstants.INVALID_LAT_LON))
+                .thenReturn(SAMPLE_LONGITUDE);
 
         // test
         Location location = placesState.loadLastKnownLocation();
@@ -755,10 +831,14 @@ public class PlacesStateTests {
     @Test
     public void loadLastKnownLocation_when_InvalidLocation() {
         // setup
-        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
-                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(1233.33);
-        when(placesDataStore.getDouble(PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
-                PlacesTestConstants.INVALID_LAT_LON)).thenReturn(-333.3);
+        when(placesDataStore.getDouble(
+                        PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LATITUDE,
+                        PlacesTestConstants.INVALID_LAT_LON))
+                .thenReturn(1233.33);
+        when(placesDataStore.getDouble(
+                        PlacesTestConstants.DataStoreKeys.LAST_KNOWN_LONGITUDE,
+                        PlacesTestConstants.INVALID_LAT_LON))
+                .thenReturn(-333.3);
 
         // test
         Location location = placesState.loadLastKnownLocation();
@@ -766,7 +846,6 @@ public class PlacesStateTests {
         // verify
         assertNull(location);
     }
-
 
     // ========================================================================================
     // setAuthorizationStatus
@@ -811,9 +890,9 @@ public class PlacesStateTests {
 
         // verify
         assertEquals(PlacesAuthorizationStatus.UNKNOWN.stringValue(), placesState.authStatus);
-        assertEquals(PlacesAuthorizationStatus.UNKNOWN.stringValue(), getPersistedPermissionStatus());
+        assertEquals(
+                PlacesAuthorizationStatus.UNKNOWN.stringValue(), getPersistedPermissionStatus());
     }
-
 
     // ========================================================================================
     // getUserWithInPOIs
@@ -833,7 +912,6 @@ public class PlacesStateTests {
         assertEquals(1, placesState.getUserWithInPOIs().size());
         assertEquals("cachedPOI1", placesState.getUserWithInPOIs().get(0).getIdentifier());
     }
-
 
     // ========================================================================================
     // privacyOptedOut
@@ -871,23 +949,29 @@ public class PlacesStateTests {
         verifyLastEnteredPOINotPersisted();
         verifyLastExcitedPOINotPersisted();
         assertEquals(0, getPersistedMembershipValidUntilTimestamp());
-        assertEquals(PlacesAuthorizationStatus.UNKNOWN.stringValue(), getPersistedPermissionStatus());
+        assertEquals(
+                PlacesAuthorizationStatus.UNKNOWN.stringValue(), getPersistedPermissionStatus());
         verifyNearbyPOINotPersisted();
     }
 
     //	// ========================================================================================
-//	// Helper methods
-//	// ========================================================================================
-//
+    //	// Helper methods
+    //	// ========================================================================================
+    //
     private Event prepareRegionEvent(final String regionID, final String regionType) {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(PlacesTestConstants.EventDataKeys.Places.REGION_ID, regionID);
         eventData.put(PlacesTestConstants.EventDataKeys.Places.REGION_EVENT_TYPE, regionType);
-        eventData.put(PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
+        eventData.put(
+                PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE,
                 PlacesTestConstants.EventDataKeys.Places.REQUEST_TYPE_PROCESS_REGION_EVENT);
-        final Event event = new Event.Builder("Process Region Event", EventType.PLACES, EventSource.REQUEST_CONTENT)
-                .setEventData(eventData)
-                .build();
+        final Event event =
+                new Event.Builder(
+                                "Process Region Event",
+                                EventType.PLACES,
+                                EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
         return event;
     }
 
@@ -915,28 +999,38 @@ public class PlacesStateTests {
                 nearbyPOIsJSON.put(poiID, new JSONObject(cachedPOIs.get(poiID).toMap()));
             }
             final String jsonString = nearbyPOIsJSON.toString();
-            when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.NEARBYPOIS, "")).thenReturn(jsonString);
+            when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.NEARBYPOIS, ""))
+                    .thenReturn(jsonString);
         } catch (final JSONException e) {
         }
 
         // current POI
-        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.CURRENT_POI, "")).thenReturn(sampleCurrentPOI.toJsonString());
+        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.CURRENT_POI, ""))
+                .thenReturn(sampleCurrentPOI.toJsonString());
 
         // lastEntered POI
-        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI, "")).thenReturn(sampleLastEnteredPOI.toJsonString());
+        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI, ""))
+                .thenReturn(sampleLastEnteredPOI.toJsonString());
 
         // lastExited POI
-        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI, "")).thenReturn(sampleLastExitedPOI.toJsonString());
+        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI, ""))
+                .thenReturn(sampleLastExitedPOI.toJsonString());
 
-        when(placesDataStore.getString(PlacesTestConstants.DataStoreKeys.AUTH_STATUS, PlacesAuthorizationStatus.DEFAULT_VALUE)).thenReturn(PlacesAuthorizationStatus.ALWAYS.stringValue());
+        when(placesDataStore.getString(
+                        PlacesTestConstants.DataStoreKeys.AUTH_STATUS,
+                        PlacesAuthorizationStatus.DEFAULT_VALUE))
+                .thenReturn(PlacesAuthorizationStatus.ALWAYS.stringValue());
 
-        when(placesDataStore.getLong(PlacesTestConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL, 0)).thenReturn(SAMPLE_MEMBERSHIP_VALID_UNTIL_TIMESTAMP);
+        when(placesDataStore.getLong(PlacesTestConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL, 0))
+                .thenReturn(SAMPLE_MEMBERSHIP_VALID_UNTIL_TIMESTAMP);
     }
-
 
     private LinkedHashMap<String, PlacesPOI> getPersistedCachedPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.NEARBYPOIS), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1))
+                .setString(
+                        eq(PlacesTestConstants.DataStoreKeys.NEARBYPOIS),
+                        persistenceValueCaptor.capture());
         final LinkedHashMap<String, PlacesPOI> cachedPOIs = new LinkedHashMap<>();
         final String nearbyString = persistenceValueCaptor.getValue();
         final JSONObject nearbyJSON = new JSONObject(nearbyString);
@@ -950,67 +1044,105 @@ public class PlacesStateTests {
 
     private PlacesPOI getPersistedLastEnteredPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1))
+                .setString(
+                        eq(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI),
+                        persistenceValueCaptor.capture());
         return new PlacesPOI((persistenceValueCaptor.getValue()));
     }
 
     private PlacesPOI getPersistedLastExitedPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1))
+                .setString(
+                        eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI),
+                        persistenceValueCaptor.capture());
         return new PlacesPOI((persistenceValueCaptor.getValue()));
     }
 
     private PlacesPOI getPersistedCurrentPOI() throws JSONException {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.CURRENT_POI), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1))
+                .setString(
+                        eq(PlacesTestConstants.DataStoreKeys.CURRENT_POI),
+                        persistenceValueCaptor.capture());
         return new PlacesPOI((persistenceValueCaptor.getValue()));
     }
 
     private String getPersistedPermissionStatus() {
         ArgumentCaptor<String> persistenceValueCaptor = ArgumentCaptor.forClass(String.class);
-        verify(placesDataStore, times(1)).setString(eq(PlacesTestConstants.DataStoreKeys.AUTH_STATUS), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1))
+                .setString(
+                        eq(PlacesTestConstants.DataStoreKeys.AUTH_STATUS),
+                        persistenceValueCaptor.capture());
         return persistenceValueCaptor.getValue();
     }
 
     private long getPersistedMembershipValidUntilTimestamp() {
         ArgumentCaptor<Long> persistenceValueCaptor = ArgumentCaptor.forClass(Long.class);
-        verify(placesDataStore, times(1)).setLong(eq(PlacesTestConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL), persistenceValueCaptor.capture());
+        verify(placesDataStore, times(1))
+                .setLong(
+                        eq(PlacesTestConstants.DataStoreKeys.MEMBERSHIP_VALID_UNTIL),
+                        persistenceValueCaptor.capture());
         return persistenceValueCaptor.getValue();
     }
 
     private void verifyLastEnteredPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI), any());
+        verify(placesDataStore, times(0))
+                .setString(eq(PlacesTestConstants.DataStoreKeys.LAST_ENTERED_POI), any());
     }
 
     private void verifyCurrentPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.CURRENT_POI), any());
+        verify(placesDataStore, times(0))
+                .setString(eq(PlacesTestConstants.DataStoreKeys.CURRENT_POI), any());
     }
 
     private void verifyLastExcitedPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), any());
+        verify(placesDataStore, times(0))
+                .setString(eq(PlacesTestConstants.DataStoreKeys.LAST_EXITED_POI), any());
     }
 
     private void verifyNearbyPOINotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.NEARBYPOIS), any());
+        verify(placesDataStore, times(0))
+                .setString(eq(PlacesTestConstants.DataStoreKeys.NEARBYPOIS), any());
     }
 
     private void verifyAuthStatusNotPersisted() {
-        verify(placesDataStore, times(0)).setString(eq(PlacesTestConstants.DataStoreKeys.AUTH_STATUS), any());
+        verify(placesDataStore, times(0))
+                .setString(eq(PlacesTestConstants.DataStoreKeys.AUTH_STATUS), any());
     }
 
-    private PlacesQueryResponse GetSampleSuccessPlacesResponse(final int containsUserPOICount, final int nearByPOIsCount) {
+    private PlacesQueryResponse GetSampleSuccessPlacesResponse(
+            final int containsUserPOICount, final int nearByPOIsCount) {
         PlacesQueryResponse response = new PlacesQueryResponse();
         response.containsUserPOIs = new ArrayList<PlacesPOI>();
 
         for (int i = 0; i < containsUserPOICount; i++) {
-            response.containsUserPOIs.add(new PlacesPOI("containsUserPOI " + i, "hidden", 34.33, -121.55, 150, "libraryName", 2,
-                    null));
+            response.containsUserPOIs.add(
+                    new PlacesPOI(
+                            "containsUserPOI " + i,
+                            "hidden",
+                            34.33,
+                            -121.55,
+                            150,
+                            "libraryName",
+                            2,
+                            null));
         }
 
         response.nearByPOIs = new ArrayList<PlacesPOI>();
 
         for (int i = 0; i < nearByPOIsCount; i++) {
-            response.nearByPOIs.add(new PlacesPOI("nearByPOI" + i, "hidden", 34.33, -121.55, 150, "libraryName", 2, null));
+            response.nearByPOIs.add(
+                    new PlacesPOI(
+                            "nearByPOI" + i,
+                            "hidden",
+                            34.33,
+                            -121.55,
+                            150,
+                            "libraryName",
+                            2,
+                            null));
         }
 
         response.isSuccess = true;
