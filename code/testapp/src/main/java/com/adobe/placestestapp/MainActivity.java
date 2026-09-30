@@ -348,9 +348,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 		Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
 		// We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
-		// calling addGeofences() and removeGeofences().
+		// calling addGeofences() and removeGeofences(). FLAG_MUTABLE is required on API 31+
+		// and by Play Services for geofence-triggering PendingIntents.
 		mGeofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.
-								 FLAG_UPDATE_CURRENT);
+								 FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
 		return mGeofencePendingIntent;
 	}
 
